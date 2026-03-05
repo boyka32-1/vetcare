@@ -1,0 +1,170 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap");
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root{
+  --blue: #5aafe8;
+  --blue-dark: #3a8ecf;
+  --bg: #eef6fc;
+  --card: #ffffff;
+  --text: #1a2a3a;
+  --muted: #6a8eaa;
+  --border: #cce3f5;
+}
+
+/* ✅ Fullscreen real */
+.ms-body{
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  padding: 0;
+
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(90,175,232,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(168,216,240,0.15) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235aafe8' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
+  font-family: "DM Sans", sans-serif;
+  color: var(--text);
+}
+
+/* ✅ Ya no es “card”, ahora es la pantalla */
+.ms-card{
+  width: 100%;
+  min-height: 100vh;
+  background: var(--card);
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header a lo ancho */
+.ms-header{
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+  padding: 26px 26px;
+  text-align: left;
+}
+
+.ms-title{
+  font-family: "Playfair Display", serif;
+  color: #fff;
+  font-size: 30px;
+  letter-spacing: -0.2px;
+  margin-bottom: 6px;
+}
+
+.ms-sub{
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+}
+
+/* ✅ Form ocupa el resto y scrollea si hace falta */
+.ms-form{
+  flex: 1;
+  padding: 26px;
+  display: grid;
+  gap: 14px;
+  overflow: auto;
+
+  /* opcional: evita que en monitores grandes se vea demasiado ancho */
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.ms-grid-2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 640px){
+  .ms-grid-2{ grid-template-columns: 1fr; }
+}
+
+.ms-field label{
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.ms-field input,
+.ms-field select,
+.ms-field textarea{
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+
+.ms-field textarea{
+  min-height: 110px;
+  resize: none;
+}
+
+.ms-field input::placeholder,
+.ms-field textarea::placeholder{
+  color: #9bb8cf;
+}
+
+.ms-field input:focus,
+.ms-field select:focus,
+.ms-field textarea:focus{
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(90,175,232,0.15);
+}
+
+.ms-btn-primary{
+  margin-top: 6px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+  box-shadow: 0 8px 28px rgba(90,175,232,0.35);
+  transition: transform .15s, box-shadow .2s, filter .2s;
+}
+
+.ms-btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 34px rgba(90,175,232,0.45);
+  filter: brightness(1.03);
+}
+
+.ms-btn-primary:active{
+  transform: translateY(1px);
+}
+
+.ms-link{
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  color: var(--blue-dark);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.ms-link:hover{
+  filter: brightness(0.95);
+}
