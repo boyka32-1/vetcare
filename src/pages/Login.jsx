@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
 import { User, Lock } from "lucide-react";
 
@@ -49,6 +49,7 @@ export default function Login() {
 
       navigate("/menu");
     } catch (err) {
+      console.error(err);
       setError("Could not connect to the server.");
     } finally {
       setLoading(false);
@@ -61,7 +62,11 @@ export default function Login() {
         <div className="vc-card-header">
           <div className="vc-brand">
             <div className="vc-brand-icon">
-              <img src="/logo-vetcare.png" alt="VetCare Logo" style={{ width: "80px" }} />
+              <img
+                src="/logo-vetcare.png"
+                alt="VetCare Logo"
+                style={{ width: "80px" }}
+              />
             </div>
             <div className="vc-brand-name">
               Vet<span>Care</span>
@@ -97,7 +102,7 @@ export default function Login() {
                 <input
                   type={passType}
                   id="contrasena"
-                  placeholder=""
+                  placeholder="••••••••"
                   autoComplete="current-password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
@@ -110,7 +115,7 @@ export default function Login() {
                   onClick={() => setShowPass((v) => !v)}
                   aria-label={showPass ? "Hide password" : "Show password"}
                 >
-                  {showPass ? "🙈" : "👁"}
+                  {showPass ? "👁‍🗨" : "👁"}
                 </button>
               </div>
             </div>
@@ -124,6 +129,10 @@ export default function Login() {
             <button className="vc-btn-login" type="submit" disabled={loading}>
               {loading ? "Checking..." : "LOG IN"}
             </button>
+
+            <Link to="/register" className="vc-btn-register">
+              CREATE ACCOUNT
+            </Link>
 
             <div className="vc-security-badge">
               <svg
