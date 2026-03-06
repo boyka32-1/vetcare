@@ -14,48 +14,59 @@ export default function Clientes() {
     telefono2: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGuardar = (e) => {
+  const handleGuardar = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (!form.nombre || !form.cedula || !form.direccion || !form.correo || !form.telefono) {
-      alert("Completa los campos obligatorios del cliente.");
+      setError("Complete the required client fields.");
       return;
     }
 
-    const clientesGuardados = JSON.parse(localStorage.getItem("clientes")) || [];
+    try {
+      setLoading(true);
 
-    const existeCedula = clientesGuardados.some(
-      (cliente) => cliente.cedula.trim() === form.cedula.trim()
-    );
+      const response = await fetch("http://localhost:5000/api/clientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-    if (existeCedula) {
-      alert("Ya existe un cliente con esa cédula.");
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Could not save client.");
+        return;
+      }
+
+      setSuccess("Client saved successfully.");
+
+      setForm({
+        nombre: "",
+        cedula: "",
+        direccion: "",
+        correo: "",
+        telefono: "",
+        telefono2: "",
+      });
+    } catch (error) {
+      console.error(error);
+      setError("Could not connect to the server.");
+    } finally {
+      setLoading(false);
     }
-
-    const nuevoCliente = {
-      id: Date.now().toString(),
-      ...form,
-    };
-
-    const nuevaLista = [...clientesGuardados, nuevoCliente];
-    localStorage.setItem("clientes", JSON.stringify(nuevaLista));
-
-    alert("Cliente guardado correctamente.");
-
-    setForm({
-      nombre: "",
-      cedula: "",
-      direccion: "",
-      correo: "",
-      telefono: "",
-      telefono2: "",
-    });
   };
 
   return (
@@ -145,8 +156,20 @@ export default function Clientes() {
             </div>
           </div>
 
-          <button className="cl-btn-primary" type="submit">
-            Guardar cliente
+          {error && (
+            <div style={{ color: "red", marginBottom: "12px" }}>
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div style={{ color: "green", marginBottom: "12px" }}>
+              {success}
+            </div>
+          )}
+
+          <button className="cl-btn-primary" type="submit" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar cliente"}
           </button>
 
           <button

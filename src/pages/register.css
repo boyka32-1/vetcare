@@ -12,6 +12,7 @@
   --primary: #5aafe8;
   --primary-dark: #3a8ecf;
   --primary-soft: #a8d8f0;
+  
 
   --bg: #eef6fc;
   --card: #ffffff;
@@ -26,12 +27,14 @@
   background: var(--bg);
   font-family: "Playfair Display", serif;
   color: var(--text);
+
 }
 
 .rg-topbar {
   width: 100%;
   background: #fff;
   border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+
 }
 
 .rg-topbar-inner {
