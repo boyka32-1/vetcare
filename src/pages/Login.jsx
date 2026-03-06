@@ -1,129 +1,127 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
+import { User, Lock } from "lucide-react";
+
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
+  const [usuario, setUsuario] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const passType = useMemo(() => (showPass ? "text" : "password"), [showPass]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
 
+    // Simulación frontend (sin backend aún)
     setTimeout(() => {
       setLoading(false);
-      // aquí decides a dónde ir después de registrarse
-      navigate("/menu"); // o "/login"
-    }, 900);
+      navigate("/menu");
+    }, 600);
   };
 
   return (
-    <div className="auth-page">
-      {/* NAVBAR */}
-      <nav className="auth-nav">
-        <a className="auth-brand" href="#" onClick={(e) => e.preventDefault()}>
-          <img src="/logo-vetcare.png" alt="VetCare" />
-          <span className="auth-brand-name">
-            Vet<span>Care</span>
-          </span>
-        </a>
+    <div className="vc-body">
+      <div className="vc-card">
+        {/* Header */}
+        <div className="vc-card-header">
+          <div className="vc-brand">
+            <div className="vc-brand-icon">
+  <img src="/logo-vetcare.png" style={{width: "80px"}} />
+</div>
+            <div className="vc-brand-name">
+              Vet<span>Care</span>
+            </div>
+          </div>
 
-        <div className="auth-links">
-          <a href="#" onClick={(e) => e.preventDefault()}>Servicios</a>
-          <a href="#" className="active" onClick={(e) => e.preventDefault()}>Crear Cuenta</a>
-          <a href="#" onClick={(e) => e.preventDefault()}>Mi Cuenta</a>
-          {/* Quitado: Centro de Ayuda */}
-          <a href="#" onClick={(e) => e.preventDefault()}>Soporte</a>
+          <p className="vc-header-tagline">Sistema de gestión veterinaria</p>
         </div>
 
-        <div className="auth-right">
-          <a href="#" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>
-            Iniciar Sesión
-          </a>
-          <a href="#" onClick={(e) => e.preventDefault()}>
-            Registrarse
-          </a>
-        </div>
-      </nav>
+        {/* Form */}
+        <div className="vc-card-body">
+          <h1 className="vc-form-title">Bienvenido de vuelta</h1>
+          <p className="vc-form-sub">Ingresa tus credenciales para continuar</p>
 
-      {/* MAIN */}
-      <main className="auth-main">
-        <div className="auth-banner">Crear una Cuenta Gratis</div>
-
-        <section className="auth-card">
           <form onSubmit={handleSubmit}>
-            <div className="auth-row two">
-              <div className="auth-field">
-                <label>Nombre</label>
+            <div className="vc-field">
+              <label htmlFor="usuario">Usuario</label>
+              <div className="vc-input-wrap">
                 <input
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
                   type="text"
-                  placeholder=""
+                  id="usuario"
+                  placeholder="Usuario"
+                  autoComplete="username"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
                 />
-              </div>
-
-              <div className="auth-field">
-                <label>Apellido</label>
-                <input
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
-                  type="text"
-                  placeholder=""
-                />
+                <User className="vc-input-icon" size={18} />
               </div>
             </div>
 
-            <div className="auth-row">
-              <div className="auth-field full">
-                <label>Email</label>
+            <div className="vc-field">
+              <label htmlFor="contrasena">Contraseña</label>
+              <div className="vc-input-wrap">
                 <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  placeholder="tu@ejemplo.com"
+                  type={passType}
+                  id="contrasena"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
                 />
+                <Lock className="vc-input-icon" size={18} />
+
+                <button
+                  className="vc-toggle-pass"
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPass ? "🙈" : "👁"}
+                </button>
               </div>
             </div>
 
-            <div className="auth-row">
-              <div className="auth-field full">
-                <label>Contraseña</label>
-                <input
-                  value={pass}
-                  onChange={(e) => setPass(e.target.value)}
-                  type="password"
-                  placeholder=""
-                />
-              </div>
-            </div>
-
-            <div className="auth-footer registerFooter">
-              <p className="auth-terms">
-                Al registrarte aceptas los <a href="#">Términos</a><br />
-                y <a href="#">Condiciones</a> de VetCare.
-              </p>
+            <div className="vc-row-options">
+              <label className="vc-checkbox-wrap">
+                <input type="checkbox" defaultChecked />
+                <span>Recordarme</span>
+              </label>
 
               <a
-                className="auth-link"
                 href="#"
-                onClick={(e) => { e.preventDefault(); navigate("/login"); }}
+                className="vc-forgot"
+                onClick={(e) => e.preventDefault()}
               >
-                ¿Ya tienes cuenta?
+                ¿Olvidaste tu contraseña?
               </a>
             </div>
 
-            <button className="auth-btn" type="submit" disabled={loading}>
-              {loading ? "Creando..." : "CREAR CUENTA"}
+            <button className="vc-btn-login" type="submit" disabled={loading}>
+              {loading ? "Verificando..." : "INICIAR SESIÓN"}
             </button>
+
+            <div className="vc-security-badge">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Conexión segura y cifrada
+            </div>
           </form>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
