@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
 import { User, Lock } from "lucide-react";
-
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,7 +17,6 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulación frontend (sin backend aún)
     setTimeout(() => {
       setLoading(false);
       navigate("/menu");
@@ -28,12 +26,11 @@ export default function Login() {
   return (
     <div className="vc-body">
       <div className="vc-card">
-        {/* Header */}
         <div className="vc-card-header">
           <div className="vc-brand">
             <div className="vc-brand-icon">
-  <img src="/logo-vetcare.png" style={{width: "80px"}} />
-</div>
+              <img src="/logo-vetcare.png" alt="VetCare" />
+            </div>
             <div className="vc-brand-name">
               Vet<span>Care</span>
             </div>
@@ -42,7 +39,6 @@ export default function Login() {
           <p className="vc-header-tagline">Sistema de gestión veterinaria</p>
         </div>
 
-        {/* Form */}
         <div className="vc-card-body">
           <h1 className="vc-form-title">Bienvenido de vuelta</h1>
           <p className="vc-form-sub">Ingresa tus credenciales para continuar</p>
@@ -54,7 +50,6 @@ export default function Login() {
                 <input
                   type="text"
                   id="usuario"
-                  placeholder="Usuario"
                   autoComplete="username"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
@@ -69,7 +64,6 @@ export default function Login() {
                 <input
                   type={passType}
                   id="contrasena"
-                  placeholder="••••••••"
                   autoComplete="current-password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
@@ -82,7 +76,7 @@ export default function Login() {
                   onClick={() => setShowPass((v) => !v)}
                   aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                  {showPass ? "🙈" : "👁"}
+                  {showPass ? "👁‍🗨" : "👁"}
                 </button>
               </div>
             </div>
@@ -105,6 +99,10 @@ export default function Login() {
             <button className="vc-btn-login" type="submit" disabled={loading}>
               {loading ? "Verificando..." : "INICIAR SESIÓN"}
             </button>
+
+            <Link to="/register" className="vc-btn-register">
+              CREAR CUENTA
+            </Link>
 
             <div className="vc-security-badge">
               <svg

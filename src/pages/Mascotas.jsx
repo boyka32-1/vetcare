@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./mascotas.css";
 
 export default function Mascotas() {
   const navigate = useNavigate();
+  const clientes = useMemo(
+    () => JSON.parse(localStorage.getItem("clientes")) || [],
+    []
+  );
 
   const [form, setForm] = useState({
+    clienteId: "",
     nombre: "",
     edad: "",
     raza: "",
@@ -22,12 +27,41 @@ export default function Mascotas() {
   const handleGuardar = (e) => {
     e.preventDefault();
 
-    // Frontend por ahora (sin backend)
-    console.log("MASCOTA GUARDADA (mock):", form);
-    alert("Mascota guardada (simulación).");
+    if (clientes.length === 0) {
+      alert("Primero debes registrar al menos un cliente.");
+      return;
+    }
 
-    // Si quieres volver al menú automáticamente:
-    // navigate("/menu");
+    if (!form.clienteId || !form.nombre || !form.edad || !form.raza || !form.sexo || !form.peso) {
+      alert("Completa los campos obligatorios de la mascota.");
+      return;
+    }
+
+    const clienteSeleccionado = clientes.find((cliente) => cliente.id === form.clienteId);
+
+    const mascotasGuardadas = JSON.parse(localStorage.getItem("mascotas")) || [];
+
+    const nuevaMascota = {
+      id: Date.now().toString(),
+      ...form,
+      clienteNombre: clienteSeleccionado?.nombre || "",
+      clienteCedula: clienteSeleccionado?.cedula || "",
+    };
+
+    const nuevaLista = [...mascotasGuardadas, nuevaMascota];
+    localStorage.setItem("mascotas", JSON.stringify(nuevaLista));
+
+    alert("Mascota guardada correctamente.");
+
+    setForm({
+      clienteId: "",
+      nombre: "",
+      edad: "",
+      raza: "",
+      sexo: "",
+      peso: "",
+      observaciones: "",
+    });
   };
 
   return (
@@ -39,6 +73,23 @@ export default function Mascotas() {
         </div>
 
         <form className="ms-form" onSubmit={handleGuardar}>
+          <div className="ms-field">
+            <label htmlFor="clienteId">Cliente asociado</label>
+            <select
+              id="clienteId"
+              name="clienteId"
+              value={form.clienteId}
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar cliente...</option>
+              {clientes.map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {cliente.nombre} - {cliente.cedula}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="ms-field">
             <label htmlFor="nombre">Nombre</label>
             <input
@@ -117,7 +168,7 @@ export default function Mascotas() {
           </div>
 
           <button className="ms-btn-primary" type="submit">
-            Guardar
+            Guardar mascota
           </button>
 
           <button

@@ -1,8 +1,22 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./registro.css";
 
 export default function Registro() {
   const navigate = useNavigate();
+
+  const clientes = useMemo(
+    () => JSON.parse(localStorage.getItem("clientes")) || [],
+    []
+  );
+
+  const mascotas = useMemo(
+    () => JSON.parse(localStorage.getItem("mascotas")) || [],
+    []
+  );
+
+  const mascotasPorCliente = (clienteId) =>
+    mascotas.filter((mascota) => mascota.clienteId === clienteId);
 
   return (
     <div className="rg-body">
@@ -13,146 +27,72 @@ export default function Registro() {
           </button>
           <div className="rg-title">
             <h1>Registro</h1>
-            <p>Clientes y mascotas</p>
+            <p>Clientes y mascotas registradas</p>
           </div>
         </div>
 
-        <div className="rg-columns">
-          {/* Cliente */}
-          <section className="rg-col">
-            <h2 className="rg-section-title">Datos del cliente</h2>
-
-            <div className="rg-field">
-              <label>
-                Nombre <span>*</span>
-              </label>
-              <input type="text" placeholder="Ej: Juan Pérez" />
+        <div className="rg-list-wrap">
+          {clientes.length === 0 ? (
+            <div className="rg-empty">
+              <h2>No hay clientes registrados</h2>
+              <p>Primero registra un cliente y luego podrás asociarle mascotas.</p>
             </div>
+          ) : (
+            <div className="rg-list">
+              {clientes.map((cliente) => {
+                const mascotasCliente = mascotasPorCliente(cliente.id);
 
-            <div className="rg-field">
-              <label>
-                Cédula <span>*</span>
-              </label>
-              <input type="text" placeholder="Ej: 1234567890" />
+                return (
+                  <article key={cliente.id} className="rg-record">
+                    <div className="rg-record-header">
+                      <h2>{cliente.nombre}</h2>
+                      <span>{cliente.cedula}</span>
+                    </div>
+
+                    <div className="rg-record-grid">
+                      <div className="rg-record-block">
+                        <h3>Datos del cliente</h3>
+                        <p><strong>Dirección:</strong> {cliente.direccion}</p>
+                        <p><strong>Correo:</strong> {cliente.correo}</p>
+                        <p><strong>Teléfono:</strong> {cliente.telefono}</p>
+                        <p><strong>Teléfono secundario:</strong> {cliente.telefono2 || "No registrado"}</p>
+                      </div>
+
+                      <div className="rg-record-block">
+                        <h3>Mascotas asociadas</h3>
+
+                        {mascotasCliente.length === 0 ? (
+                          <p className="rg-no-pets">Este cliente aún no tiene mascotas registradas.</p>
+                        ) : (
+                          <div className="rg-pets">
+                            {mascotasCliente.map((mascota) => (
+                              <div key={mascota.id} className="rg-pet-card">
+                                <p><strong>Nombre:</strong> {mascota.nombre}</p>
+                                <p><strong>Edad:</strong> {mascota.edad}</p>
+                                <p><strong>Raza:</strong> {mascota.raza}</p>
+                                <p><strong>Sexo:</strong> {mascota.sexo}</p>
+                                <p><strong>Peso:</strong> {mascota.peso}</p>
+                                <p><strong>Observaciones:</strong> {mascota.observaciones || "Sin observaciones"}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-
-            <div className="rg-field">
-              <label>
-                Dirección <span>*</span>
-              </label>
-              <input type="text" placeholder="Ej: Calle 123 #45-67" />
-            </div>
-
-            <div className="rg-field">
-              <label>
-                Correo electrónico <span>*</span>
-              </label>
-              <input type="email" placeholder="Ej: correo@ejemplo.com" />
-            </div>
-
-            <div className="rg-field">
-              <label>
-                Teléfono <span>*</span>
-              </label>
-              <input type="tel" placeholder="Ej: +57 300 000 0000" />
-            </div>
-          </section>
-
-          <div className="rg-divider" />
-
-          {/* Mascotas */}
-          <section className="rg-col">
-            <h2 className="rg-section-title">Mascotas</h2>
-
-            <div className="rg-field">
-              <label>
-                Nombre <span>*</span>
-              </label>
-              <input type="text" placeholder="Ej: Luna" />
-            </div>
-
-            <div className="rg-row2">
-              <div className="rg-field">
-                <label>
-                  Edad <span>*</span>
-                </label>
-                <input type="text" placeholder="Ej: 3" />
-              </div>
-
-              <div className="rg-field">
-                <label>
-                  Raza <span>*</span>
-                </label>
-                <div className="rg-select">
-                  <select defaultValue="">
-                    <option value="" disabled>
-                      Selecciona...
-                    </option>
-                    <option>Labrador</option>
-                    <option>Golden Retriever</option>
-                    <option>Bulldog</option>
-                    <option>Poodle</option>
-                    <option>Pastor Alemán</option>
-                    <option>Siamés</option>
-                    <option>Persa</option>
-                    <option>Maine Coon</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="rg-row2">
-              <div className="rg-field">
-                <label>
-                  Sexo <span>*</span>
-                </label>
-                <div className="rg-select">
-                  <select defaultValue="">
-                    <option value="" disabled>
-                      Selecciona...
-                    </option>
-                    <option>Macho</option>
-                    <option>Hembra</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="rg-field">
-                <label>
-                  Peso <span>*</span>
-                </label>
-                <input type="text" placeholder="Ej: 12 kg" />
-              </div>
-            </div>
-
-            <div className="rg-field">
-              <label>
-                Observaciones <span>*</span>
-              </label>
-              <textarea placeholder="Ej: Vacunas al día, alérgica a..." />
-            </div>
-
-            <button
-              className="rg-btn"
-              type="button"
-              onClick={() => alert("Mascota agregada (demo frontend)")}
-            >
-              Agregar nueva mascota
-            </button>
-          </section>
+          )}
         </div>
 
-        <div className="rg-bottom">
-          <button className="rg-help" type="button" onClick={() => alert("Ayuda (demo)")}>
-            ?
-          </button>
-
+        <div className="rg-back-menu-container">
           <button
-            className="rg-terms"
             type="button"
-            onClick={() => alert("Términos y condiciones (demo)")}
+            className="rg-back-menu"
+            onClick={() => navigate("/menu")}
           >
-            Términos y condiciones
+            Volver al menú
           </button>
         </div>
       </div>

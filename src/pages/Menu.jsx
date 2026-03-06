@@ -4,6 +4,9 @@ import "./menu.css";
 export default function Menu() {
   const navigate = useNavigate();
 
+  const clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+  const mascotas = JSON.parse(localStorage.getItem("mascotas")) || [];
+
   return (
     <div className="mn-body">
       <div className="mn-card">
@@ -20,15 +23,15 @@ export default function Menu() {
         <div className="mn-content">
           <div className="mn-buttons">
             <button className="mn-btn mn-primary" onClick={() => navigate("/registro")}>
-              Registro (Cliente + Mascota)
+              Registro (Ver clientes y mascotas)
             </button>
 
             <button className="mn-btn" onClick={() => navigate("/clientes")}>
-              Clientes
+              Registrar clientes
             </button>
 
             <button className="mn-btn" onClick={() => navigate("/mascotas")}>
-              Mascotas
+              Registrar mascotas
             </button>
 
             <button className="mn-btn mn-danger" onClick={() => navigate("/")}>
@@ -36,25 +39,28 @@ export default function Menu() {
             </button>
           </div>
 
-          {/* Mini dashboard (opcional visual, no backend) */}
           <div className="mn-stats">
             <div className="mn-stat">
-              <div className="mn-stat-num">120</div>
+              <div className="mn-stat-num">{clientes.length}</div>
+              <div className="mn-stat-text">Clientes registrados</div>
+            </div>
+            <div className="mn-stat">
+              <div className="mn-stat-num">{mascotas.length}</div>
               <div className="mn-stat-text">Mascotas registradas</div>
             </div>
             <div className="mn-stat">
-              <div className="mn-stat-num">80</div>
-              <div className="mn-stat-text">Cierres</div>
-            </div>
-            <div className="mn-stat">
-              <div className="mn-stat-num">50</div>
-              <div className="mn-stat-text">Citas pendientes</div>
+              <div className="mn-stat-num">
+                {clientes.length > 0 ? Math.round(mascotas.length / clientes.length) : 0}
+              </div>
+              <div className="mn-stat-text">Promedio mascotas</div>
             </div>
           </div>
 
           <div className="mn-note">
             <span className="mn-dot" />
-            <span>Notificación</span>
+            <span>
+              Primero registra el cliente y luego asocia la mascota a ese cliente
+            </span>
           </div>
         </div>
       </div>
