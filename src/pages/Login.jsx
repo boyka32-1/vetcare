@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import "./login.css";
 import { User, Lock } from "lucide-react";
 
-
 export default function Login() {
   const navigate = useNavigate();
 
@@ -11,50 +10,79 @@ export default function Login() {
   const [contrasena, setContrasena] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const passType = useMemo(() => (showPass ? "text" : "password"), [showPass]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setError("");
 
-    // Simulación frontend (sin backend aún)
-    setTimeout(() => {
-      setLoading(false);
+    if (!usuario.trim() || !contrasena.trim()) {
+      setError("Username and password are required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: usuario,
+          password: contrasena,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Login failed.");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       navigate("/menu");
-    }, 600);
+    } catch (err) {
+      setError("Could not connect to the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="vc-body">
       <div className="vc-card">
-        {/* Header */}
         <div className="vc-card-header">
           <div className="vc-brand">
             <div className="vc-brand-icon">
-  <img src="/logo-vetcare.png" style={{width: "80px"}} />
-</div>
+              <img src="/logo-vetcare.png" alt="VetCare Logo" style={{ width: "80px" }} />
+            </div>
             <div className="vc-brand-name">
               Vet<span>Care</span>
             </div>
           </div>
 
-          <p className="vc-header-tagline">Sistema de gestión veterinaria</p>
+          <p className="vc-header-tagline">Veterinary management system</p>
         </div>
 
-        {/* Form */}
         <div className="vc-card-body">
-          <h1 className="vc-form-title">Bienvenido de vuelta</h1>
-          <p className="vc-form-sub">Ingresa tus credenciales para continuar</p>
+          <h1 className="vc-form-title">Welcome back</h1>
+          <p className="vc-form-sub">Enter your credentials to continue</p>
 
           <form onSubmit={handleSubmit}>
             <div className="vc-field">
-              <label htmlFor="usuario">Usuario</label>
+              <label htmlFor="usuario">Username</label>
               <div className="vc-input-wrap">
                 <input
                   type="text"
                   id="usuario"
-                  placeholder="Usuario"
+                  placeholder="Username"
                   autoComplete="username"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
@@ -64,12 +92,12 @@ export default function Login() {
             </div>
 
             <div className="vc-field">
-              <label htmlFor="contrasena">Contraseña</label>
+              <label htmlFor="contrasena">Password</label>
               <div className="vc-input-wrap">
                 <input
                   type={passType}
                   id="contrasena"
-                  placeholder="••••••••"
+                  placeholder=""
                   autoComplete="current-password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
@@ -80,30 +108,21 @@ export default function Login() {
                   className="vc-toggle-pass"
                   type="button"
                   onClick={() => setShowPass((v) => !v)}
-                  aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-label={showPass ? "Hide password" : "Show password"}
                 >
                   {showPass ? "🙈" : "👁"}
                 </button>
               </div>
             </div>
 
-            <div className="vc-row-options">
-              <label className="vc-checkbox-wrap">
-                <input type="checkbox" defaultChecked />
-                <span>Recordarme</span>
-              </label>
-
-              <a
-                href="#"
-                className="vc-forgot"
-                onClick={(e) => e.preventDefault()}
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
+            {error && (
+              <div style={{ color: "red", marginBottom: "12px", fontSize: "14px" }}>
+                {error}
+              </div>
+            )}
 
             <button className="vc-btn-login" type="submit" disabled={loading}>
-              {loading ? "Verificando..." : "INICIAR SESIÓN"}
+              {loading ? "Checking..." : "LOG IN"}
             </button>
 
             <div className="vc-security-badge">
@@ -117,7 +136,7 @@ export default function Login() {
               >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
-              Conexión segura y cifrada
+              Secure encrypted connection
             </div>
           </form>
         </div>
