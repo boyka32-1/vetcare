@@ -19,7 +19,34 @@ export default function Clientes() {
   const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    if (name === "nombre") {
+    value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+  }
+
+    if (name === "cedula") {
+      const digits = value.replace(/\D/g, "").slice(0, 11);
+
+      if (digits.length <= 3) {
+        value = digits;
+      } else if (digits.length <= 10) {
+        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      } else {
+        value = `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
+      }
+    } else if (name === "telefono" || name === "telefono2") {
+      const digits = value.replace(/\D/g, "").slice(0, 10);
+
+      if (digits.length <= 3) {
+        value = digits;
+      } else if (digits.length <= 6) {
+        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      } else {
+        value = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+      }
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -36,7 +63,7 @@ export default function Clientes() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/Clientes", {
+      const response = await fetch("http://localhost:5000/api/clientes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +71,14 @@ export default function Clientes() {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      const raw = await response.text();
+
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         setError(data.message || "Could not save client.");
@@ -88,6 +122,7 @@ export default function Clientes() {
                 placeholder="Nombre"
                 value={form.nombre}
                 onChange={handleChange}
+                pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
               />
             </div>
 
@@ -97,9 +132,10 @@ export default function Clientes() {
                 id="cedula"
                 name="cedula"
                 type="text"
-                placeholder="Cédula"
+                placeholder="000-0000000-0"
                 value={form.cedula}
                 onChange={handleChange}
+                maxLength={13}
               />
             </div>
           </div>
@@ -137,9 +173,10 @@ export default function Clientes() {
                 id="telefono"
                 name="telefono"
                 type="tel"
-                placeholder="Teléfono"
+                placeholder="809-555-5555"
                 value={form.telefono}
                 onChange={handleChange}
+                maxLength={12}
               />
             </div>
 
@@ -149,9 +186,10 @@ export default function Clientes() {
                 id="telefono2"
                 name="telefono2"
                 type="tel"
-                placeholder="Teléfono secundario"
+                placeholder="809-555-5555"
                 value={form.telefono2}
                 onChange={handleChange}
+                maxLength={12}
               />
             </div>
           </div>

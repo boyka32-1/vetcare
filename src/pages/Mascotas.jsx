@@ -54,7 +54,36 @@ export default function Mascotas() {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+     let { name, value }  = e.target;
+
+        if (name === "nombre") {
+        value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+      }
+
+      if (name === "raza") {
+        value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+      }
+
+      if (name === "peso") {
+        // allow only numbers and one decimal
+        value = value.replace(/[^0-9.]/g, "");
+
+        const parts = value.split(".");
+        if (parts.length > 2) {
+          value = parts[0] + "." + parts.slice(1).join("");
+        }
+      }
+
+
+      if (name === "edad") {
+        // allow only numbers and one decimal
+        value = value.replace(/[^0-9.]/g, "");
+
+        const parts = value.split(".");
+        if (parts.length > 2) {
+          value = parts[0] + "." + parts.slice(1).join("");
+        }
+      }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -166,8 +195,12 @@ export default function Mascotas() {
                 name="edad"
                 type="text"
                 placeholder="Edad"
-                value={form.edad}
-                onChange={handleChange}
+                value={form.edad ? `${form.edad} años` : ""}
+                onChange={(e) => {
+                  const clean = e.target.value.replace(" años", "");
+                  handleChange({ target: { name: "edad", value: clean } });
+                }}
+                
               />
             </div>
 
@@ -206,8 +239,11 @@ export default function Mascotas() {
                 name="peso"
                 type="text"
                 placeholder="Peso"
-                value={form.peso}
-                onChange={handleChange}
+                value={form.peso ? `${form.peso} kg` : ""}
+                onChange={(e) => {
+                  const clean = e.target.value.replace(" kg", "");
+                  handleChange({ target: { name: "peso", value: clean } });
+                }}
               />
             </div>
           </div>
