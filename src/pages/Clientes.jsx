@@ -36,7 +36,7 @@ export default function Clientes() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/clientes", {
+      const response = await fetch("http://localhost:5000/api/Clientes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -8,10 +8,22 @@ import crypto from "crypto";
 
 dotenv.config({ path: "./.env" });
 
-const app = express();   // MUST be before routes
+const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: (origin, callback) => {
+
+    // allow requests without origin (Postman, curl, mobile apps)
+    if (!origin) return callback(null, true);
+
+    // allow any localhost port
+    if (origin.startsWith("http://localhost")) {
+      return callback(null, true);
+    }
+
+    // reject anything else
+    callback(new Error("Not allowed by CORS"));
+  }
 }));
 
 app.use(express.json());
@@ -26,7 +38,11 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
-// REGISTER USER
+app.get("/", (req, res) => {
+  res.send("API running");
+});
+
+// REGISTER CLIENT
 app.post("/api/clientes", async (req, res) => {
   try {
     const { nombre, cedula, direccion, correo, telefono, telefono2 } = req.body;
@@ -108,7 +124,165 @@ app.post("/api/clientes", async (req, res) => {
   }
 });
 
-//login user
+// GET CLIENTS
+app.get("/api/clientes", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        CONCAT(first_name, ' ', last_name) AS nombre,
+        national_id AS cedula
+      FROM clients
+      WHERE deleted_at IS NULL
+      ORDER BY first_name, last_name
+      `
+    );
+
+    return res.json(rows);
+  } catch (error) {
+    console.error("Error loading clients:", error);
+    return res.status(500).json({
+      message: "Internal server error."
+    });
+  }
+});
+
+// REGISTER PET
+app.post("/api/mascotas", async (req, res) => {
+  try {
+    const {
+      clienteId,
+      nombre,
+      edad,
+      raza,
+      sexo,
+      peso,
+      observaciones
+    } = req.body;
+
+    if (!clienteId || !nombre || !edad || !raza || !sexo || !peso) {
+      return res.status(400).json({
+        message: "Complete all required pet fields."
+      });
+    }
+
+    const [clients] = await pool.execute(
+      `
+      SELECT id
+      FROM clients
+      WHERE id = ? AND deleted_at IS NULL
+      LIMIT 1
+      `,
+      [clienteId]
+    );
+
+    if (clients.length === 0) {
+      return res.status(404).json({
+        message: "The selected client does not exist."
+      });
+    }
+
+    const petId = crypto.randomUUID();
+
+    let sexValue = "UNKNOWN";
+    if (sexo === "Macho") sexValue = "MALE";
+    if (sexo === "Hembra") sexValue = "FEMALE";
+
+    const parsedAge = Number.parseInt(edad, 10);
+    const ageYears = Number.isNaN(parsedAge) ? null : parsedAge;
+
+    const parsedWeight = Number.parseFloat(
+      String(peso).replace(",", ".").replace(/[^\d.]/g, "")
+    );
+
+    const weightKg = Number.isNaN(parsedWeight) ? null : parsedWeight;
+
+    await pool.execute(
+      `
+      INSERT INTO pets (
+    id,
+    client_id,
+    name,
+    breed,
+    sex,
+    age_years,
+    weight_kg,
+    weight_text,
+    observations,
+    deleted_at,
+    created_at,
+    updated_at
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
+  `,
+      [
+        petId,
+    clienteId,
+    nombre.trim(),
+    raza.trim(),
+    sexValue,
+    ageYears,
+    weightKg,
+    String(peso).trim(),
+    observaciones?.trim() || null
+      ]
+    );
+
+    return res.status(201).json({
+      message: "Pet saved successfully.",
+      pet: {
+        id: petId,
+        clienteId,
+        nombre,
+        edad,
+        raza,
+        sexo,
+        peso,
+        observaciones: observaciones || ""
+      }
+    });
+  } catch (error) {
+    console.error("Error saving pet:", error);
+    return res.status(500).json({
+      message: "Internal server error."
+    });
+  }
+});
+
+//get pets
+
+app.get("/api/mascotas", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT
+        p.id,
+        p.client_id AS clienteId,
+        p.name AS nombre,
+        p.age_years AS edad,
+        p.breed AS raza,
+        CASE
+          WHEN p.sex = 'MALE' THEN 'Macho'
+          WHEN p.sex = 'FEMALE' THEN 'Hembra'
+          ELSE 'Desconocido'
+        END AS sexo,
+        COALESCE(p.weight_text, CAST(p.weight_kg AS CHAR)) AS peso,
+        p.observations AS observaciones
+      FROM pets p
+      WHERE p.deleted_at IS NULL
+      ORDER BY p.created_at DESC
+    `);
+
+    return res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error loading pets:", error);
+    return res.status(500).json({
+      message: error.message
+    });
+  }
+});
+
+// LOGIN USER
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -136,7 +310,6 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const user = rows[0];
-
     const valid = await bcrypt.compare(password, user.password_hash);
 
     if (!valid) {
@@ -151,7 +324,7 @@ app.post("/api/auth/login", async (req, res) => {
       { expiresIn: "8h" }
     );
 
-    res.json({
+    return res.json({
       token,
       user: {
         id: user.id,
@@ -159,10 +332,11 @@ app.post("/api/auth/login", async (req, res) => {
         role: user.role
       }
     });
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Login error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
   }
 });
 
@@ -171,4 +345,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-

@@ -104,7 +104,7 @@ export default function Login() {
                 <input
                   type={passType}
                   id="contrasena"
-                  placeholder="••••••••"
+                  placeholder=""
                   autoComplete="current-password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}

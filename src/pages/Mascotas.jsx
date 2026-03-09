@@ -1,13 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./mascotas.css";
 
 export default function Mascotas() {
   const navigate = useNavigate();
-  const clientes = useMemo(
-    () => JSON.parse(localStorage.getItem("clientes")) || [],
-    []
-  );
+
+  const [clientes, setClientes] = useState([]);
+  const [loadingClientes, setLoadingClientes] = useState(true);
 
   const [form, setForm] = useState({
     clienteId: "",
@@ -19,49 +18,103 @@ export default function Mascotas() {
     observaciones: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    const loadClientes = async () => {
+      try {
+        setLoadingClientes(true);
+        const response = await fetch("http://localhost:5000/api/clientes");
+        const raw = await response.text();
+
+        let data = [];
+        try {
+          data = raw ? JSON.parse(raw) : [];
+        } catch {
+          data = [];
+        }
+
+        if (!response.ok) {
+          setError("Could not load clients.");
+          return;
+        }
+
+        setClientes(data);
+      } catch (error) {
+        console.error(error);
+        setError("Could not connect to the server.");
+      } finally {
+        setLoadingClientes(false);
+      }
+    };
+
+    loadClientes();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGuardar = (e) => {
+  const handleGuardar = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (clientes.length === 0) {
-      alert("Primero debes registrar al menos un cliente.");
+      setError("You must register at least one client first.");
       return;
     }
 
     if (!form.clienteId || !form.nombre || !form.edad || !form.raza || !form.sexo || !form.peso) {
-      alert("Completa los campos obligatorios de la mascota.");
+      setError("Complete the required pet fields.");
       return;
     }
 
-    const clienteSeleccionado = clientes.find((cliente) => cliente.id === form.clienteId);
+    try {
+      setLoading(true);
 
-    const mascotasGuardadas = JSON.parse(localStorage.getItem("mascotas")) || [];
+      const response = await fetch("http://localhost:5000/api/mascotas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
-    const nuevaMascota = {
-      id: Date.now().toString(),
-      ...form,
-      clienteNombre: clienteSeleccionado?.nombre || "",
-      clienteCedula: clienteSeleccionado?.cedula || "",
-    };
+      const raw = await response.text();
 
-    const nuevaLista = [...mascotasGuardadas, nuevaMascota];
-    localStorage.setItem("mascotas", JSON.stringify(nuevaLista));
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        data = {};
+      }
 
-    alert("Mascota guardada correctamente.");
+      if (!response.ok) {
+        setError(data.message || `Request failed with status ${response.status}`);
+        return;
+      }
 
-    setForm({
-      clienteId: "",
-      nombre: "",
-      edad: "",
-      raza: "",
-      sexo: "",
-      peso: "",
-      observaciones: "",
-    });
+      setSuccess(data.message || "Pet saved successfully.");
+
+      setForm({
+        clienteId: "",
+        nombre: "",
+        edad: "",
+        raza: "",
+        sexo: "",
+        peso: "",
+        observaciones: "",
+      });
+    } catch (error) {
+      console.error(error);
+      setError("Could not connect to the server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,8 +133,11 @@ export default function Mascotas() {
               name="clienteId"
               value={form.clienteId}
               onChange={handleChange}
+              disabled={loadingClientes}
             >
-              <option value="">Seleccionar cliente...</option>
+              <option value="">
+                {loadingClientes ? "Cargando clientes..." : "Seleccionar cliente..."}
+              </option>
               {clientes.map((cliente) => (
                 <option key={cliente.id} value={cliente.id}>
                   {cliente.nombre} - {cliente.cedula}
@@ -167,8 +223,20 @@ export default function Mascotas() {
             />
           </div>
 
-          <button className="ms-btn-primary" type="submit">
-            Guardar mascota
+          {error && (
+            <div style={{ color: "red", marginBottom: "12px" }}>
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div style={{ color: "green", marginBottom: "12px" }}>
+              {success}
+            </div>
+          )}
+
+          <button className="ms-btn-primary" type="submit" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar mascota"}
           </button>
 
           <button
