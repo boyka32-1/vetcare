@@ -71,7 +71,7 @@ const menuSections = [
             <polyline points="12 6 12 12 16 14"/>
           </svg>
         ),
-        label: "Historial de Consultas",
+        label: "Historiales clínicos",
       },
     ],
   },
@@ -93,8 +93,6 @@ const menuSections = [
   },
 ];
 
-
-
 const quickActions = [
   {
     id: "nueva-consulta",
@@ -107,7 +105,6 @@ const quickActions = [
     id: "registrar-clientes",
     title: "Registrar Cliente",
     path: "/clientes",
-
     desc: "Agrega un nuevo cliente al sistema",
     featured: false,
   },
@@ -131,8 +128,7 @@ export default function MenuPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("nueva-consulta");
-
-    const [stats, setStats] = useState([
+  const [stats, setStats] = useState([
     { label: "Clientes", value: "0", accent: "#2a9d8f" },
     { label: "Mascotas", value: "0", accent: "#e76f51" },
     { label: "Consultas", value: "0", accent: "#457b9d" },
@@ -157,37 +153,39 @@ export default function MenuPage() {
     fetchStats();
   }, []);
 
-    const today = new Date();
-    const formattedDate =
-    today.toLocaleDateString("es-ES", {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-const capitalizedDate =
-  formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+  const capitalizedDate =
+    formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   const handleNavClick = (id, path) => {
-  setActiveItem(id);
-  setSidebarOpen(false);
+    setActiveItem(id);
+    setSidebarOpen(false);
 
-  if (path) {
-    navigate(path);
-  }
-};
-  
+    if (path) {
+      navigate(path);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   return (
     <div className="app">
-      {/* Overlay */}
       <div
         className={`overlay ${sidebarOpen ? "overlay--visible" : ""}`}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo">
@@ -196,11 +194,19 @@ const capitalizedDate =
               <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5"/>
               <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/>
             </svg>
-            <div className="sidebar__brand">Vet<span className= "care">Care</span></div>
+            <div className="sidebar__brand">
+              Vet<span className="care">Care</span>
+            </div>
           </div>
-          <button className="sidebar__close" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menu">
+
+          <button
+            className="sidebar__close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Cerrar menu"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
@@ -209,6 +215,7 @@ const capitalizedDate =
           {menuSections.map((section) => (
             <div key={section.label} className="sidebar__section">
               <span className="sidebar__section-label">{section.label}</span>
+
               {section.items.map((item) => (
                 <button
                   key={item.id}
@@ -217,9 +224,7 @@ const capitalizedDate =
                 >
                   <span className="sidebar__item-icon">{item.icon}</span>
                   <span className="sidebar__item-label">{item.label}</span>
-                  {item.badge && (
-                    <span className="sidebar__badge">{item.badge}</span>
-                  )}
+                  {item.badge && <span className="sidebar__badge">{item.badge}</span>}
                 </button>
               ))}
             </div>
@@ -227,18 +232,17 @@ const capitalizedDate =
         </nav>
 
         <div className="sidebar__footer">
-          <button className="sidebar__logout">
+          <button className="sidebar__logout" onClick={handleLogout}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Cerrar Sesion
+            Cerrar Sesión
           </button>
         </div>
       </aside>
 
-      {/* Topbar */}
       <header className="topbar">
         <button
           className="topbar__menu-btn"
@@ -246,11 +250,12 @@ const capitalizedDate =
           aria-label="Abrir menu"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
+
         <div className="topbar__title">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/>
@@ -259,6 +264,7 @@ const capitalizedDate =
           </svg>
           <span>VetCare</span>
         </div>
+
         <div className="topbar__right">
           <button className="topbar__alert-btn" aria-label="Alertas">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -271,14 +277,12 @@ const capitalizedDate =
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="main">
         <div className="main__greeting">
           <p className="main__greeting-sub">{capitalizedDate}</p>
           <h1 className="main__greeting-title">Bienvenido de nuevo, Doctor/a</h1>
         </div>
 
-        {/* Stats */}
         <div className="stats">
           {stats.map((s) => (
             <div key={s.label} className="stat-card" style={{ "--accent": s.accent }}>
@@ -289,8 +293,8 @@ const capitalizedDate =
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <h2 className="section-title">Acciones rapidas</h2>
+        <h2 className="section-title">Acciones rápidas</h2>
+
         <div className="actions-grid">
           {quickActions.map((action) => (
             <button
@@ -310,22 +314,21 @@ const capitalizedDate =
               <p className="action-card__desc">{action.desc}</p>
               <span className="action-card__arrow">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                  <polyline points="12 5 19 12 12 19"/>
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
                 </svg>
               </span>
             </button>
           ))}
         </div>
 
-        {/* Tip */}
         <div className="tip-banner">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <span>Usa el menu lateral para navegar entre todas las secciones del sistema.</span>
+          <span>Usa el menú lateral para navegar entre todas las secciones del sistema.</span>
         </div>
       </main>
     </div>

@@ -8,6 +8,7 @@ import Registro from "./pages/Registro.jsx";
 import Register from "./pages/Register.jsx";
 import Consultas from "./pages/Consultas.jsx";
 import Historial from "./pages/Historial.jsx";
+import HistorialMascota from  "./pages/HistorialMascota.jsx";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/consultas" element={<Consultas />} />
         <Route path="/historial" element={<Historial />} />
+        <Route path="/historialMascota" element={<HistorialMascota />} />
       </Routes>
     </BrowserRouter>
   );

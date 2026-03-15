@@ -213,8 +213,8 @@ export default function Registro() {
           </button>
 
           <div className="rg-title">
-            <h1>Registry</h1>
-            <p>Registered clients and pets</p>
+            <h1>Registro</h1>
+            <p>Clientes y mascotas registrados</p>
           </div>
         </div>
 
@@ -230,7 +230,7 @@ export default function Registro() {
             </div>
           ) : clientes.length === 0 ? (
             <div className="rg-empty">
-              <h2>No registered clients</h2>
+              <h2>No hay clientes registrados</h2>
               <p>Register a client first, then you can associate pets.</p>
             </div>
           ) : (
@@ -239,7 +239,7 @@ export default function Registro() {
                 <div className="rg-search">
                   <input
                     type="text"
-                    placeholder="Search by client, pet, phone, ID, breed..."
+                    placeholder="Buscar por cliente, mascota, teléfono, ID, raza..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -253,8 +253,8 @@ export default function Registro() {
 
               {clientesFiltrados.length === 0 ? (
                 <div className="rg-empty">
-                  <h2>No matches found</h2>
-                  <p>Try another search term.</p>
+                  <h2>No hay coincidencias</h2>
+                  <p>Intenta con otro término de búsqueda.</p>
                 </div>
               ) : (
                 <div className="rg-list">
@@ -271,27 +271,27 @@ export default function Registro() {
 
                         <div className="rg-record-grid">
                           <div className="rg-record-block">
-                            <h3>Client data</h3>
+                            <h3>Datos del cliente</h3>
                             <p>
-                              <strong>Address:</strong>{" "}
-                              {cliente.direccion || "Not registered"}
+                              <strong>Dirección:</strong>{" "}
+                              {cliente.direccion || "No registrado"}
                             </p>
                             <p>
                               <strong>Email:</strong>{" "}
-                              {cliente.correo || "Not registered"}
+                              {cliente.correo || "No registrado"}
                             </p>
                             <p>
-                              <strong>Phone:</strong>{" "}
-                              {cliente.telefono || "Not registered"}
+                              <strong>Teléfono:</strong>{" "}
+                              {cliente.telefono || "No registrado"}
                             </p>
                             <p>
-                              <strong>Secondary phone:</strong>{" "}
-                              {cliente.telefono2 || "Not registered"}
+                              <strong>Teléfono secundario:</strong>{" "}
+                              {cliente.telefono2 || "No registrado"}
                             </p>
                           </div>
 
                           <div className="rg-record-block">
-                            <h3>Associated pets</h3>
+                            <h3>Mascotas asociadas</h3>
 
                             {mascotasCliente.length === 0 ? (
                               <p className="rg-no-pets">
@@ -302,24 +302,24 @@ export default function Registro() {
                                 {mascotasCliente.map((mascota) => (
                                   <div key={mascota.id} className="rg-pet-card">
                                     <p>
-                                      <strong>Name:</strong>{" "}
-                                      {mascota.nombre || "No name"}
+                                      <strong>Nombre:</strong>{" "}
+                                      {mascota.nombre || "No registrado"}
                                     </p>
                                     <p>
-                                      <strong>Age:</strong>{" "}
-                                      {mascota.edad || "Not registered"}
+                                      <strong>Edad:</strong>{" "}
+                                      {mascota.edad || "No registrado"}
                                     </p>
                                     <p>
-                                      <strong>Breed:</strong>{" "}
-                                      {mascota.raza || "Not registered"}
+                                      <strong>Raza:</strong>{" "}
+                                      {mascota.raza || "No registrada"}
                                     </p>
                                     <p>
-                                      <strong>Sex:</strong>{" "}
-                                      {mascota.sexo || "Not registered"}
+                                      <strong>Sexo:</strong>{" "}
+                                      {mascota.sexo || "No registrado"}
                                     </p>
                                     <p>
-                                      <strong>Weight:</strong>{" "}
-                                      {mascota.peso || "Not registered"}
+                                      <strong>Peso:</strong>{" "}
+                                      {mascota.peso || "No registrado"}
                                     </p>
                                     <p>
                                       <strong>Notes:</strong>{" "}
@@ -346,7 +346,7 @@ export default function Registro() {
             className="rg-back-menu"
             onClick={() => navigate("/menu")}
           >
-            Back to menu
+            Devuelta al menú
           </button>
         </div>
       </div>

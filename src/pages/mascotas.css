@@ -11,9 +11,9 @@
 :root {
  
   --warm-white: #FDFAF6;
-  --teal-deep: #1A4A5A;
-  --teal-mid: #2A7090;
-  --teal-light: #4BAAC8;
+  --teal-deep: #1f6b7a;
+  --teal-mid: #2a809d;
+  --teal-lighti: #4ba5c8;
   --teal-pale: #D6EEF5;
   --amber: #E8A842;
   --amber-pale: #FDF3DC;
@@ -25,6 +25,23 @@
   --border: #DDE8EE;
   --cremita: #faf1e9;
  
+}
+html,
+body,
+#root {
+  font-family: "DM Sans", sans-serif;
+}
+
+button,
+input,
+textarea,
+select,
+a,
+label,
+span,
+p,
+div {
+  font-family: inherit;
 }
 
 .ms-body {
@@ -52,12 +69,13 @@
   box-shadow:
     0 8px 24px rgba(28, 43, 51, 0.05),
     0 22px 60px rgba(42, 112, 144, 0.12);
+  font-family: "DM Sans", sans-serif !important;  
 }
 
 /* Top strip only, not giant header */
 .ms-header {
   position: relative;
-  background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+  background: linear-gradient(135deg,  var(--teal-deep), var(--teal-lighti));
   padding: 28px 28px 24px;
   overflow: hidden;
 }
@@ -122,6 +140,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+
 }
 
 .ms-field label {
@@ -131,6 +150,7 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-mid);
+  font-family: "DM Sans", sans-serif !important;
 }
 
 .ms-field input,
@@ -239,13 +259,13 @@
   cursor: pointer;
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+  background: linear-gradient(135deg, var(--teal-lighti), var(--teal-mid));
   box-shadow: 0 10px 24px rgba(42, 112, 144, 0.22);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-  font-family: "DM Sans", sans-serif;
+  font-family: "DM Sans", sans-serif !important;
 }
 
 .ms-btn-primary:hover {
@@ -261,7 +281,7 @@
 .ms-btn-secondary,
 .ms-link {
   width: 100%;
-  border: none;
+  border: 2px solid var(--border);
   border-radius: 18px;
   padding: 15px 20px;
   background: #F4F8FB;

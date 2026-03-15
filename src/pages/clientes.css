@@ -9,34 +9,37 @@
 }
 
 :root {
-    --cream: #F7F3EE;
-  
+  --warm-white: #fff7ed;
   --teal-deep: #1f6b7a;
-  --teal-mid: #2a939d;
-  --teal-light: #4bbec8;
-  --teal-pale: #D6EEF5;
-  --amber: #E8A842;
-  --amber-pale: #FDF3DC;
-  --coral: #E05C4B;
-  --coral-pale: #FDEAE8;
-  --text-dark: #1C2B33;
-  --text-mid: #4A6070;
-  --text-light: #8BA3B0;
-  --warm-whitee: #eef0ff;
+  --teal-mid: #2a809d;
+  --teal-lighti: #4ba5c8;
+  --teal-pale: #d6eef5;
+  --amber: #e8a842;
+  --amber-pale: #fdf3dc;
+  --coral: #e05c4b;
+  --coral-pale: #fdeae8;
+  --text-dark: #1c2b33;
+  --text-mid: #4a6070;
+  --text-light: #8ba3b0;
+  --cremita: #fff5e8;
 
-  /* mapped aliases so you don't have to rewrite everything */
   --primary: var(--teal-light);
   --primary-dark: var(--teal-mid);
   --primary-soft: var(--teal-pale);
 
-  --bg: var(--cream);
   --card: var(--warm-white);
-
   --text: var(--text-dark);
   --muted: var(--text-mid);
-  --border: #E7E0D7;
+  --border: #e7e0d7;
 }
 
+button,
+a,
+input,
+textarea,
+select {
+  font: inherit;
+}
 
 .cl-body {
   min-height: 100vh;
@@ -44,8 +47,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 16px;
-  background: var(--cream);
+  padding: 32px;
+  background-color: var(--cremita);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(75, 170, 200, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(232, 168, 66, 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(214, 238, 245, 0.45) 0%, transparent 55%);
   font-family: "DM Sans", sans-serif;
   color: var(--text-dark);
 }
@@ -53,41 +60,44 @@
 .cl-card {
   width: 100%;
   max-width: 760px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 30px;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow:
+    0 4px 10px rgba(28, 43, 51, 0.04),
+    0 18px 50px rgba(26, 74, 90, 0.08),
+    0 0 0 1px rgba(26, 74, 90, 0.06);
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(90, 175, 232, 0.18);
+  border: 1px solid rgba(26, 74, 90, 0.06);
 }
 
-/* Small elegant header, not giant */
 .cl-header {
   position: relative;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  padding: 24px 28px 22px;
+  background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal-lighti) 100%) !important;
+  padding: 34px 42px 30px;
   overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cl-header::before {
   content: "";
   position: absolute;
+  top: -40px;
+  right: -40px;
   width: 140px;
   height: 140px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
-  top: -55px;
-  right: -30px;
 }
 
 .cl-header::after {
   content: "";
   position: absolute;
-  width: 120px;
-  height: 120px;
+  bottom: -60px;
+  left: -20px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  bottom: -65px;
-  left: -25px;
+  background: rgba(214, 238, 245, 0.18);
 }
 
 .cl-title {
@@ -130,10 +140,10 @@
 }
 
 .cl-field label {
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--text-light);
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 
@@ -141,16 +151,15 @@
   width: 100%;
   min-height: 54px;
   padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 15px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text);
-  background: #f2f8fd;
+  color: #000;
+  background: #e8f2f5;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease,
-    background 0.2s ease;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .cl-field input::placeholder {
@@ -158,62 +167,80 @@
 }
 
 .cl-field input:focus {
-  border-color: var(--primary);
+  border-color: var(--teal-light);
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(90, 175, 232, 0.15);
+  box-shadow: 0 0 0 4px rgba(75, 170, 200, 0.14);
 }
 
 .cl-btn-primary {
   width: 100%;
-  border: none;
-  border-radius: 18px;
-  padding: 16px 20px;
+  padding: 15px;
   margin-top: 6px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, var(--teal-deep) 10%, #2a809d 100%) !important;
   color: #fff;
-  font-family: "DM Sans", sans-serif;
-  font-size: 15px;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(58, 142, 207, 0.22);
-  transition: transform 0.2s ease, filter 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+  box-shadow: 0 8px 24px rgba(26, 74, 90, 0.22);
+  position: relative;
+  overflow: hidden;
+}
+
+.cl-btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent);
+  pointer-events: none;
 }
 
 .cl-btn-primary:hover {
   transform: translateY(-1px);
-  filter: brightness(1.02);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
 }
 
 .cl-btn-primary:active {
   transform: translateY(1px);
 }
 
-.cl-link {
+.cl-btn-secondary {
+  display: block;
   width: 100%;
-  background: var(--bg);
-  border: none;
-  border-radius: 18px;
-  padding: 15px 20px;
-  color: var(--primary-dark);
-  font-family: "DM Sans", sans-serif;
-  font-size: 15px;
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--teal-mid);
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.8px;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s, filter 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.cl-link:hover {
-  background: #eaf4fc;
+.cl-btn-secondary:hover {
   transform: translateY(-1px);
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(90, 175, 232, 0.25);
+  filter: brightness(1.02);
+}
+
+.cl-btn-secondary:active {
+  transform: translateY(1px);
 }
 
 @media (max-width: 768px) {
@@ -226,7 +253,7 @@
   }
 
   .cl-header {
-    padding: 22px 20px 20px;
+    padding: 28px 22px 24px;
   }
 
   .cl-title {
@@ -247,13 +274,10 @@
     gap: 14px;
   }
 
-  .cl-field input {
-    min-height: 50px;
-    border-radius: 16px;
-  }
-
+  .cl-field input,
   .cl-btn-primary,
-  .cl-link {
-    border-radius: 16px;
+  .cl-btn-secondary {
+    min-height: 50px;
+    border-radius: 12px;
   }
 }

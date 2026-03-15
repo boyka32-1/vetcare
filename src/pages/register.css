@@ -12,7 +12,7 @@
   --primary: #2a939d;
   --primary-dark: #1f6b7a;
   --primary-soft: #a8d8f0;
-  --bg: #FDFAF6;
+  --bg: #fff5e8;
   --card: #f4f1ee;
   --text: #1a2a3a;
   --muted: #6a8eaa;
@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: center;
   padding: 48px 16px;
-  background-color: var(--cream);
+  background-color: var(--bg);
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(90, 175, 232, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(168, 216, 240, 0.15) 0%, transparent 50%),

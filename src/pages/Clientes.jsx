@@ -210,8 +210,7 @@ export default function Clientes() {
             {loading ? "Guardando..." : "Guardar cliente"}
           </button>
 
-          <button
-            className="cl-link"
+          <button className="cl-btn-secondary"
             type="button"
             onClick={() => navigate("/menu")}
           >
