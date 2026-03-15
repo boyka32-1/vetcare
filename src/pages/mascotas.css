@@ -1,189 +1,327 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600;700&display=swap");
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root{
-  --blue: #5aafe8;
-  --blue-dark: #3a8ecf;
-  --bg: #eef6fc;
-  --card: #ffffff;
-  --text: #1a2a3a;
-  --muted: #6a8eaa;
-  --border: #cce3f5;
-}
-
-.ms-body{
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
   padding: 0;
-
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(90,175,232,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(168,216,240,0.15) 0%, transparent 50%),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235aafe8' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-
-  font-family: "Playfair Display", serif;
-  color: var(--text);
 }
 
-.ms-card{
-  width: 100%;
+:root {
+ 
+  --warm-white: #FDFAF6;
+  --teal-deep: #1A4A5A;
+  --teal-mid: #2A7090;
+  --teal-light: #4BAAC8;
+  --teal-pale: #D6EEF5;
+  --amber: #E8A842;
+  --amber-pale: #FDF3DC;
+  --coral: #E05C4B;
+  --coral-pale: #FDEAE8;
+  --text-dark: #1C2B33;
+  --text-mid: #4A6070;
+  --text-light: #8BA3B0;
+  --border: #DDE8EE;
+  --cremita: #faf1e9;
+ 
+}
+
+.ms-body {
   min-height: 100vh;
-  background: var(--card);
-  border-radius: 0;
-  overflow: hidden;
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-}
-
-.ms-header{
-  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-  padding: 26px 24px 30px;
-  text-align: left;
-}
-
-.ms-title{
-  font-family: "Playfair Display", serif;
-  color: #eaf6ff;
-  font-size: 36px;
-  letter-spacing: -0.3px;
-  margin-bottom: 8px;
-}
-.ms-sub{
-  color: rgba(255,255,255,0.75);
-  font-size: 13px;
-}
-
-.ms-form{
-  flex: 1;
-  padding: 40px 24px 60px;
-  display: grid;
-  gap: 10px;
-  overflow: auto;
-  max-width: 760px;
   width: 100%;
-  margin: 0 auto;
-  align-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 42px 16px;
+  background:
+    radial-gradient(ellipse at top left, rgba(75, 170, 200, 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse at bottom right, rgba(232, 168, 66, 0.08) 0%, transparent 38%),
+    var(--creamita);
+  font-family: "DM Sans", sans-serif;
+  color: var(--text-dark);
 }
 
-.ms-grid-2{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.ms-card {
+  width: 100%;
+  max-width: 860px;
+  background: var(--warm-white);
+  border: 1px solid rgba(42, 112, 144, 0.08);
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 24px rgba(28, 43, 51, 0.05),
+    0 22px 60px rgba(42, 112, 144, 0.12);
 }
 
-.ms-field label{
-  display: block;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #2f5f8f;
+/* Top strip only, not giant header */
+.ms-header {
+  position: relative;
+  background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+  padding: 28px 28px 24px;
+  overflow: hidden;
+}
+
+.ms-header::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  top: -70px;
+  right: -35px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.ms-header::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  bottom: -55px;
+  left: -18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ms-title {
+  position: relative;
+  z-index: 1;
+  font-family: "Playfair Display", serif;
+  color: #fff;
+  font-size: 31px;
+  line-height: 1.1;
   margin-bottom: 6px;
 }
-.ms-field input,
-.ms-field select,
-.ms-field textarea{
-  width: 100%;
-  padding: 10px 12px;
-  min-height: 40px;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
+
+.ms-sub {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.84);
   font-size: 14px;
-  color: var(--text);
-  background: var(--bg);
-  outline: none;
-  transition: border-color .2s, background .2s, box-shadow .2s;
+  font-weight: 500;
 }
 
-.ms-field textarea{
-  min-height: 90px;
-  resize: none;
+.ms-form {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 34px 28px 36px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.ms-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ms-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.ms-field input,
+.ms-field select,
+.ms-field textarea {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #F5FAFD;
+  color: var(--text-dark);
+  font-size: 15px;
+  font-family: "DM Sans", sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease, transform 0.2s ease;
+}
+
+.ms-field textarea {
+  min-height: 110px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.ms-field select {
+  appearance: none;
+  cursor: pointer;
 }
 
 .ms-field input::placeholder,
-.ms-field textarea::placeholder{
-  color: #9bb8cf;
+.ms-field textarea::placeholder {
+  color: var(--text-light);
 }
 
 .ms-field input:focus,
 .ms-field select:focus,
-.ms-field textarea:focus{
-  border-color: var(--blue);
+.ms-field textarea:focus {
+  border-color: var(--teal-light);
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(90,175,232,0.15);
+  box-shadow: 0 0 0 4px rgba(75, 170, 200, 0.14);
 }
 
-.ms-btn-primary{
-  margin: 10px auto 0;
-  width: 320px;
-  height: 48px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 900;
+.ms-select-wrap {
+  position: relative;
+}
+
+.ms-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--text-mid);
+  pointer-events: none;
+}
+
+.ms-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-mid);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.ms-section-label::before,
+.ms-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(42, 112, 144, 0.14);
+}
+
+/* Optional subtle info box */
+.ms-tip {
+  border: 1px solid rgba(232, 168, 66, 0.28);
+  background: var(--amber-pale);
+  border-radius: 18px;
+  padding: 14px 16px;
+  color: #866122;
   font-size: 14px;
-  letter-spacing: 0.8px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.ms-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.ms-btn-primary {
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 20px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-  box-shadow: 0 8px 20px rgba(90,175,232,0.30);
-  transition: transform .15s, box-shadow .2s, filter .2s;
-  display: block;
-  padding: 0 16px;
+  background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+  box-shadow: 0 10px 24px rgba(42, 112, 144, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  font-family: "DM Sans", sans-serif;
 }
 
-.ms-btn-primary:hover{
+.ms-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(90,175,232,0.40);
   filter: brightness(1.03);
+  box-shadow: 0 14px 30px rgba(42, 112, 144, 0.28);
 }
 
-.ms-btn-primary:active{
+.ms-btn-primary:active {
   transform: translateY(1px);
 }
 
-.ms-link{
+.ms-btn-secondary,
+.ms-link {
   width: 100%;
-  background: transparent;
   border: none;
+  border-radius: 18px;
+  padding: 15px 20px;
+  background: #F4F8FB;
+  color: var(--teal-mid);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
-  padding: 6px;
-  color: var(--blue-dark);
-  font-weight: 800;
-  text-decoration: underline;
-  margin-top: 4px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "DM Sans", sans-serif;
 }
 
-.ms-link:hover{
-  filter: brightness(0.95);
+.ms-btn-secondary:hover,
+.ms-link:hover {
+  background: #EAF4FA;
+  transform: translateY(-1px);
 }
 
-@media (max-width: 700px){
-  .ms-header{
-    padding: 18px 16px;
+@media (max-width: 768px) {
+  .ms-body {
+    padding: 22px 14px;
+    align-items: flex-start;
   }
 
-  .ms-title{
-    font-size: 22px;
+  .ms-card {
+    border-radius: 24px;
   }
 
-  .ms-form{
-    max-width: 100%;
-    padding: 18px 16px 22px;
-    gap: 10px;
+  .ms-header {
+    padding: 24px 20px 20px;
   }
 
-  .ms-grid-2{
+  .ms-title {
+    font-size: 25px;
+  }
+
+  .ms-sub {
+    font-size: 13px;
+  }
+
+  .ms-form {
+    padding: 26px 20px 28px;
+    gap: 16px;
+  }
+
+  .ms-grid-2 {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 14px;
   }
 
-  .ms-btn-primary{
-    width: 100%;
-    max-width: 320px;
+  .ms-field input,
+  .ms-field select,
+  .ms-field textarea,
+  .ms-btn-primary,
+  .ms-btn-secondary,
+  .ms-link {
+    border-radius: 16px;
   }
 }

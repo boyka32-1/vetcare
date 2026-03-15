@@ -79,17 +79,17 @@ export default function Login() {
         </div>
 
         <div className="vc-card-body">
-          <h1 className="vc-form-title">Welcome back</h1>
-          <p className="vc-form-sub">Enter your credentials to continue</p>
+          <h1 className="vc-form-title">Bienvenido </h1>
+          <p className="vc-form-sub">Introduce tus credenciales para continuar</p>
 
           <form onSubmit={handleSubmit}>
             <div className="vc-field">
-              <label htmlFor="usuario">Username</label>
+              <label htmlFor="usuario">Nombre de usuario</label>
               <div className="vc-input-wrap">
                 <input
                   type="text"
                   id="usuario"
-                  placeholder="Username"
+                  placeholder="Nombre de usuario"
                   autoComplete="username"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
@@ -99,12 +99,12 @@ export default function Login() {
             </div>
 
             <div className="vc-field">
-              <label htmlFor="contrasena">Password</label>
+              <label htmlFor="contrasena">Contraseña</label>
               <div className="vc-input-wrap">
                 <input
                   type={passType}
                   id="contrasena"
-                  placeholder=""
+                  placeholder="contraseña"
                   autoComplete="current-password"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
@@ -133,7 +133,7 @@ export default function Login() {
             </button>
 
             <Link to="/register" className="vc-btn-register">
-              CREATE ACCOUNT
+              CREAR CUENTA
             </Link>
 
             <div className="vc-security-badge">

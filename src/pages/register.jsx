@@ -1,126 +1,80 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import "./Register.css";
+import "./register.css";
+import { User, Mail, Lock, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export default function Register() {
-  const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    nombre: "",
-    apellido: "",
-    email: "",
-    contrasena: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Simulación temporal
-    navigate("/");
-  };
-
+export default function CreateAccountVetCare() {
   return (
-    <div className="rg-page">
-      <header className="rg-topbar">
-        <div className="rg-topbar-inner">
-          <div className="rg-brand">
-            <img src="/logo-vetcare.png" alt="VetCare" className="rg-logo" />
-            <span className="rg-brand-name">VetCare</span>
-          </div>
+    <div className="cl-body">
+      <div className="cl-card">
+        <div className="cl-header">
+          <div className="cl-header-circle cl-header-circle--left"></div>
+          <div className="cl-header-circle cl-header-circle--right"></div>
 
-          <nav className="rg-nav">
-            <a href="#">Servicios</a>
-            <span className="rg-nav-active">Crear Cuenta</span>
-            <a href="#">Mi Cuenta</a>
-            <a href="#">Soporte</a>
-          </nav>
-
-          <div className="rg-auth-links">
-            <Link to="/">Iniciar Sesión</Link>
-            <Link to="/register">Registrarse</Link>
+          <div className="cl-header-content">
+            <h1 className="cl-title">Crear cuenta</h1>
+            <p className="cl-sub">Llena la informacion para comenzar</p>
           </div>
         </div>
-      </header>
 
-      <main className="rg-main">
-        <section className="rg-card">
-          <form className="rg-form" onSubmit={handleSubmit}>
-            <div className="rg-grid-2">
-              <div className="rg-field">
-                <label htmlFor="nombre">Nombre</label>
-                <input
-                  id="nombre"
-                  name="nombre"
-                  type="text"
-                  value={form.nombre}
-                  onChange={handleChange}
-                />
+        <div className="cl-form-body">
+          <div className="cl-form-container">
+            <form className="cl-form">
+              <div className="cl-field">
+                <label>NOMBRE</label>
+                <div className="cl-input-wrap">
+                  <User size={18} />
+                  <input type="text" placeholder="Enter your first name" />
+                </div>
               </div>
 
-              <div className="rg-field">
-                <label htmlFor="apellido">Apellido</label>
-                <input
-                  id="apellido"
-                  name="apellido"
-                  type="text"
-                  value={form.apellido}
-                  onChange={handleChange}
-                />
+              <div className="cl-field">
+                <label>APELLIDO</label>
+                <div className="cl-input-wrap">
+                  <User size={18} />
+                  <input type="text" placeholder="Enter your last name" />
+                </div>
               </div>
-            </div>
 
-            <div className="rg-grid-2">
-  <div className="rg-field">
-    <label htmlFor="email">Email</label>
-    <input
-      id="email"
-      name="email"
-      type="email"
-      placeholder="tu@ejemplo.com"
-      value={form.email}
-      onChange={handleChange}
-    />
-  </div>
-</div>
+              <div className="cl-field">
+                <label>EMAIL</label>
+                <div className="cl-input-wrap">
+                  <Mail size={18} />
+                  <input type="email" placeholder="Enter your email address" />
+                </div>
+              </div>
 
-            <div className="rg-grid-2">
-  <div className="rg-field">
-    <label htmlFor="contrasena">Contraseña</label>
-    <input
-      id="contrasena"
-      name="contrasena"
-      type="password"
-      value={form.contrasena}
-      onChange={handleChange}
-    />
-  </div>
-</div>
+              <div className="cl-field">
+                <label>CONTRASEÑA</label>
+                <div className="cl-input-wrap">
+                  <Lock size={18} />
+                  <input type="password" placeholder="Choose a password" />
+                </div>
+              </div>
 
-            <div className="rg-footer-row">
-              <p className="rg-terms">
-                Al registrarte aceptas los <a href="#">Términos y Condiciones</a> de
-                VetCare.
-              </p>
+              <div className="cl-field">
+                <label>CONFIRMAR CONTRASEÑA</label>
+                <div className="cl-input-wrap">
+                  <Lock size={18} />
+                  <input type="password" placeholder="Repeat your password" />
+                </div>
+              </div>
 
-              <Link to="/" className="rg-login-link">
-                ¿Ya tienes cuenta?
+              <button type="submit" className="cl-btn-primary">
+                CREAR CUENTA
+              </button>
+
+              <Link to="/" className="cl-btn-secondary">
+                Back to Login
               </Link>
-            </div>
 
-            <button type="submit" className="rg-submit-btn">
-              CREAR CUENTA
-            </button>
-          </form>
-        </section>
-      </main>
+              <div className="cl-note">
+                <ShieldCheck size={16} />
+                <span>Secure encrypted connection</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

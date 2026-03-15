@@ -132,7 +132,11 @@ app.get("/api/clientes", async (req, res) => {
       SELECT
         id,
         CONCAT(first_name, ' ', last_name) AS nombre,
-        national_id AS cedula
+        national_id AS cedula,
+        address_line1 AS direccion,
+        email AS correo,
+        phone_primary AS telefono,
+        phone_secondary AS telefono2
       FROM clients
       WHERE deleted_at IS NULL
       ORDER BY first_name, last_name
@@ -147,7 +151,6 @@ app.get("/api/clientes", async (req, res) => {
     });
   }
 });
-
 // REGISTER PET
 app.post("/api/mascotas", async (req, res) => {
   try {
