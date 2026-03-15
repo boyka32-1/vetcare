@@ -17,7 +17,7 @@
   --text-light: #a8b8bb;
   --cremita: #fff5e8;
   --border: #d4e5e5;
-  --page-bg: #f7fafa;
+  --page-bgi:#fcf6ee;
   --dark-search: #ffffff;
 }
 
@@ -25,7 +25,7 @@
 .hc-page {
   min-height: 100vh;
   padding: 16px;
-  background: var(--page-bg);
+  background: var(--page-bgi);
   font-family: "DM Sans", system-ui, sans-serif;
   color: var(--text-dark);
   font-size: 14px;
