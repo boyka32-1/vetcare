@@ -93,6 +93,8 @@ const menuSections = [
   },
 ];
 
+
+
 const quickActions = [
   {
     id: "nueva-consulta",
@@ -128,7 +130,8 @@ export default function MenuPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("nueva-consulta");
-  const [stats, setStats] = useState([
+
+    const [stats, setStats] = useState([
     { label: "Clientes", value: "0", accent: "#2a9d8f" },
     { label: "Mascotas", value: "0", accent: "#e76f51" },
     { label: "Consultas", value: "0", accent: "#457b9d" },
@@ -153,8 +156,9 @@ export default function MenuPage() {
     fetchStats();
   }, []);
 
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString("es-ES", {
+    const today = new Date();
+    const formattedDate =
+    today.toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -186,6 +190,7 @@ export default function MenuPage() {
         onClick={() => setSidebarOpen(false)}
       />
 
+      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo">
@@ -215,7 +220,6 @@ export default function MenuPage() {
           {menuSections.map((section) => (
             <div key={section.label} className="sidebar__section">
               <span className="sidebar__section-label">{section.label}</span>
-
               {section.items.map((item) => (
                 <button
                   key={item.id}
@@ -224,7 +228,9 @@ export default function MenuPage() {
                 >
                   <span className="sidebar__item-icon">{item.icon}</span>
                   <span className="sidebar__item-label">{item.label}</span>
-                  {item.badge && <span className="sidebar__badge">{item.badge}</span>}
+                  {item.badge && (
+                    <span className="sidebar__badge">{item.badge}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -264,7 +270,6 @@ export default function MenuPage() {
           </svg>
           <span>VetCare</span>
         </div>
-
         <div className="topbar__right">
           <button className="topbar__alert-btn" aria-label="Alertas">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -293,8 +298,8 @@ export default function MenuPage() {
           ))}
         </div>
 
-        <h2 className="section-title">Acciones rápidas</h2>
-
+        {/* Quick Actions */}
+        <h2 className="section-title">Acciones rapidas</h2>
         <div className="actions-grid">
           {quickActions.map((action) => (
             <button

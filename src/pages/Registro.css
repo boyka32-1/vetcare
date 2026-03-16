@@ -7,14 +7,14 @@
 }
 
 :root{
-  --blue:#2a869d;
-  --blue-dark: #1f637a;
-  --blue-soft:#e8f7fdd0;
-  --bgi:#f5fcff;
+  --blue:#2a939d;
+  --blue-dark:#1f6b7a;
+  --blue-soft:#e8fdfd;
+  --bg:#eef6fc;
   --card:#ffffff;
   --text:#1a2a3a;
   --muted:#6a8eaa;
-  --border:#3598f5;
+  --border:#cce3f5;
 }
 
 .rg-body{
@@ -174,9 +174,9 @@
 /* record */
 
 .rg-record{
-  border:2px solid var(--border);
+  border:1px solid var(--border);
   border-radius:16px;
-  background: transparent;
+  background:#fff;
   overflow:hidden;
   box-shadow:0 10px 24px rgba(90,175,232,0.08);
 }
