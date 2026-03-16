@@ -1,0 +1,459 @@
+:root {
+  --bg: #f3f6f5;
+  --card: #fffdf9;
+  --line: #d8e6e1;
+  --soft: #edf5f2;
+  --soft-2: #f7fbf9;
+  --text: #334e53;
+  --muted: #8d9ea1;
+  --teal: #277788;
+  --teal-dark: #1f6b7a;
+  --green: #2ca37f;
+  --green-soft: #e4f5ee;
+  --amber: #c68b2d;
+  --amber-soft: #fbf2df;
+  --red: #ce6e61;
+  --red-soft: #fbe8e5;
+  --blue-soft: #e9f4fb;
+  --shadow: 0 12px 30px rgba(31, 107, 122, 0.08);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  background: #fff8ec;
+  padding: 18px;
+}
+
+.container {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.header {
+  background: var(--teal);
+  color: white;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+
+.backBtn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.headerTitles {
+  min-width: 0;
+}
+
+.headerH1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.headerSub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.82;
+}
+
+.headerRight {
+  text-align: right;
+}
+
+.consultaId {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.idLabel {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+.formGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.sectionCard {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(31, 107, 122, 0.04);
+}
+
+.sectionHead {
+  background: #eef5f3;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--teal);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.sectionIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4e7b84;
+}
+
+.sectionBody {
+  padding: 16px 18px;
+}
+
+.bodyGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.cols3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cols2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.field input,
+.field select,
+.field textarea,
+.tagInputRow input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--text);
+  padding: 11px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.tagInputRow input:focus {
+  border-color: #9fc7c9;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(39, 119, 136, 0.08);
+}
+
+.patientPreview {
+  margin-top: 10px;
+  background: var(--soft-2);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pSub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.statusPill,
+.sevPill,
+.typePill {
+  border: 1px solid #cbdcda;
+  background: white;
+  color: #557478;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.typePills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.typePillActive {
+  border-color: transparent;
+  color: white;
+}
+
+.statusOpen {
+  background: var(--green);
+  color: white;
+  border-color: transparent;
+}
+
+.statusFollow {
+  background: var(--blue-soft);
+  color: var(--teal-dark);
+  border-color: #c9dce7;
+}
+
+.statusClosed {
+  background: #edf0f2;
+  color: #556267;
+  border-color: #d7dee2;
+}
+
+.sevLow {
+  background: #eef7f2;
+  color: #28885d;
+  border-color: #b8dec9;
+}
+
+.sevMed {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border-color: #e7cb8f;
+}
+
+.sevHigh {
+  background: #fff1e7;
+  color: #c86f25;
+  border-color: #f0c6a1;
+}
+
+.sevCrit {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: #e9b5ae;
+}
+
+.typeVac {
+  background: #5cbf94;
+}
+
+.typeGen {
+  background: #4c97b8;
+}
+
+.typeIll {
+  background: #d07d68;
+}
+
+.typeSur {
+  background: #9d79c8;
+}
+
+.typeMed {
+  background: #c7973e;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  background: #eef5f3;
+  color: #456b72;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tagDel {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.tagInputRow {
+  display: flex;
+  gap: 8px;
+}
+
+.addBtn {
+  border: none;
+  background: var(--teal);
+  color: white;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dropZone {
+  min-height: 110px;
+  border: 1px dashed #b8d0d1;
+  background: #f8fbfb;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #6d8c90;
+  padding: 20px;
+}
+
+.dropIcon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.dropZone p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dropZone span {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btnOutline,
+.btnPrimary {
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btnOutline {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--text);
+}
+
+.btnPrimary {
+  border: none;
+  background: var(--teal);
+  color: white;
+}
+
+.btnPrimary:hover,
+.addBtn:hover,
+.backBtn:hover {
+  filter: brightness(0.97);
+}
+
+@media (max-width: 900px) {
+  .header {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .headerRight {
+    text-align: left;
+  }
+
+  .cols3,
+  .cols2 {
+    grid-template-columns: 1fr;
+  }
+
+  .tagInputRow,
+  .saveRow {
+    flex-direction: column;
+  }
+}
