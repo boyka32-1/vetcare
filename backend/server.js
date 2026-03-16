@@ -5,8 +5,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mysql from "mysql2/promise";
 import crypto from "crypto";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config({ path: "./.env" });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -26,6 +33,38 @@ app.use(
 
 app.use(express.json());
 
+const uploadsBaseDir = path.join(__dirname, "uploads");
+const consultasUploadsDir = path.join(uploadsBaseDir, "consultas");
+
+if (!fs.existsSync(uploadsBaseDir)) {
+  fs.mkdirSync(uploadsBaseDir, { recursive: true });
+}
+
+if (!fs.existsSync(consultasUploadsDir)) {
+  fs.mkdirSync(consultasUploadsDir, { recursive: true });
+}
+
+app.use("/uploads", express.static(uploadsBaseDir));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, consultasUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniquePrefix = `${Date.now()}-${crypto.randomUUID()}`;
+    const safeOriginalName = file.originalname.replace(/[^\w.\-]/g, "_");
+    cb(null, `${uniquePrefix}-${safeOriginalName}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 15 * 1024 * 1024,
+    files: 10,
+  },
+});
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT) || 3306,
@@ -35,6 +74,24 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
 });
+
+function parseJsonArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function toNullableNumber(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const n = Number(value);
+  return Number.isNaN(n) ? null : n;
+}
 
 // =============================
 // ROOT
@@ -297,6 +354,271 @@ app.get("/api/mascotas", async (req, res) => {
 });
 
 // =============================
+// GET DOCTORS
+// =============================
+app.get("/api/doctores", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        user_id,
+        full_name AS nombre,
+        specialty,
+        license_number,
+        created_at,
+        updated_at
+      FROM doctors
+      WHERE deleted_at IS NULL
+      ORDER BY full_name
+      `
+    );
+
+    return res.json(rows);
+  } catch (error) {
+    console.error("Error loading doctors:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
+
+// =============================
+// REGISTER CONSULTA
+// =============================
+app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const {
+      pet_id,
+      client_id,
+      doctor_id,
+      fecha,
+      hora,
+      motivo,
+      diagnostico,
+      observaciones,
+      estado,
+      gravedad,
+      proxima_cita,
+      motivo_seguimiento,
+      notas_medicacion,
+      notas_analisis,
+      lote_vacuna,
+      weight,
+      temp,
+      hr,
+      rr,
+      bp,
+      spo2,
+    } = req.body;
+
+    const medicaciones = parseJsonArray(req.body.medicaciones);
+    const analisis = parseJsonArray(req.body.analisis);
+    const vacunas = parseJsonArray(req.body.vacunas);
+    const tiposConsulta = parseJsonArray(req.body.tipos_consulta);
+
+    if (!pet_id || !client_id || !doctor_id || !fecha || !motivo) {
+      await connection.rollback();
+      return res.status(400).json({
+        message: "Faltan campos obligatorios para guardar la consulta.",
+      });
+    }
+
+    const consultaId = crypto.randomUUID();
+    const fechaHora = hora ? `${fecha} ${hora}:00` : `${fecha} 00:00:00`;
+
+    const peso = toNullableNumber(weight);
+    const temperatura = toNullableNumber(temp);
+    const frecuenciaCardiaca = toNullableNumber(hr);
+    const frecuenciaRespiratoria = toNullableNumber(rr);
+    const presionArterial = bp ? String(bp) : null;
+    const saturacionOxigeno = toNullableNumber(spo2);
+
+    await connection.execute(
+      `
+      INSERT INTO consultas (
+        id,
+        pet_id,
+        client_id,
+        doctor_id,
+        fecha,
+        motivo,
+        diagnostico,
+        observaciones,
+        estado,
+        gravedad,
+        proxima_cita,
+        motivo_seguimiento,
+        peso,
+        temperatura,
+        frecuencia_cardiaca,
+        frecuencia_respiratoria,
+        presion_arterial,
+        saturacion_oxigeno,
+        deleted_at,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
+      `,
+      [
+        consultaId,
+        pet_id,
+        client_id,
+        doctor_id,
+        fechaHora,
+        motivo,
+        diagnostico || null,
+        observaciones || null,
+        estado || "abierta",
+        gravedad || "moderada",
+        proxima_cita || null,
+        motivo_seguimiento || null,
+        peso,
+        temperatura,
+        frecuenciaCardiaca,
+        frecuenciaRespiratoria,
+        presionArterial,
+        saturacionOxigeno,
+      ]
+    );
+
+    if (Array.isArray(medicaciones) && medicaciones.length > 0) {
+      for (const medicamento of medicaciones) {
+        const valor = String(medicamento || "").trim();
+        if (!valor) continue;
+
+        await connection.execute(
+          `
+          INSERT INTO consulta_medicaciones (
+            id,
+            consulta_id,
+            medicamento,
+            indicaciones,
+            deleted_at,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, NULL, NOW(), NOW())
+          `,
+          [crypto.randomUUID(), consultaId, valor, notas_medicacion || null]
+        );
+      }
+    }
+
+    if (Array.isArray(analisis) && analisis.length > 0) {
+      for (const analisisItem of analisis) {
+        const valor = String(analisisItem || "").trim();
+        if (!valor) continue;
+
+        await connection.execute(
+          `
+          INSERT INTO consulta_analisis (
+            id,
+            consulta_id,
+            analisis,
+            resultado_observacion,
+            deleted_at,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, NULL, NOW(), NOW())
+          `,
+          [crypto.randomUUID(), consultaId, valor, notas_analisis || null]
+        );
+      }
+    }
+
+    if (Array.isArray(vacunas) && vacunas.length > 0) {
+      for (const vacuna of vacunas) {
+        const valor = String(vacuna || "").trim();
+        if (!valor) continue;
+
+        await connection.execute(
+          `
+          INSERT INTO consulta_vacunas (
+            id,
+            consulta_id,
+            vacuna,
+            lote_observaciones,
+            deleted_at,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, NULL, NOW(), NOW())
+          `,
+          [crypto.randomUUID(), consultaId, valor, lote_vacuna || null]
+        );
+      }
+    }
+
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      for (const file of req.files) {
+        const publicPath = `/uploads/consultas/${file.filename}`;
+
+        await connection.execute(
+          `
+          INSERT INTO consulta_adjuntos (
+            id,
+            consulta_id,
+            nombre_archivo,
+            ruta_archivo,
+            tipo_archivo,
+            tamano_bytes,
+            deleted_at,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
+          `,
+          [
+            crypto.randomUUID(),
+            consultaId,
+            file.originalname,
+            publicPath,
+            file.mimetype || null,
+            file.size || null,
+          ]
+        );
+      }
+    }
+
+    await connection.commit();
+
+    return res.status(201).json({
+      message: "Consulta guardada correctamente.",
+      consulta: {
+        id: consultaId,
+        tipos_consulta: tiposConsulta,
+      },
+    });
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+
+    console.error("Error saving consulta:", error);
+
+    return res.status(500).json({
+      message: "Error interno al guardar la consulta.",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
+    });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+});
+
+// =============================
 // GET PET CLINICAL HISTORY
 // =============================
 app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
@@ -309,31 +631,103 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
       });
     }
 
-    const [rows] = await pool.execute(
+    const [consultas] = await pool.execute(
       `
       SELECT
-        cr.id,
-        cr.visit_at,
-        cr.reason,
-        cr.diagnosis,
-        cr.treatment,
-        cr.notes,
+        c.id,
+        c.fecha AS visit_at,
+        c.motivo AS reason,
+        c.diagnostico AS diagnosis,
+        c.observaciones AS notes,
+        c.estado,
+        c.gravedad,
+        c.proxima_cita,
+        c.motivo_seguimiento,
+        c.peso,
+        c.temperatura,
+        c.frecuencia_cardiaca,
+        c.frecuencia_respiratoria,
+        c.presion_arterial,
+        c.saturacion_oxigeno,
         d.full_name AS doctor
-      FROM clinical_records cr
-      LEFT JOIN doctors d ON d.user_id = cr.created_by
-      WHERE cr.pet_id = ?
-        AND cr.deleted_at IS NULL
-      ORDER BY cr.visit_at DESC
+      FROM consultas c
+      LEFT JOIN doctors d ON d.id = c.doctor_id
+      WHERE c.pet_id = ?
+        AND c.deleted_at IS NULL
+      ORDER BY c.fecha DESC, c.created_at DESC
       `,
       [mascotaId]
     );
 
-    return res.json(rows);
+    const resultado = [];
+
+    for (const consulta of consultas) {
+      const [medicaciones] = await pool.execute(
+        `
+        SELECT medicamento, indicaciones
+        FROM consulta_medicaciones
+        WHERE consulta_id = ?
+          AND deleted_at IS NULL
+        ORDER BY created_at ASC
+        `,
+        [consulta.id]
+      );
+
+      const [analisis] = await pool.execute(
+        `
+        SELECT analisis, resultado_observacion
+        FROM consulta_analisis
+        WHERE consulta_id = ?
+          AND deleted_at IS NULL
+        ORDER BY created_at ASC
+        `,
+        [consulta.id]
+      );
+
+      const [vacunas] = await pool.execute(
+        `
+        SELECT vacuna, lote_observaciones
+        FROM consulta_vacunas
+        WHERE consulta_id = ?
+          AND deleted_at IS NULL
+        ORDER BY created_at ASC
+        `,
+        [consulta.id]
+      );
+
+      const [adjuntos] = await pool.execute(
+        `
+        SELECT nombre_archivo, ruta_archivo, tipo_archivo, tamano_bytes
+        FROM consulta_adjuntos
+        WHERE consulta_id = ?
+          AND deleted_at IS NULL
+        ORDER BY created_at ASC
+        `,
+        [consulta.id]
+      );
+
+      resultado.push({
+        ...consulta,
+        treatment:
+          medicaciones.length > 0
+            ? medicaciones.map((m) => m.medicamento).join(", ")
+            : null,
+        medicaciones,
+        analisis,
+        vacunas,
+        adjuntos,
+      });
+    }
+
+    return res.json(resultado);
   } catch (error) {
     console.error("Error loading clinical history:", error);
 
     return res.status(500).json({
       message: "Internal server error",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
     });
   }
 });
