@@ -1,0 +1,346 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600;700&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+ 
+  --warm-white: #FDFAF6;
+  --teal-deep: #1f6b7a;
+  --teal-mid: #2a809d;
+  --teal-lighti: #4ba5c8;
+  --teal-pale: #D6EEF5;
+  --amber: #E8A842;
+  --amber-pale: #FDF3DC;
+  --coral: #E05C4B;
+  --coral-pale: #FDEAE8;
+  --text-dark: #1C2B33;
+  --text-mid: #4A6070;
+  --text-light: #8BA3B0;
+  --border: #DDE8EE;
+  --cremita: #faf1e9;
+ 
+}
+html,
+body,
+#root {
+  font-family: "DM Sans", sans-serif;
+}
+
+button,
+input,
+textarea,
+select,
+a,
+label,
+span,
+p,
+div {
+  font-family: inherit;
+}
+
+.ms-body {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 42px 16px;
+  background:
+    radial-gradient(ellipse at top left, rgba(75, 170, 200, 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse at bottom right, rgba(232, 168, 66, 0.08) 0%, transparent 38%),
+    var(--creamita);
+  font-family: "DM Sans", sans-serif;
+  color: var(--text-dark);
+}
+
+.ms-card {
+  width: 100%;
+  max-width: 860px;
+  background: var(--warm-white);
+  border: 1px solid rgba(42, 112, 144, 0.08);
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 24px rgba(28, 43, 51, 0.05),
+    0 22px 60px rgba(42, 112, 144, 0.12);
+  font-family: "DM Sans", sans-serif !important;  
+}
+
+/* Top strip only, not giant header */
+.ms-header {
+  position: relative;
+  background: linear-gradient(135deg,  var(--teal-deep), var(--teal-lighti));
+  padding: 28px 28px 24px;
+  overflow: hidden;
+}
+
+.ms-header::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  top: -70px;
+  right: -35px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.ms-header::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  bottom: -55px;
+  left: -18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ms-title {
+  position: relative;
+  z-index: 1;
+  font-family: "Playfair Display", serif;
+  color: #fff;
+  font-size: 31px;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.ms-sub {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ms-form {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 34px 28px 36px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.ms-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ms-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ms-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  font-family: "DM Sans", sans-serif !important;
+}
+
+.ms-field input,
+.ms-field select,
+.ms-field textarea {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #F5FAFD;
+  color: var(--text-dark);
+  font-size: 15px;
+  font-family: "DM Sans", sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease, transform 0.2s ease;
+}
+
+.ms-field textarea {
+  min-height: 110px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.ms-field select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.ms-field input::placeholder,
+.ms-field textarea::placeholder {
+  color: var(--text-light);
+}
+
+.ms-field input:focus,
+.ms-field select:focus,
+.ms-field textarea:focus {
+  border-color: var(--teal-light);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(75, 170, 200, 0.14);
+}
+
+.ms-select-wrap {
+  position: relative;
+}
+
+.ms-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--text-mid);
+  pointer-events: none;
+}
+
+.ms-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-mid);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.ms-section-label::before,
+.ms-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(42, 112, 144, 0.14);
+}
+
+/* Optional subtle info box */
+.ms-tip {
+  border: 1px solid rgba(232, 168, 66, 0.28);
+  background: var(--amber-pale);
+  border-radius: 18px;
+  padding: 14px 16px;
+  color: #866122;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.ms-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.ms-btn-primary {
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 20px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--teal-lighti), var(--teal-mid));
+  box-shadow: 0 10px 24px rgba(42, 112, 144, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  font-family: "DM Sans", sans-serif !important;
+}
+
+.ms-btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 14px 30px rgba(42, 112, 144, 0.28);
+}
+
+.ms-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.ms-btn-secondary,
+.ms-link {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  padding: 15px 20px;
+  background: #F4F8FB;
+  color: var(--teal-mid);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "DM Sans", sans-serif;
+}
+
+.ms-btn-secondary:hover,
+.ms-link:hover {
+  background: #EAF4FA;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .ms-body {
+    padding: 22px 14px;
+    align-items: flex-start;
+  }
+
+  .ms-card {
+    border-radius: 24px;
+  }
+
+  .ms-header {
+    padding: 24px 20px 20px;
+  }
+
+  .ms-title {
+    font-size: 25px;
+  }
+
+  .ms-sub {
+    font-size: 13px;
+  }
+
+  .ms-form {
+    padding: 26px 20px 28px;
+    gap: 16px;
+  }
+
+  .ms-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .ms-field input,
+  .ms-field select,
+  .ms-field textarea,
+  .ms-btn-primary,
+  .ms-btn-secondary,
+  .ms-link {
+    border-radius: 16px;
+  }
+}
