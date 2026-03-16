@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./historial.css";
 
+const API_URL = "http://localhost:5000";
+
 export default function HistorialClinico() {
   const navigate = useNavigate();
 
@@ -16,57 +18,73 @@ export default function HistorialClinico() {
         setLoading(true);
         setError("");
 
-        const res = await fetch("http://localhost:5000/api/historial/resumen");
-        const raw = await res.text();
+        // 1) Cargar mascotas
+        const mascotasRes = await fetch(`${API_URL}/api/mascotas`);
+        const mascotasRaw = await mascotasRes.text();
 
-        let data = [];
+        let mascotasData = [];
         try {
-          data = raw ? JSON.parse(raw) : [];
+          mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
         } catch {
-          throw new Error("Invalid JSON while loading clinical history summary.");
+          throw new Error("Invalid JSON while loading pets.");
         }
 
-        if (!res.ok) {
-          throw new Error(data.message || "Could not load clinical history summary.");
+        if (!mascotasRes.ok) {
+          throw new Error("Could not load pets.");
         }
 
-        const normalized = Array.isArray(data)
-          ? data.map((item, index) => ({
-              mascotaId:
-                item.mascotaId ??
-                item.mascota_id ??
-                item.idMascota ??
-                item.id ??
-                item._id ??
-                `pet-${index}`,
-              nombre: item.nombre ?? item.mascotaNombre ?? item.Nombre ?? "No name",
-              raza: item.raza ?? item.Raza ?? "No breed",
-              edad: item.edad ?? item.Edad ?? "No age",
-              clienteNombre:
-                item.clienteNombre ??
-                item.nombreCliente ??
-                item.ownerName ??
-                item.dueno ??
-                item.dueño ??
-                "No owner",
-              consultasTotal:
-                Number(
-                  item.consultasTotal ??
-                    item.totalConsultas ??
-                    item.total_consultas ??
-                    item.consultas ??
-                    0
-                ) || 0,
-              ultimaConsulta:
-                item.ultimaConsulta ??
-                item.ultima_consulta ??
-                item.lastConsulta ??
-                item.fechaUltimaConsulta ??
-                "",
-            }))
-          : [];
+        if (!Array.isArray(mascotasData)) {
+          throw new Error("Pets response is not an array.");
+        }
 
-        setMascotasResumen(normalized);
+        // 2) Para cada mascota cargar sus consultas
+        const resumenPromises = mascotasData.map(async (pet, index) => {
+          const mascotaId = pet.id ?? `pet-${index}`;
+
+          let consultas = [];
+          try {
+            const consultasRes = await fetch(
+              `${API_URL}/api/mascotas/${mascotaId}/consultas`
+            );
+
+            const consultasRaw = await consultasRes.text();
+
+            try {
+              consultas = consultasRaw ? JSON.parse(consultasRaw) : [];
+            } catch {
+              consultas = [];
+            }
+
+            if (!consultasRes.ok || !Array.isArray(consultas)) {
+              consultas = [];
+            }
+          } catch {
+            consultas = [];
+          }
+
+          const ultimaConsulta =
+            consultas.length > 0
+              ? consultas[0].visit_at ||
+                consultas[0].fecha ||
+                consultas[0].created_at ||
+                ""
+              : "";
+
+          return {
+            mascotaId,
+            nombre: pet.name ?? pet.nombre ?? "No name",
+            raza: pet.breed ?? pet.raza ?? "No breed",
+            edad: pet.age_years ?? pet.edad ?? "No age",
+            clienteNombre:
+              `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() || "No owner",
+            consultasTotal: consultas.length,
+            ultimaConsulta,
+          };
+        });
+
+        const resumen = await Promise.all(resumenPromises);
+
+        setMascotasResumen(resumen);
       } catch (err) {
         console.error(err);
         setError(err.message || "Could not load clinical history.");
@@ -194,7 +212,8 @@ export default function HistorialClinico() {
                     <div className="hc-pet-main">
                       <h2>{pet.nombre}</h2>
                       <p>
-                        {pet.raza || "No breed"} · {pet.edad || "No age"} · {pet.clienteNombre || "No owner"}
+                        {pet.raza || "No breed"} · {pet.edad || "No age"} ·{" "}
+                        {pet.clienteNombre || "No owner"}
                       </p>
                     </div>
                   </div>
@@ -204,7 +223,9 @@ export default function HistorialClinico() {
                       {pet.consultasTotal} consulta{pet.consultasTotal !== 1 ? "s" : ""}
                     </span>
 
-                    <span className="hc-last-date">{formatDate(pet.ultimaConsulta)}</span>
+                    <span className="hc-last-date">
+                      {formatDate(pet.ultimaConsulta)}
+                    </span>
 
                     <span className="hc-chevron">﹀</span>
                   </div>

@@ -47,8 +47,7 @@ export default function Registro() {
         if (!mascotasResponse.ok) {
           throw new Error(mascotasData.message || "Could not load pets.");
         }
-
-        // Normalize clients
+//normalized clients and pets to have consistent field names regardless of backend inconsistencies
         const normalizedClientes = Array.isArray(clientesData)
           ? clientesData.map((cliente) => ({
               id:
@@ -93,7 +92,6 @@ export default function Registro() {
             }))
           : [];
 
-        // Normalize pets
         const normalizedMascotas = Array.isArray(mascotasData)
           ? mascotasData.map((mascota) => ({
               id:
@@ -107,6 +105,7 @@ export default function Registro() {
               clienteId:
                 mascota.clienteId ??
                 mascota.ClienteId ??
+                mascota.client_id ??
                 mascota.cliente_id ??
                 mascota.idCliente ??
                 mascota.IdCliente ??
@@ -115,32 +114,41 @@ export default function Registro() {
               nombre:
                 mascota.nombre ??
                 mascota.Nombre ??
+                mascota.name ??
+                mascota.Name ??
                 "",
               edad:
                 mascota.edad ??
                 mascota.Edad ??
+                mascota.age_years ??
+                mascota.age ??
                 "",
               raza:
                 mascota.raza ??
                 mascota.Raza ??
+                mascota.breed ??
+                mascota.Breed ??
                 "",
               sexo:
                 mascota.sexo ??
                 mascota.Sexo ??
+                mascota.sex ??
+                mascota.Sex ??
                 "",
               peso:
                 mascota.peso ??
                 mascota.Peso ??
+                mascota.weight_kg ??
+                mascota.weight ??
                 "",
               observaciones:
                 mascota.observaciones ??
                 mascota.Observaciones ??
+                mascota.notes ??
+                mascota.Notes ??
                 "",
             }))
           : [];
-
-        console.log("Clientes normalized:", normalizedClientes);
-        console.log("Mascotas normalized:", normalizedMascotas);
 
         setClientes(normalizedClientes);
         setMascotas(normalizedMascotas);

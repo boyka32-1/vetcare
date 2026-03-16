@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./consultas.module.css";
 
@@ -62,10 +62,14 @@ function SectionCard({ icon, title, children, className = "" }) {
   );
 }
 
-function Field({ label, children, full = false }) {
+function Field({ label, children, full = false, required = false }) {
   return (
     <div className={`${styles.field} ${full ? styles.fieldFull : ""}`}>
-      {label && <label className={styles.fieldLabel}>{label}</label>}
+      {label && (
+        <label className={styles.fieldLabel}>
+          {label} {required && <span style={{ color: "#c0392b" }}>*</span>}
+        </label>
+      )}
       {children}
     </div>
   );
@@ -118,27 +122,55 @@ function TagInput({ tags, onAdd, onRemove, placeholder }) {
 }
 
 const IconUser = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <circle cx="12" cy="8" r="4" />
     <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
   </svg>
 );
 
 const IconPlus = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <rect x="3" y="3" width="18" height="18" rx="2" />
     <path d="M9 12h6M12 9v6" />
   </svg>
 );
 
 const IconWave = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </svg>
 );
 
 const IconFile = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
     <polyline points="14 2 14 8 20 8" />
     <line x1="16" y1="13" x2="8" y2="13" />
@@ -147,32 +179,61 @@ const IconFile = () => (
 );
 
 const IconPill = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M10.5 20.5L3.5 13.5a5 5 0 017-7l7 7a5 5 0 01-7 7z" />
     <line x1="9" y1="9" x2="15" y2="15" />
   </svg>
 );
 
 const IconFlask = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M9 3h6M9 3v8l-4 9h14l-4-9V3" />
   </svg>
 );
 
 const IconSyringe = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 2v20M2 12h20" />
   </svg>
 );
 
 const IconClip = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="white"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
   </svg>
 );
 
 export default function ConsultaForm({ onSave }) {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [consultaId] = useState(genId);
   const [patientId, setPatientId] = useState("");
@@ -202,13 +263,16 @@ export default function ConsultaForm({ onSave }) {
   const [analyticsNotes, setAnalyticsNotes] = useState("");
   const [vaccines, setVaccines] = useState([]);
   const [vacBatch, setVacBatch] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState([]);
 
   const [mascotas, setMascotas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [doctores, setDoctores] = useState([]);
+
   const [loadingMascotas, setLoadingMascotas] = useState(true);
   const [loadingClientes, setLoadingClientes] = useState(true);
   const [loadingDoctores, setLoadingDoctores] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadMascotas = async () => {
@@ -307,9 +371,9 @@ export default function ConsultaForm({ onSave }) {
               id:
                 doctor.id ??
                 doctor.Id ??
+                doctor.doctorId ??
+                doctor.DoctorId ??
                 doctor._id ??
-                doctor.nombre ??
-                doctor.name ??
                 "",
               nombre:
                 doctor.nombre ??
@@ -362,37 +426,195 @@ export default function ConsultaForm({ onSave }) {
   const removeTag = (setter) => (index) =>
     setter((prev) => prev.filter((_, i) => i !== index));
 
-  const handleSave = () => {
-    const payload = {
-      consultaId,
-      patientId,
-      patient: selectedPatient,
-      date,
-      time,
-      doctor,
-      status,
-      severity,
-      visitTypes,
-      vitals: { weight, temp, hr, rr, bp, spo2 },
-      reason,
-      diagnosis,
-      observations,
-      nextAppt,
-      followReason,
-      meds,
-      medNotes,
-      analytics,
-      analyticsNotes,
-      vaccines,
-      vacBatch,
-    };
+  const handleFilesSelected = (filesList) => {
+    const files = Array.from(filesList || []);
+    if (files.length === 0) return;
 
-    if (onSave) onSave(payload);
-    else {
-      alert(
-        "Expediente guardado (prototipo)\n\n" +
-          JSON.stringify(payload, null, 2)
+    setAttachedFiles((prev) => {
+      const existingKeys = new Set(
+        prev.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
       );
+
+      const newUniqueFiles = files.filter((file) => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        return !existingKeys.has(key);
+      });
+
+      return [...prev, ...newUniqueFiles];
+    });
+  };
+
+  const removeFile = (index) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const mapStatusToDb = (value) => {
+    const map = {
+      open: "abierta",
+      follow: "seguimiento",
+      closed: "cerrada",
+    };
+    return map[value] || value;
+  };
+
+  const mapSeverityToDb = (value) => {
+    const map = {
+      low: "leve",
+      med: "moderada",
+      high: "alta",
+      crit: "critica",
+    };
+    return map[value] || value;
+  };
+
+  const handleSave = async () => {
+    if (!patientId) {
+      alert("Debes seleccionar una mascota.");
+      return;
+    }
+
+    if (!doctor) {
+      alert("Debes seleccionar un doctor.");
+      return;
+    }
+
+    if (!date) {
+      alert("Debes seleccionar una fecha.");
+      return;
+    }
+
+    if (!reason.trim()) {
+      alert("Debes escribir el motivo de consulta.");
+      return;
+    }
+
+    if (!diagnosis.trim()) {
+      alert("Debes escribir el diagnóstico.");
+      return;
+    }
+
+    if (visitTypes.length === 0) {
+      alert("Debes seleccionar al menos un tipo de consulta.");
+      return;
+    }
+
+    if (visitTypes.includes("vac") && vaccines.length === 0) {
+      alert("Si seleccionas tipo Vacuna, debes agregar al menos una vacuna aplicada.");
+      return;
+    }
+
+    if (visitTypes.includes("med") && meds.length === 0) {
+      alert("Si seleccionas tipo Medicación, debes agregar al menos un medicamento.");
+      return;
+    }
+
+    if (status === "follow") {
+      if (!nextAppt) {
+        alert("Debes indicar la próxima cita para una consulta de seguimiento.");
+        return;
+      }
+
+      if (!followReason.trim()) {
+        alert("Debes indicar el motivo de seguimiento.");
+        return;
+      }
+    }
+
+    try {
+      setSaving(true);
+
+      if (onSave) {
+        await onSave({
+          consulta_codigo: consultaId,
+          pet_id: patientId,
+          client_id: selectedPatient?.clienteId || null,
+          doctor_id: doctor,
+          fecha: date,
+          hora: time,
+          motivo: reason,
+          diagnostico: diagnosis,
+          observaciones: observations,
+          estado: mapStatusToDb(status),
+          gravedad: mapSeverityToDb(severity),
+          tipos_consulta: visitTypes,
+          proxima_cita: nextAppt || null,
+          motivo_seguimiento: followReason || null,
+          vitals: {
+            weight,
+            temp,
+            hr,
+            rr,
+            bp,
+            spo2,
+          },
+          medicaciones: meds,
+          notas_medicacion: medNotes,
+          analisis: analytics,
+          notas_analisis: analyticsNotes,
+          vacunas: vaccines,
+          lote_vacuna: vacBatch,
+          patient: selectedPatient || null,
+          attachedFiles,
+        });
+
+        alert("Consulta guardada correctamente.");
+        return;
+      }
+
+      const formData = new FormData();
+
+      formData.append("consulta_codigo", consultaId);
+      formData.append("pet_id", patientId);
+      formData.append("client_id", selectedPatient?.clienteId || "");
+      formData.append("doctor_id", doctor);
+      formData.append("fecha", date);
+      formData.append("hora", time);
+      formData.append("motivo", reason);
+      formData.append("diagnostico", diagnosis);
+      formData.append("observaciones", observations);
+      formData.append("estado", mapStatusToDb(status));
+      formData.append("gravedad", mapSeverityToDb(severity));
+      formData.append("proxima_cita", nextAppt || "");
+      formData.append("motivo_seguimiento", followReason || "");
+
+      formData.append("weight", weight || "");
+      formData.append("temp", temp || "");
+      formData.append("hr", hr || "");
+      formData.append("rr", rr || "");
+      formData.append("bp", bp || "");
+      formData.append("spo2", spo2 || "");
+
+      formData.append("notas_medicacion", medNotes || "");
+      formData.append("notas_analisis", analyticsNotes || "");
+      formData.append("lote_vacuna", vacBatch || "");
+
+      formData.append("tipos_consulta", JSON.stringify(visitTypes));
+      formData.append("medicaciones", JSON.stringify(meds));
+      formData.append("analisis", JSON.stringify(analytics));
+      formData.append("vacunas", JSON.stringify(vaccines));
+
+      attachedFiles.forEach((file) => {
+        formData.append("adjuntos", file);
+      });
+
+      const res = await fetch("http://localhost:5000/api/consultas", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Error al guardar la consulta");
+      }
+
+      alert("Consulta guardada correctamente.");
+      navigate(-1);
+    } catch (error) {
+      console.error("Error saving consulta:", error);
+      alert(error.message || "No se pudo guardar la consulta.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -426,7 +648,7 @@ export default function ConsultaForm({ onSave }) {
             className={styles.full}
           >
             <div className={`${styles.bodyGrid} ${styles.cols3}`}>
-              <Field label="Paciente (mascota)" full>
+              <Field label="Paciente (mascota)" full required>
                 <select
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
@@ -471,7 +693,7 @@ export default function ConsultaForm({ onSave }) {
                 )}
               </Field>
 
-              <Field label="Fecha">
+              <Field label="Fecha" required>
                 <input
                   type="date"
                   value={date}
@@ -487,7 +709,7 @@ export default function ConsultaForm({ onSave }) {
                 />
               </Field>
 
-              <Field label="Doctor / Veterinario">
+              <Field label="Doctor / Veterinario" required>
                 <select
                   value={doctor}
                   onChange={(e) => setDoctor(e.target.value)}
@@ -499,14 +721,14 @@ export default function ConsultaForm({ onSave }) {
                   </option>
 
                   {doctores.map((doc) => (
-                    <option key={doc.id} value={doc.nombre}>
+                    <option key={doc.id} value={doc.id}>
                       {doc.nombre}
                     </option>
                   ))}
                 </select>
               </Field>
 
-              <Field label="Estado de la consulta">
+              <Field label="Estado de la consulta" required>
                 <div className={styles.pillRow}>
                   {STATUS_OPTS.map((s) => (
                     <button
@@ -523,7 +745,7 @@ export default function ConsultaForm({ onSave }) {
                 </div>
               </Field>
 
-              <Field label="Gravedad">
+              <Field label="Gravedad" required>
                 <div className={styles.pillRow}>
                   {SEVERITY_OPTS.map((s) => (
                     <button
@@ -635,7 +857,7 @@ export default function ConsultaForm({ onSave }) {
             className={styles.full}
           >
             <div className={`${styles.bodyGrid} ${styles.cols2}`}>
-              <Field label="Motivo de consulta" full>
+              <Field label="Motivo de consulta" full required>
                 <textarea
                   placeholder="Describe el motivo principal de la visita…"
                   value={reason}
@@ -644,7 +866,7 @@ export default function ConsultaForm({ onSave }) {
                 />
               </Field>
 
-              <Field label="Diagnóstico" full>
+              <Field label="Diagnóstico" full required>
                 <textarea
                   placeholder="Diagnóstico del veterinario…"
                   value={diagnosis}
@@ -731,11 +953,64 @@ export default function ConsultaForm({ onSave }) {
           </SectionCard>
 
           <SectionCard icon={<IconClip />} title="Archivos adjuntos">
-            <div className={styles.dropZone}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              style={{ display: "none" }}
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
+
+            <div
+              className={styles.dropZone}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleFilesSelected(e.dataTransfer.files);
+              }}
+            >
               <div className={styles.dropIcon}>📎</div>
               <p>Arrastra archivos o haz clic para subir</p>
               <span>Rayos X, ecografías, resultados de lab…</span>
             </div>
+
+            {attachedFiles.length > 0 && (
+              <div style={{ marginTop: "14px", display: "grid", gap: "10px" }}>
+                {attachedFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${file.size}-${index}`}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "10px 12px",
+                      border: "1px solid #d6e3e2",
+                      borderRadius: "12px",
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, color: "#244244" }}>
+                        {file.name}
+                      </div>
+                      <div style={{ fontSize: "13px", color: "#6d8a8c" }}>
+                        {(file.size / 1024).toFixed(1)} KB
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.btnOutline}
+                      onClick={() => removeFile(index)}
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </SectionCard>
 
           <div className={`${styles.full} ${styles.saveRow}`}>
@@ -743,6 +1018,7 @@ export default function ConsultaForm({ onSave }) {
               type="button"
               className={styles.btnOutline}
               onClick={() => navigate(-1)}
+              disabled={saving}
             >
               Cancelar
             </button>
@@ -751,6 +1027,7 @@ export default function ConsultaForm({ onSave }) {
               type="button"
               className={styles.btnOutline}
               onClick={() => alert("Borrador guardado")}
+              disabled={saving}
             >
               Guardar borrador
             </button>
@@ -759,8 +1036,9 @@ export default function ConsultaForm({ onSave }) {
               type="button"
               className={styles.btnPrimary}
               onClick={handleSave}
+              disabled={saving}
             >
-              ✓ Guardar expediente
+              {saving ? "Guardando..." : "✓ Guardar expediente"}
             </button>
           </div>
         </div>
