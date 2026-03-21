@@ -191,7 +191,7 @@ app.post("/api/clientes", async (req, res) => {
     console.error("Error saving client:", error);
 
     return res.status(500).json({
-      message: "Internal server error.",
+      message: "El correo suministrado ya está registrado o ocurrió un error al guardar el cliente.",
     });
   }
 });
@@ -236,7 +236,7 @@ app.post("/api/mascotas", async (req, res) => {
 
     if (!clienteId || !nombre || !edad || !raza || !sexo || !peso) {
       return res.status(400).json({
-        message: "Complete all required pet fields.",
+        message: "Complete todos los campos obligatorios.",
       });
     }
 
@@ -253,7 +253,7 @@ app.post("/api/mascotas", async (req, res) => {
 
     if (clients.length === 0) {
       return res.status(404).json({
-        message: "Client not found",
+        message: "Cliente no encontrado",
       });
     }
 
@@ -298,16 +298,16 @@ app.post("/api/mascotas", async (req, res) => {
     );
 
     return res.status(201).json({
-      message: "Pet saved successfully.",
+      message: "Mascota guardada exitosamente.",
       pet: {
         id: petId,
       },
     });
   } catch (error) {
-    console.error("Error saving pet:", error);
+    console.error("Error al guardar la mascota:", error);
 
     return res.status(500).json({
-      message: "Internal server error.",
+      message: "Error interno del servidor.",
     });
   }
 });
@@ -345,10 +345,10 @@ app.get("/api/mascotas", async (req, res) => {
 
     return res.json(rows);
   } catch (error) {
-    console.error("Error loading pets:", error);
+    console.error("Error al cargar las mascotas:", error);
 
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Error interno del servidor.",
     });
   }
 });
@@ -627,7 +627,7 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
 
     if (!mascotaId) {
       return res.status(400).json({
-        message: "Pet id is required.",
+        message: "ID de mascota es requerido.",
       });
     }
 

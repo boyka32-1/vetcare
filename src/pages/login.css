@@ -10,10 +10,12 @@
 :root {
  
   --warm-white: #fff7ed;
-  --teal-deep: #1f6b7a;
+  --teal-deepi: #062f37;
+  --teal-deepa:#31828f;
   --teal-mid: #2a939d;
   --teal-light: #4bbec8;
   --teal-pale: #D6EEF5;
+  --teal-pali: #c4f3f7dd;
   --amber: #E8A842;
   --amber-pale: #FDF3DC;
   --coral: #E05C4B;
@@ -73,7 +75,7 @@
 
 /* Header */
 .vc-card-header {
-  background: linear-gradient(135deg, var(--teal-deep) 0%,var(--teal-light )100%);
+  background: linear-gradient(135deg, var(--teal-deepa) 0%,var(--teal-light )100%);
   padding: 34px 42px 30px;
   text-align: center;
   position: relative;
@@ -136,12 +138,12 @@
 .vc-brand-name {
   font-family: "Playfair Display", serif;
   font-size: 28px;
-  color: var(--teal-deep);
+  color: var(--teal-deepi);
   letter-spacing: -0.5px;
 }
 
 .vc-brand-name span {
-  color: var(--teal-pale);
+  color: var(--teal-pali);
 }
 
 .vc-header-tagline {

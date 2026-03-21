@@ -242,7 +242,7 @@
 }
 
 .hc-pill {
-  background: var(--teal-light);
+  background: rgba(141, 209, 238, 0.723);
   color: #0f6e56;
   border-radius: 999px;
   padding: 3px 9px;

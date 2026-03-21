@@ -129,7 +129,7 @@
 .cl-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
 }
 
 .cl-field label {
@@ -148,7 +148,7 @@
   background: #f2f8fd;
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 14px 18px;
+  padding: 10px 2px 10px 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 

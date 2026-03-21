@@ -10,7 +10,7 @@
 
 :root {
   --warm-white: #fff7ed;
-  --teal-deep: #1f6b7a;
+  --teal-deepi: #1f6b7a;
   --teal-mid: #2a809d;
   --teal-lighti: #4ba5c8;
   --teal-pale: #d6eef5;
@@ -43,7 +43,7 @@ select {
 
 .cl-body {
   min-height: 100vh;
-  width: 100%;
+  width: 80%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +72,7 @@ select {
 
 .cl-header {
   position: relative;
-  background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal-lighti) 100%) !important;
+  background: linear-gradient(135deg, var(--teal-deepi) 0%, var(--teal-lighti) 100%) !important;
   padding: 34px 42px 30px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -173,10 +173,10 @@ select {
 }
 
 .cl-btn-primary {
-  width: 100%;
+  width: 10%;
   padding: 15px;
   margin-top: 6px;
-  background: linear-gradient(135deg, var(--teal-deep) 10%, #2a809d 100%) !important;
+  background: linear-gradient(135deg, var(--teal-deepi) 10%, #2a809d 100%) !important;
   color: #fff;
   font-family: inherit;
   font-size: 14px;
@@ -212,7 +212,7 @@ select {
 
 .cl-btn-secondary {
   display: block;
-  width: 100%;
+  width: 10%;
   margin-top: 14px;
   padding: 15px;
   border-radius: 12px;
