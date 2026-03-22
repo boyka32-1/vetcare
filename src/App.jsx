@@ -5,7 +5,8 @@ import Menu from "./pages/Menu.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Mascotas from "./pages/Mascotas.jsx";
 import Registro from "./pages/Registro.jsx";
-import Register from "./pages/Register.jsx";
+import Register from "./pages/register.jsx";
+import Alertas from "./pages/Alertas.jsx";
 import Consultas from "./pages/Consultas.jsx";
 import Historial from "./pages/Historial.jsx";
 import HistorialMascota from "./pages/HistorialMascota.jsx";
@@ -22,9 +23,9 @@ export default function App() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/consultas" element={<Consultas />} />
         <Route path="/historial" element={<Historial />} />
-        <Route
-          path="/historial-clinico/:mascotaId"
-          element={<HistorialMascota />}
+        <Route path="/alertas" element={<Alertas />} />
+        <Route path="/historial-clinico/:mascotaId" element={<HistorialMascota />}
+        
         />
       </Routes>
     </BrowserRouter>

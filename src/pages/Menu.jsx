@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./menu.css";
 
-const menuSections = [
+const baseMenuSections = [
   {
     label: "Registros",
     items: [
@@ -11,8 +11,10 @@ const menuSections = [
         path: "/clientes",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-            <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+            <line x1="19" y1="8" x2="19" y2="14" />
+            <line x1="22" y1="11" x2="16" y2="11" />
           </svg>
         ),
         label: "Registrar Clientes",
@@ -22,11 +24,11 @@ const menuSections = [
         path: "/mascotas",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/>
-            <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5"/>
-            <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/>
-            <path d="M6.5 10c-.223 1.685.8 3.032 2 3.5"/>
-            <path d="M17.5 10c.223 1.685-.8 3.032-2 3.5"/>
+            <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
+            <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
+            <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
+            <path d="M6.5 10c-.223 1.685.8 3.032 2 3.5" />
+            <path d="M17.5 10c.223 1.685-.8 3.032-2 3.5" />
           </svg>
         ),
         label: "Registrar Mascotas",
@@ -36,10 +38,10 @@ const menuSections = [
         path: "/Registro",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         ),
         label: "Ver Mascotas y Clientes",
@@ -54,10 +56,10 @@ const menuSections = [
         path: "/consultas",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="12" y1="18" x2="12" y2="12"/>
-            <line x1="9" y1="15" x2="15" y2="15"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
           </svg>
         ),
         label: "Nueva Consulta",
@@ -67,8 +69,8 @@ const menuSections = [
         path: "/historial",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
         ),
         label: "Historiales clínicos",
@@ -80,22 +82,20 @@ const menuSections = [
     items: [
       {
         id: "alertas",
+        path: "/alertas",
         icon: (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
         ),
         label: "Alertas",
-        badge: 3,
       },
     ],
   },
 ];
 
-
-
-const quickActions = [
+const baseQuickActions = [
   {
     id: "nueva-consulta",
     title: "Nueva Consulta",
@@ -120,9 +120,9 @@ const quickActions = [
   {
     id: "alertas",
     title: "Ver Alertas",
-    desc: "3 alertas pendientes de revision",
+    path: "/alertas",
+    desc: "",
     featured: false,
-    badge: 3,
   },
 ];
 
@@ -131,10 +131,18 @@ export default function MenuPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("nueva-consulta");
 
-    const [stats, setStats] = useState([
+  const [counts, setCounts] = useState({
+    clientes: 0,
+    mascotas: 0,
+    consultas: 0,
+    alertas: 0,
+  });
+
+  const [stats, setStats] = useState([
     { label: "Clientes", value: "0", accent: "#2a9d8f" },
     { label: "Mascotas", value: "0", accent: "#e76f51" },
     { label: "Consultas", value: "0", accent: "#457b9d" },
+    { label: "Alertas", value: "0", accent: "#8e44ad" },
   ]);
 
   useEffect(() => {
@@ -143,10 +151,36 @@ export default function MenuPage() {
         const res = await fetch("http://localhost:5000/api/stats");
         const data = await res.json();
 
+        const nextCounts = {
+          clientes: Number(data.clientes ?? 0),
+          mascotas: Number(data.mascotas ?? 0),
+          consultas: Number(data.consultas ?? 0),
+          alertas: Number(data.alertas ?? 0),
+        };
+
+        setCounts(nextCounts);
+
         setStats([
-          { label: "Clientes", value: data.clientes ?? "0", accent: "#2a9d8f" },
-          { label: "Mascotas", value: data.mascotas ?? "0", accent: "#e76f51" },
-          { label: "Consultas", value: data.consultas ?? "0", accent: "#457b9d" },
+          {
+            label: "Clientes",
+            value: String(nextCounts.clientes),
+            accent: "#2a9d8f",
+          },
+          {
+            label: "Mascotas",
+            value: String(nextCounts.mascotas),
+            accent: "#e76f51",
+          },
+          {
+            label: "Consultas",
+            value: String(nextCounts.consultas),
+            accent: "#457b9d",
+          },
+          {
+            label: "Alertas",
+            value: String(nextCounts.alertas),
+            accent: "#8e44ad",
+          },
         ]);
       } catch (error) {
         console.error("Error loading stats:", error);
@@ -156,9 +190,83 @@ export default function MenuPage() {
     fetchStats();
   }, []);
 
-    const today = new Date();
-    const formattedDate =
-    today.toLocaleDateString("es-ES", {
+  const menuSections = useMemo(() => {
+    return baseMenuSections.map((section) => ({
+      ...section,
+      items: section.items.map((item) => {
+        if (item.id === "alertas") {
+          return {
+            ...item,
+            badge: counts.alertas > 0 ? counts.alertas : undefined,
+          };
+        }
+
+        if (item.id === "registrar-clientes") {
+          return {
+            ...item,
+            badge: counts.clientes > 0 ? counts.clientes : undefined,
+          };
+        }
+
+        if (item.id === "registrar-mascotas") {
+          return {
+            ...item,
+            badge: counts.mascotas > 0 ? counts.mascotas : undefined,
+          };
+        }
+
+        if (item.id === "historial" || item.id === "nueva-consulta") {
+          return {
+            ...item,
+            badge: counts.consultas > 0 ? counts.consultas : undefined,
+          };
+        }
+
+        return item;
+      }),
+    }));
+  }, [counts]);
+
+  const quickActions = useMemo(() => {
+    return baseQuickActions.map((action) => {
+      if (action.id === "alertas") {
+        return {
+          ...action,
+          badge: counts.alertas > 0 ? counts.alertas : undefined,
+          desc:
+            counts.alertas > 0
+              ? `${counts.alertas} alertas pendientes de revisión`
+              : "No hay alertas pendientes",
+        };
+      }
+
+      if (action.id === "registrar-clientes") {
+        return {
+          ...action,
+          desc: `${counts.clientes} clientes registrados`,
+        };
+      }
+
+      if (action.id === "registrar-mascotas") {
+        return {
+          ...action,
+          desc: `${counts.mascotas} mascotas registradas`,
+        };
+      }
+
+      if (action.id === "nueva-consulta") {
+        return {
+          ...action,
+          desc: `${counts.consultas} consultas registradas`,
+        };
+      }
+
+      return action;
+    });
+  }, [counts]);
+
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -190,14 +298,13 @@ export default function MenuPage() {
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/>
-              <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5"/>
-              <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/>
+              <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
+              <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
+              <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
             </svg>
             <div className="sidebar__brand">
               Vet<span className="care">Care</span>
@@ -228,7 +335,7 @@ export default function MenuPage() {
                 >
                   <span className="sidebar__item-icon">{item.icon}</span>
                   <span className="sidebar__item-label">{item.label}</span>
-                  {item.badge && (
+                  {item.badge !== undefined && (
                     <span className="sidebar__badge">{item.badge}</span>
                   )}
                 </button>
@@ -264,19 +371,26 @@ export default function MenuPage() {
 
         <div className="topbar__title">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5"/>
-            <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5"/>
-            <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z"/>
+            <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
+            <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
+            <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
           </svg>
           <span>VetCare</span>
         </div>
+
         <div className="topbar__right">
-          <button className="topbar__alert-btn" aria-label="Alertas">
+          <button
+            className="topbar__alert-btn"
+            aria-label="Alertas"
+            onClick={() => navigate("/alertas")}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            <span className="topbar__badge">3</span>
+            {counts.alertas > 0 && (
+              <span className="topbar__badge">{counts.alertas}</span>
+            )}
           </button>
           <div className="topbar__avatar">DR</div>
         </div>
@@ -290,7 +404,11 @@ export default function MenuPage() {
 
         <div className="stats">
           {stats.map((s) => (
-            <div key={s.label} className="stat-card" style={{ "--accent": s.accent }}>
+            <div
+              key={s.label}
+              className="stat-card"
+              style={{ "--accent": s.accent }}
+            >
               <div className="stat-card__accent-bar" />
               <p className="stat-card__label">{s.label}</p>
               <p className="stat-card__value">{s.value}</p>
@@ -298,7 +416,6 @@ export default function MenuPage() {
           ))}
         </div>
 
-        {/* Quick Actions */}
         <h2 className="section-title">Acciones rapidas</h2>
         <div className="actions-grid">
           {quickActions.map((action) => (
@@ -312,8 +429,10 @@ export default function MenuPage() {
                 }
               }}
             >
-              {action.badge && (
-                <span className="action-card__badge">{action.badge} alertas</span>
+              {action.badge !== undefined && (
+                <span className="action-card__badge">
+                  {action.badge} alertas
+                </span>
               )}
               <p className="action-card__title">{action.title}</p>
               <p className="action-card__desc">{action.desc}</p>

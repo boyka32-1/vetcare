@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./clientes.css";
+import {
+  applyFieldFormatting,
+  validateFields,
+  validators,
+} from "../utils/formRules";
 
 export default function Clientes() {
   const navigate = useNavigate();
@@ -17,46 +22,100 @@ export default function Clientes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // 🔥 RULES (reusable and scalable)
+  const fieldRules = {
+    nombre: {
+      required: true,
+      formatter: "lettersAndAccents",
+      requiredMessage: "El nombre es obligatorio.",
+    },
+    cedula: {
+      required: true,
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.exactLength(13),
+          message: "La cédula debe tener exactamente 11 dígitos.",
+        },
+      ],
+    },
+    telefono: {
+      required: true,
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.minLength(10),
+          message: "El teléfono no puede tener menos de 10 dígitos.",
+        },
+      ],
+    },
+    telefono2: {
+      formatter: "onlyNumbers",
+    },
+    correo: {
+      required: true,
+      validate: [
+        {
+          test: validators.email,
+          message: "Correo inválido.",
+        },
+      ],
+    },
+  };
 
   const handleChange = (e) => {
-    let { name, value } = e.target;
+    const { name, value } = e.target;
 
-    if (name === "nombre") {
-    value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-  }
+    let formattedValue = applyFieldFormatting(name, value, fieldRules);
 
+    // 🔥 FORMAT VISUAL (cedula + telefono)
     if (name === "cedula") {
-      const digits = value.replace(/\D/g, "").slice(0, 11);
+      const digits = formattedValue.slice(0, 11);
 
       if (digits.length <= 3) {
-        value = digits;
+        formattedValue = digits;
       } else if (digits.length <= 10) {
-        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3)}`;
       } else {
-        value = `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
-      }
-    } else if (name === "telefono" || name === "telefono2") {
-      const digits = value.replace(/\D/g, "").slice(0, 10);
-
-      if (digits.length <= 3) {
-        value = digits;
-      } else if (digits.length <= 6) {
-        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-      } else {
-        value = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
       }
     }
 
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === "telefono" || name === "telefono2") {
+      const digits = formattedValue.slice(0, 10);
+
+      if (digits.length <= 3) {
+        formattedValue = digits;
+      } else if (digits.length <= 6) {
+        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      } else {
+        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+      }
+    }
+
+    setForm((prev) => ({ ...prev, [name]: formattedValue }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
+
     setError("");
     setSuccess("");
+    setFieldErrors({});
 
-    if (!form.nombre || !form.cedula || !form.direccion || !form.correo || !form.telefono) {
-      setError("Complete the required client fields.");
+    // 🔥 VALIDATION
+    const errors = validateFields(form, fieldRules);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("Corrige los campos.");
       return;
     }
 
@@ -76,9 +135,7 @@ export default function Clientes() {
       let data = {};
       try {
         data = raw ? JSON.parse(raw) : {};
-      } catch {
-        data = {};
-      }
+      } catch {}
 
       if (!response.ok) {
         setError(data.message || "Could not save client.");
@@ -108,109 +165,97 @@ export default function Clientes() {
       <div className="cl-card">
         <div className="cl-header">
           <h1 className="cl-title">Datos del cliente</h1>
-          <p className="cl-sub">Completa la información para registrar al cliente</p>
+          <p className="cl-sub">
+            Completa la información para registrar al cliente
+          </p>
         </div>
 
         <form className="cl-form" onSubmit={handleGuardar}>
           <div className="cl-grid-2">
             <div className="cl-field">
-              <label htmlFor="nombre">Nombre</label>
+              <label>
+                Nombre <span className="req">*</span>
+              </label>
               <input
-                id="nombre"
                 name="nombre"
-                type="text"
-                placeholder="Nombre"
                 value={form.nombre}
                 onChange={handleChange}
-                pattern="[A-Za-záéíóúÁÉÍÓÚñÑ\s]+"
+                placeholder="Nombre"
               />
+              {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
             </div>
 
             <div className="cl-field">
-              <label htmlFor="cedula">Cédula</label>
+              <label>
+                Cédula <span className="req">*</span>
+              </label>
               <input
-                id="cedula"
                 name="cedula"
-                type="text"
-                placeholder="000-0000000-0"
                 value={form.cedula}
                 onChange={handleChange}
-                maxLength={13}
+                placeholder="000-0000000-0"
               />
+              {fieldErrors.cedula && <small>{fieldErrors.cedula}</small>}
             </div>
           </div>
 
           <div className="cl-grid-2">
             <div className="cl-field">
-              <label htmlFor="direccion">Dirección</label>
+              <label>Dirección</label>
               <input
-                id="direccion"
                 name="direccion"
-                type="text"
-                placeholder="Dirección"
                 value={form.direccion}
                 onChange={handleChange}
+                placeholder="Dirección"
               />
             </div>
 
             <div className="cl-field">
-              <label htmlFor="correo">Correo electrónico</label>
+              <label>Correo</label>
               <input
-                id="correo"
                 name="correo"
-                type="email"
-                placeholder="Correo electrónico"
                 value={form.correo}
                 onChange={handleChange}
+                placeholder="correo@noemail.com"
               />
+              {fieldErrors.correo && <small>{fieldErrors.correo}</small>}
             </div>
           </div>
 
           <div className="cl-grid-2">
             <div className="cl-field">
-              <label htmlFor="telefono">Teléfono</label>
+              <label>
+                Teléfono <span className="req">*</span>
+              </label>
               <input
-                id="telefono"
                 name="telefono"
-                type="tel"
-                placeholder="809-555-5555"
                 value={form.telefono}
                 onChange={handleChange}
-                maxLength={12}
+                placeholder="000-000-0000"
               />
+              {fieldErrors.telefono && <small>{fieldErrors.telefono}</small>}
             </div>
 
             <div className="cl-field">
-              <label htmlFor="telefono2">Teléfono secundario</label>
+              <label>Teléfono secundario</label>
               <input
-                id="telefono2"
                 name="telefono2"
-                type="tel"
-                placeholder="809-555-5555"
                 value={form.telefono2}
                 onChange={handleChange}
-                maxLength={12}
+                placeholder="000-000-0000"
               />
             </div>
           </div>
 
-          {error && (
-            <div style={{ color: "red", marginBottom: "12px" }}>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div style={{ color: "green", marginBottom: "12px" }}>
-              {success}
-            </div>
-          )}
+          {error && <div style={{ color: "red" }}>{error}</div>}
+          {success && <div style={{ color: "green" }}>{success}</div>}
 
           <button className="cl-btn-primary" type="submit" disabled={loading}>
             {loading ? "Guardando..." : "Guardar cliente"}
           </button>
 
-          <button className="cl-btn-secondary"
+          <button
+            className="cl-btn-secondary"
             type="button"
             onClick={() => navigate("/menu")}
           >

@@ -119,7 +119,7 @@ app.post("/api/clientes", async (req, res) => {
 
     if (!nombre || !cedula || !direccion || !correo || !telefono) {
       return res.status(400).json({
-        message: "Complete all required client fields.",
+        message: "Complete todos los campos requeridos",
       });
     }
 
@@ -136,7 +136,7 @@ app.post("/api/clientes", async (req, res) => {
 
     if (existingClients.length > 0) {
       return res.status(409).json({
-        message: "A client with that ID already exists.",
+        message: "Ya existe un cliente con dicha cédula",
       });
     }
 
@@ -176,7 +176,7 @@ app.post("/api/clientes", async (req, res) => {
     );
 
     return res.status(201).json({
-      message: "Client saved successfully.",
+      message: "Cliente guardado exitosamente",
       client: {
         id: clientId,
         nombre,
@@ -191,7 +191,7 @@ app.post("/api/clientes", async (req, res) => {
     console.error("Error saving client:", error);
 
     return res.status(500).json({
-      message: "El correo suministrado ya está registrado o ocurrió un error al guardar el cliente.",
+      message: "El correo suministrado ya está registrado u ocurrió un error al guardar el cliente.",
     });
   }
 });
@@ -453,6 +453,7 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
         observaciones,
         estado,
         gravedad,
+        tipos_consulta,
         proxima_cita,
         motivo_seguimiento,
         peso,
@@ -478,6 +479,7 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
         observaciones || null,
         estado || "abierta",
         gravedad || "moderada",
+        JSON.stringify(tiposConsulta),
         proxima_cita || null,
         motivo_seguimiento || null,
         peso,
@@ -641,6 +643,7 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
         c.observaciones AS notes,
         c.estado,
         c.gravedad,
+        c.tipos_consulta,
         c.proxima_cita,
         c.motivo_seguimiento,
         c.peso,
