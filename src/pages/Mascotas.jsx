@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./mascotas.css";
+import {
+  applyFieldFormatting,
+  validateFields,
+  validators,
+} from "../utils/formRules";
 
 export default function Mascotas() {
   const navigate = useNavigate();
@@ -21,6 +26,51 @@ export default function Mascotas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const fieldRules = {
+    clienteId: {
+      required: true,
+      requiredMessage: "Debe seleccionar un cliente.",
+    },
+    nombre: {
+      required: true,
+      formatter: "lettersAndAccents",
+      requiredMessage: "El nombre es obligatorio.",
+    },
+    edad: {
+      required: true,
+      formatter: "decimalNumber",
+      requiredMessage: "La edad es obligatoria.",
+      validate: [
+        {
+          test: validators.minLength(1),
+          message: "La edad es obligatoria.",
+        },
+      ],
+    },
+    raza: {
+      required: true,
+      formatter: "lettersAndAccents",
+      requiredMessage: "La raza es obligatoria.",
+    },
+    sexo: {
+      required: true,
+      requiredMessage: "El sexo es obligatorio.",
+    },
+    peso: {
+      required: true,
+      formatter: "decimalNumber",
+      requiredMessage: "El peso es obligatorio.",
+      validate: [
+        {
+          test: validators.minLength(1),
+          message: "El peso es obligatorio.",
+        },
+      ],
+    },
+    observaciones: {},
+  };
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -54,51 +104,45 @@ export default function Mascotas() {
   }, []);
 
   const handleChange = (e) => {
-     let { name, value }  = e.target;
+    const { name, value } = e.target;
 
-        if (name === "nombre") {
-        value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
+    let formattedValue = applyFieldFormatting(name, value, fieldRules);
 
-      if (name === "raza") {
-        value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-      }
+    if (name === "edad") {
+      formattedValue = formattedValue.slice(0, 5);
+    }
 
-      if (name === "peso") {
-        // allow only numbers and one decimal
-        value = value.replace(/[^0-9.]/g, "");
+    if (name === "peso") {
+      formattedValue = formattedValue.slice(0, 6);
+    }
 
-        const parts = value.split(".");
-        if (parts.length > 2) {
-          value = parts[0] + "." + parts.slice(1).join("");
-        }
-      }
+    setForm((prev) => ({
+      ...prev,
+      [name]: formattedValue,
+    }));
 
-
-      if (name === "edad") {
-        // allow only numbers and one decimal
-        value = value.replace(/[^0-9.]/g, "");
-
-        const parts = value.split(".");
-        if (parts.length > 2) {
-          value = parts[0] + "." + parts.slice(1).join("");
-        }
-      }
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setFieldErrors({});
 
     if (clientes.length === 0) {
       setError("You must register at least one client first.");
       return;
     }
 
-    if (!form.clienteId || !form.nombre || !form.edad || !form.raza || !form.sexo || !form.peso) {
-      setError("Complete the required pet fields.");
+    const errors = validateFields(form, fieldRules);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("Corrige los campos requeridos.");
       return;
     }
 
@@ -156,7 +200,9 @@ export default function Mascotas() {
 
         <form className="ms-form" onSubmit={handleGuardar}>
           <div className="ms-field">
-            <label htmlFor="clienteId">Cliente asociado</label>
+            <label htmlFor="clienteId">
+              Cliente asociado <span className="req">*</span>
+            </label>
             <select
               id="clienteId"
               name="clienteId"
@@ -173,10 +219,13 @@ export default function Mascotas() {
                 </option>
               ))}
             </select>
+            {fieldErrors.clienteId && <small>{fieldErrors.clienteId}</small>}
           </div>
 
           <div className="ms-field">
-            <label htmlFor="nombre">Nombre</label>
+            <label htmlFor="nombre">
+              Nombre <span className="req">*</span>
+            </label>
             <input
               id="nombre"
               name="nombre"
@@ -185,11 +234,14 @@ export default function Mascotas() {
               value={form.nombre}
               onChange={handleChange}
             />
+            {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
           </div>
 
           <div className="ms-grid-2">
             <div className="ms-field">
-              <label htmlFor="edad">Edad</label>
+              <label htmlFor="edad">
+                Edad <span className="req">*</span>
+              </label>
               <input
                 id="edad"
                 name="edad"
@@ -200,12 +252,14 @@ export default function Mascotas() {
                   const clean = e.target.value.replace(" años", "");
                   handleChange({ target: { name: "edad", value: clean } });
                 }}
-                
               />
+              {fieldErrors.edad && <small>{fieldErrors.edad}</small>}
             </div>
 
             <div className="ms-field">
-              <label htmlFor="raza">Raza</label>
+              <label htmlFor="raza">
+                Raza <span className="req">*</span>
+              </label>
               <input
                 id="raza"
                 name="raza"
@@ -214,12 +268,15 @@ export default function Mascotas() {
                 value={form.raza}
                 onChange={handleChange}
               />
+              {fieldErrors.raza && <small>{fieldErrors.raza}</small>}
             </div>
           </div>
 
           <div className="ms-grid-2">
             <div className="ms-field">
-              <label htmlFor="sexo">Sexo</label>
+              <label htmlFor="sexo">
+                Sexo <span className="req">*</span>
+              </label>
               <select
                 id="sexo"
                 name="sexo"
@@ -230,10 +287,13 @@ export default function Mascotas() {
                 <option value="Macho">Macho</option>
                 <option value="Hembra">Hembra</option>
               </select>
+              {fieldErrors.sexo && <small>{fieldErrors.sexo}</small>}
             </div>
 
             <div className="ms-field">
-              <label htmlFor="peso">Peso</label>
+              <label htmlFor="peso">
+                Peso <span className="req">*</span>
+              </label>
               <input
                 id="peso"
                 name="peso"
@@ -245,6 +305,7 @@ export default function Mascotas() {
                   handleChange({ target: { name: "peso", value: clean } });
                 }}
               />
+              {fieldErrors.peso && <small>{fieldErrors.peso}</small>}
             </div>
           </div>
 

@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./consultas.module.css";
+import {
+  applyFieldFormatting,
+  validateFields,
+  validators,
+} from "../utils/formRules";
 
 const STATUS_OPTS = [
   { id: "open", label: "Abierta", colorClass: styles.statusOpen },
@@ -13,17 +18,6 @@ const SEVERITY_OPTS = [
   { id: "med", label: "Moderada", colorClass: styles.sevMed },
   { id: "high", label: "Alta", colorClass: styles.sevHigh },
   { id: "crit", label: "Crítica", colorClass: styles.sevCrit },
-];
-
-const VISIT_TYPES = [
-  { id: "vac", label: "Vacuna", colorClass: styles.typeVac },
-  { id: "gen", label: "Examen general", colorClass: styles.typeGen },
-  { id: "ill", label: "Enfermedad", colorClass: styles.typeIll },
-  { id: "sur", label: "Cirugía", colorClass: styles.typeSur },
-  { id: "med", label: "Medicación", colorClass: styles.typeMed },
-  { id: "den", label: "Dental", colorClass: "" },
-  { id: "rou", label: "Control rutinario", colorClass: "" },
-  { id: "eme", label: "Emergencia", colorClass: "" },
 ];
 
 function genId() {
@@ -48,6 +42,21 @@ function initials(str = "") {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+}
+
+function getVisitTypeColorClass(codigo) {
+  const map = {
+    vac: styles.typeVac,
+    gen: styles.typeGen,
+    ill: styles.typeIll,
+    sur: styles.typeSur,
+    med: styles.typeMed,
+    den: "",
+    rou: "",
+    eme: "",
+  };
+
+  return map[codigo] || "";
 }
 
 function SectionCard({ icon, title, children, className = "" }) {
@@ -234,15 +243,21 @@ const IconClip = () => (
 export default function ConsultaForm({ onSave }) {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const patientSearchRef = useRef(null);
 
   const [consultaId] = useState(genId);
   const [patientId, setPatientId] = useState("");
+  const [patientSearch, setPatientSearch] = useState("");
+  const [showPatientResults, setShowPatientResults] = useState(false);
+
   const [date, setDate] = useState(today);
   const [time, setTime] = useState(currentTime);
   const [doctor, setDoctor] = useState("");
   const [status, setStatus] = useState("open");
   const [severity, setSeverity] = useState("med");
   const [visitTypes, setVisitTypes] = useState([]);
+  const [availableVisitTypes, setAvailableVisitTypes] = useState([]);
+  const [loadingVisitTypes, setLoadingVisitTypes] = useState(true);
 
   const [weight, setWeight] = useState("");
   const [temp, setTemp] = useState("");
@@ -250,6 +265,7 @@ export default function ConsultaForm({ onSave }) {
   const [rr, setRr] = useState("");
   const [bp, setBp] = useState("");
   const [spo2, setSpo2] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [reason, setReason] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
@@ -273,6 +289,115 @@ export default function ConsultaForm({ onSave }) {
   const [loadingClientes, setLoadingClientes] = useState(true);
   const [loadingDoctores, setLoadingDoctores] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const todayDate = today();
+  const nowTime = currentTime();
+
+  const vitalRules = {
+    weight: {
+      formatter: "decimalNumber",
+      validate: [
+        {
+          test: validators.maxLength(5),
+          message: "El peso no puede exceder 5 caracteres.",
+        },
+      ],
+    },
+    temp: {
+      formatter: "decimalNumber",
+      validate: [
+        {
+          test: validators.maxLength(4),
+          message: "La temperatura no puede exceder 4 caracteres.",
+        },
+      ],
+    },
+    hr: {
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.maxLength(3),
+          message: "La frecuencia cardíaca no puede exceder 3 dígitos.",
+        },
+      ],
+    },
+    rr: {
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.maxLength(3),
+          message: "La frecuencia respiratoria no puede exceder 3 dígitos.",
+        },
+      ],
+    },
+    bp: {
+      formatter: "bloodPressure",
+      validate: [
+        {
+          test: validators.maxLength(7),
+          message: "La presión arterial no puede exceder el formato 000/000.",
+        },
+      ],
+    },
+    spo2: {
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.maxLength(3),
+          message: "La saturación O₂ no puede exceder 3 dígitos.",
+        },
+      ],
+    },
+  };
+
+  const vitalSetters = {
+    weight: setWeight,
+    temp: setTemp,
+    hr: setHr,
+    rr: setRr,
+    bp: setBp,
+    spo2: setSpo2,
+  };
+
+  const handleVitalChange = (name, value) => {
+    let formattedValue = applyFieldFormatting(name, value, vitalRules);
+
+    if (name === "weight") formattedValue = formattedValue.slice(0, 5);
+    if (name === "temp") formattedValue = formattedValue.slice(0, 4);
+    if (name === "hr" || name === "rr" || name === "spo2") {
+      formattedValue = formattedValue.slice(0, 3);
+    }
+    if (name === "bp") formattedValue = formattedValue.slice(0, 7);
+
+    vitalSetters[name](formattedValue);
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const handleDateChange = (value) => {
+    if (value !== todayDate) {
+      setDate(todayDate);
+      return;
+    }
+
+    setDate(value);
+
+    if (time < nowTime) {
+      setTime(nowTime);
+    }
+  };
+
+  const handleTimeChange = (value) => {
+    if (date === todayDate && value < nowTime) {
+      setTime(nowTime);
+      return;
+    }
+
+    setTime(value);
+  };
 
   useEffect(() => {
     const loadMascotas = async () => {
@@ -396,6 +521,47 @@ export default function ConsultaForm({ onSave }) {
     loadDoctores();
   }, []);
 
+  useEffect(() => {
+    const loadTiposConsulta = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/tipos-consulta");
+        const data = await res.json();
+
+        const normalizedTipos = Array.isArray(data)
+          ? data.map((tipo) => ({
+              id: tipo.id ?? "",
+              codigo: tipo.codigo ?? "",
+              nombre: tipo.nombre ?? "",
+              colorClass: getVisitTypeColorClass(tipo.codigo),
+            }))
+          : [];
+
+        setAvailableVisitTypes(normalizedTipos);
+      } catch (error) {
+        console.error("Error loading tipos de consulta:", error);
+        setAvailableVisitTypes([]);
+      } finally {
+        setLoadingVisitTypes(false);
+      }
+    };
+
+    loadTiposConsulta();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        patientSearchRef.current &&
+        !patientSearchRef.current.contains(event.target)
+      ) {
+        setShowPatientResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const mascotasConDueno = useMemo(() => {
     return mascotas.map((mascota) => {
       const cliente = clientes.find(
@@ -410,15 +576,47 @@ export default function ConsultaForm({ onSave }) {
     });
   }, [mascotas, clientes]);
 
+  const filteredMascotas = useMemo(() => {
+    const search = patientSearch.trim().toLowerCase();
+
+    if (!search) return mascotasConDueno;
+
+    return mascotasConDueno.filter((mascota) => {
+      const nombre = mascota.nombre?.toLowerCase() || "";
+      const raza = mascota.raza?.toLowerCase() || "";
+      const clienteNombre = mascota.clienteNombre?.toLowerCase() || "";
+      const clienteTelefono = String(mascota.clienteTelefono || "").toLowerCase();
+
+      return (
+        nombre.includes(search) ||
+        raza.includes(search) ||
+        clienteNombre.includes(search) ||
+        clienteTelefono.includes(search)
+      );
+    });
+  }, [mascotasConDueno, patientSearch]);
+
   const selectedPatient = useMemo(() => {
     return mascotasConDueno.find(
       (mascota) => String(mascota.id) === String(patientId)
     );
   }, [mascotasConDueno, patientId]);
 
-  const toggleType = (id) => {
+  const handleSelectPatient = (mascota) => {
+    setPatientId(mascota.id);
+    setPatientSearch(
+      `${mascota.nombre}${mascota.raza ? ` — ${mascota.raza}` : ""}${
+        mascota.clienteNombre ? ` — ${mascota.clienteNombre}` : ""
+      }${mascota.clienteTelefono ? ` — ${mascota.clienteTelefono}` : ""}`
+    );
+    setShowPatientResults(false);
+  };
+
+  const toggleType = (codigo) => {
     setVisitTypes((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+      prev.includes(codigo)
+        ? prev.filter((t) => t !== codigo)
+        : [...prev, codigo]
     );
   };
 
@@ -478,8 +676,13 @@ export default function ConsultaForm({ onSave }) {
       return;
     }
 
-    if (!date) {
-      alert("Debes seleccionar una fecha.");
+    if (!date || date !== todayDate) {
+      alert("La consulta solo puede registrarse con la fecha actual.");
+      return;
+    }
+
+    if (!time || time < nowTime) {
+      alert("La hora no puede ser menor que la hora actual.");
       return;
     }
 
@@ -495,6 +698,15 @@ export default function ConsultaForm({ onSave }) {
 
     if (visitTypes.length === 0) {
       alert("Debes seleccionar al menos un tipo de consulta.");
+      return;
+    }
+
+    const vitalValues = { weight, temp, hr, rr, bp, spo2 };
+    const vitalErrors = validateFields(vitalValues, vitalRules);
+
+    if (Object.keys(vitalErrors).length > 0) {
+      setFieldErrors(vitalErrors);
+      alert("Corrige los campos de signos vitales.");
       return;
     }
 
@@ -539,14 +751,7 @@ export default function ConsultaForm({ onSave }) {
           tipos_consulta: visitTypes,
           proxima_cita: nextAppt || null,
           motivo_seguimiento: followReason || null,
-          vitals: {
-            weight,
-            temp,
-            hr,
-            rr,
-            bp,
-            spo2,
-          },
+          vitals: { weight, temp, hr, rr, bp, spo2 },
           medicaciones: meds,
           notas_medicacion: medNotes,
           analisis: analytics,
@@ -649,26 +854,53 @@ export default function ConsultaForm({ onSave }) {
           >
             <div className={`${styles.bodyGrid} ${styles.cols3}`}>
               <Field label="Paciente (mascota)" full required>
-                <select
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                >
-                  <option value="">
-                    {loadingMascotas || loadingClientes
-                      ? "Cargando mascotas..."
-                      : "— Seleccionar paciente —"}
-                  </option>
+                <div className={styles.patientSearchWrap} ref={patientSearchRef}>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre, raza, dueño o teléfono..."
+                    value={patientSearch}
+                    onChange={(e) => {
+                      setPatientSearch(e.target.value);
+                      setShowPatientResults(true);
+                      setPatientId("");
+                    }}
+                    onFocus={() => setShowPatientResults(true)}
+                  />
 
-                  {mascotasConDueno.map((mascota) => (
-                    <option key={mascota.id} value={mascota.id}>
-                      {mascota.nombre}
-                      {mascota.raza ? ` — ${mascota.raza}` : ""}
-                      {mascota.clienteNombre
-                        ? ` — ${mascota.clienteNombre}`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
+                  {showPatientResults && (
+                    <div className={styles.patientResults}>
+                      {loadingMascotas || loadingClientes ? (
+                        <div className={styles.patientResultItem}>
+                          Cargando mascotas...
+                        </div>
+                      ) : filteredMascotas.length === 0 ? (
+                        <div className={styles.patientResultItem}>
+                          No hay resultados
+                        </div>
+                      ) : (
+                        filteredMascotas.map((mascota) => (
+                          <button
+                            key={mascota.id}
+                            type="button"
+                            className={styles.patientResultBtn}
+                            onClick={() => handleSelectPatient(mascota)}
+                          >
+                            <div className={styles.patientResultName}>
+                              {mascota.nombre}
+                              {mascota.raza ? ` — ${mascota.raza}` : ""}
+                            </div>
+                            <div className={styles.patientResultSub}>
+                              {mascota.clienteNombre || "Dueño desconocido"}
+                              {mascota.clienteTelefono
+                                ? ` — ${mascota.clienteTelefono}`
+                                : ""}
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {selectedPatient && (
                   <div className={styles.patientPreview}>
@@ -678,9 +910,7 @@ export default function ConsultaForm({ onSave }) {
                     <div>
                       <div className={styles.pName}>
                         {selectedPatient.nombre}
-                        {selectedPatient.raza
-                          ? ` — ${selectedPatient.raza}`
-                          : ""}
+                        {selectedPatient.raza ? ` — ${selectedPatient.raza}` : ""}
                       </div>
                       <div className={styles.pSub}>
                         Dueño/a: {selectedPatient.clienteNombre}
@@ -697,15 +927,18 @@ export default function ConsultaForm({ onSave }) {
                 <input
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  min={todayDate}
+                  max={todayDate}
                 />
               </Field>
 
-              <Field label="Hora">
+              <Field label="Hora" required>
                 <input
                   type="time"
                   value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  min={date === todayDate ? nowTime : undefined}
                 />
               </Field>
 
@@ -715,9 +948,7 @@ export default function ConsultaForm({ onSave }) {
                   onChange={(e) => setDoctor(e.target.value)}
                 >
                   <option value="">
-                    {loadingDoctores
-                      ? "Cargando doctores..."
-                      : "— Seleccionar —"}
+                    {loadingDoctores ? "Cargando doctores..." : "— Seleccionar —"}
                   </option>
 
                   {doctores.map((doc) => (
@@ -770,20 +1001,26 @@ export default function ConsultaForm({ onSave }) {
             className={styles.full}
           >
             <div className={styles.typePills}>
-              {VISIT_TYPES.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`${styles.typePill} ${
-                    visitTypes.includes(t.id)
-                      ? `${styles.typePillActive} ${t.colorClass}`
-                      : ""
-                  }`}
-                  onClick={() => toggleType(t.id)}
-                >
-                  {t.label}
-                </button>
-              ))}
+              {loadingVisitTypes ? (
+                <div>Cargando tipos de consulta...</div>
+              ) : availableVisitTypes.length === 0 ? (
+                <div>No hay tipos de consulta disponibles.</div>
+              ) : (
+                availableVisitTypes.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`${styles.typePill} ${
+                      visitTypes.includes(t.codigo)
+                        ? `${styles.typePillActive} ${t.colorClass}`
+                        : ""
+                    }`}
+                    onClick={() => toggleType(t.codigo)}
+                  >
+                    {t.nombre}
+                  </button>
+                ))
+              )}
             </div>
           </SectionCard>
 
@@ -795,40 +1032,50 @@ export default function ConsultaForm({ onSave }) {
             <div className={`${styles.bodyGrid} ${styles.cols3}`}>
               <Field label="Peso (kg)">
                 <input
-                  type="number"
-                  step="0.1"
+                  type="text"
                   placeholder="0.0"
                   value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
+                  onChange={(e) => handleVitalChange("weight", e.target.value)}
                 />
+                {fieldErrors.weight && (
+                  <small style={{ color: "red" }}>{fieldErrors.weight}</small>
+                )}
               </Field>
 
               <Field label="Temperatura (°C)">
                 <input
-                  type="number"
-                  step="0.1"
+                  type="text"
                   placeholder="38.5"
                   value={temp}
-                  onChange={(e) => setTemp(e.target.value)}
+                  onChange={(e) => handleVitalChange("temp", e.target.value)}
                 />
+                {fieldErrors.temp && (
+                  <small style={{ color: "red" }}>{fieldErrors.temp}</small>
+                )}
               </Field>
 
               <Field label="Frec. cardíaca (bpm)">
                 <input
-                  type="number"
+                  type="text"
                   placeholder="80"
                   value={hr}
-                  onChange={(e) => setHr(e.target.value)}
+                  onChange={(e) => handleVitalChange("hr", e.target.value)}
                 />
+                {fieldErrors.hr && (
+                  <small style={{ color: "red" }}>{fieldErrors.hr}</small>
+                )}
               </Field>
 
               <Field label="Frec. respiratoria">
                 <input
-                  type="number"
+                  type="text"
                   placeholder="20"
                   value={rr}
-                  onChange={(e) => setRr(e.target.value)}
+                  onChange={(e) => handleVitalChange("rr", e.target.value)}
                 />
+                {fieldErrors.rr && (
+                  <small style={{ color: "red" }}>{fieldErrors.rr}</small>
+                )}
               </Field>
 
               <Field label="Presión arterial">
@@ -836,17 +1083,23 @@ export default function ConsultaForm({ onSave }) {
                   type="text"
                   placeholder="120/80"
                   value={bp}
-                  onChange={(e) => setBp(e.target.value)}
+                  onChange={(e) => handleVitalChange("bp", e.target.value)}
                 />
+                {fieldErrors.bp && (
+                  <small style={{ color: "red" }}>{fieldErrors.bp}</small>
+                )}
               </Field>
 
               <Field label="Saturación O₂ (%)">
                 <input
-                  type="number"
+                  type="text"
                   placeholder="98"
                   value={spo2}
-                  onChange={(e) => setSpo2(e.target.value)}
+                  onChange={(e) => handleVitalChange("spo2", e.target.value)}
                 />
+                {fieldErrors.spo2 && (
+                  <small style={{ color: "red" }}>{fieldErrors.spo2}</small>
+                )}
               </Field>
             </div>
           </SectionCard>

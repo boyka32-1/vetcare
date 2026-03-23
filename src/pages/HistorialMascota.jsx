@@ -67,7 +67,7 @@ export default function HistorialMascota() {
         setConsultas(historialData);
       } catch (err) {
         console.error(err);
-        setError(err.message || "Could not load pet clinical history.");
+        setError(err.message || "No se pudo cargar el historial clínico.");
       } finally {
         setLoading(false);
       }
@@ -99,7 +99,36 @@ export default function HistorialMascota() {
   const clienteNombre =
     `${mascotaInfo?.first_name || ""} ${mascotaInfo?.last_name || ""}`.trim() ||
     "No owner";
+const VISIT_TYPE_LABELS = {
+  vac: "Vacuna",
+  gen: "Examen general",
+  ill: "Enfermedad",
+  sur: "Cirugía",
+  med: "Medicación",
+  den: "Dental",
+  rou: "Control rutinario",
+  eme: "Emergencia",
+};
 
+const formatConsultaTypes = (tipos) => {
+  if (!tipos) return "Sin tipo";
+
+  let parsed = tipos;
+
+  if (typeof tipos === "string") {
+    try {
+      parsed = JSON.parse(tipos);
+    } catch {
+      parsed = tipos;
+    }
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed.map((type) => VISIT_TYPE_LABELS[type] || type).join(", ");
+  }
+
+  return VISIT_TYPE_LABELS[parsed] || parsed;
+};
   return (
     <div className="hcd-page">
       <div className="hcd-container">
@@ -180,8 +209,8 @@ export default function HistorialMascota() {
                             {consulta.doctor || "No doctor"}
                           </span>
                           <span className="hcd-badge hcd-badge--soft">
-                            Clinical record
-                          </span>
+                          {formatConsultaTypes(consulta.tipos_consulta)}
+                        </span>
                         </div>
                       </div>
 
