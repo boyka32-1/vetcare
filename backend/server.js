@@ -119,7 +119,7 @@ app.post("/api/clientes", async (req, res) => {
 
     if (!nombre || !cedula || !direccion || !correo || !telefono) {
       return res.status(400).json({
-        message: "Complete all required client fields.",
+        message: "Complete todos los campos requeridos",
       });
     }
 
@@ -136,7 +136,7 @@ app.post("/api/clientes", async (req, res) => {
 
     if (existingClients.length > 0) {
       return res.status(409).json({
-        message: "A client with that ID already exists.",
+        message: "Ya existe un cliente con dicha cédula",
       });
     }
 
@@ -176,7 +176,7 @@ app.post("/api/clientes", async (req, res) => {
     );
 
     return res.status(201).json({
-      message: "Client saved successfully.",
+      message: "Cliente guardado exitosamente",
       client: {
         id: clientId,
         nombre,
@@ -385,6 +385,206 @@ app.get("/api/doctores", async (req, res) => {
 });
 
 // =============================
+// GET TIPOS DE CONSULTA
+// Incluye embarazo si existe en la tabla tipos_consulta
+// =============================
+app.get("/api/tipos-consulta", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `
+      SELECT
+        id,
+        codigo,
+        nombre
+      FROM tipos_consulta
+      WHERE deleted_at IS NULL
+      ORDER BY nombre
+      `
+    );
+
+    return res.json(rows);
+  } catch (error) {
+    console.error("Error loading tipos_consulta:", error);
+
+    return res.status(500).json({
+      message: "Error interno al cargar tipos de consulta.",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
+    });
+  }
+});
+
+// =============================
+// STATS
+// =============================
+app.get("/api/stats", async (req, res) => {
+  try {
+    const [[clientesRow]] = await pool.execute(`
+      SELECT COUNT(*) AS total
+      FROM clients
+      WHERE deleted_at IS NULL
+    `);
+
+    const [[mascotasRow]] = await pool.execute(`
+      SELECT COUNT(*) AS total
+      FROM pets
+      WHERE deleted_at IS NULL
+    `);
+
+    const [[consultasRow]] = await pool.execute(`
+      SELECT COUNT(*) AS total
+      FROM consultas
+      WHERE deleted_at IS NULL
+    `);
+
+    const [[alertasRow]] = await pool.execute(`
+      SELECT COUNT(*) AS total
+      FROM consultas
+      WHERE deleted_at IS NULL
+        AND (
+          (proxima_cita IS NOT NULL AND proxima_cita <= DATE_ADD(CURDATE(), INTERVAL 3 DAY))
+          OR estado = 'seguimiento'
+        )
+    `);
+
+    return res.json({
+      clientes: Number(clientesRow.total || 0),
+      mascotas: Number(mascotasRow.total || 0),
+      consultas: Number(consultasRow.total || 0),
+      alertas: Number(alertasRow.total || 0),
+    });
+  } catch (error) {
+    console.error("Error loading stats:", error);
+
+    return res.status(500).json({
+      message: "Error interno al cargar estadísticas.",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
+    });
+  }
+});
+
+// =============================
+// ALERTAS
+// =============================
+app.get("/api/alertas", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT
+        c.id,
+        c.pet_id,
+        c.client_id,
+        c.doctor_id,
+        c.fecha,
+        c.proxima_cita,
+        c.motivo,
+        c.diagnostico,
+        c.observaciones,
+        c.estado,
+        c.gravedad,
+
+        p.name AS mascota_nombre,
+        p.breed AS mascota_raza,
+
+        CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
+        cl.phone_primary AS cliente_telefono,
+
+        d.full_name AS doctor_nombre
+      FROM consultas c
+      INNER JOIN pets p
+        ON p.id = c.pet_id
+      INNER JOIN clients cl
+        ON cl.id = c.client_id
+      LEFT JOIN doctors d
+        ON d.id = c.doctor_id
+      WHERE c.deleted_at IS NULL
+        AND (
+          c.estado = 'seguimiento'
+          OR c.proxima_cita IS NOT NULL
+        )
+      ORDER BY
+        CASE
+          WHEN c.proxima_cita IS NULL THEN 1
+          ELSE 0
+        END,
+        c.proxima_cita ASC,
+        c.created_at DESC
+    `);
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
+
+    const alertas = rows.map((row) => {
+      let categoria = "proximas";
+
+      if (row.proxima_cita) {
+        const cita = new Date(row.proxima_cita);
+        cita.setHours(0, 0, 0, 0);
+
+        if (cita < hoy) {
+          categoria = "atrasadas";
+        } else if (cita.getTime() === hoy.getTime()) {
+          categoria = "hoy";
+        } else if (cita.getTime() === manana.getTime()) {
+          categoria = "manana";
+        } else {
+          categoria = "proximas";
+        }
+      } else if (row.estado === "seguimiento") {
+        categoria = "proximas";
+      }
+
+      return {
+        id: row.id,
+        pet_id: row.pet_id,
+        client_id: row.client_id,
+        doctor_id: row.doctor_id,
+        fecha: row.fecha,
+        proxima_cita: row.proxima_cita,
+        motivo: row.motivo,
+        diagnostico: row.diagnostico,
+        observaciones: row.observaciones,
+        estado: row.estado,
+        gravedad: row.gravedad,
+        mascota_nombre: row.mascota_nombre,
+        mascota_raza: row.mascota_raza,
+        cliente_nombre: row.cliente_nombre,
+        cliente_telefono: row.cliente_telefono,
+        doctor_nombre: row.doctor_nombre,
+        categoria,
+      };
+    });
+
+    const resumen = {
+      atrasadas: alertas.filter((a) => a.categoria === "atrasadas").length,
+      hoy: alertas.filter((a) => a.categoria === "hoy").length,
+      manana: alertas.filter((a) => a.categoria === "manana").length,
+      proximas: alertas.filter((a) => a.categoria === "proximas").length,
+      total: alertas.length,
+    };
+
+    return res.json({
+      resumen,
+      alertas,
+    });
+  } catch (error) {
+    console.error("Error loading alertas:", error);
+
+    return res.status(500).json({
+      message: "No se pudieron cargar las alertas.",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
+    });
+  }
+});
+
+// =============================
 // REGISTER CONSULTA
 // =============================
 app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
@@ -488,6 +688,46 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
         saturacionOxigeno,
       ]
     );
+
+    // =============================
+    // GUARDAR TIPOS DE CONSULTA
+    // =============================
+    if (Array.isArray(tiposConsulta) && tiposConsulta.length > 0) {
+      for (const tipoCodigo of tiposConsulta) {
+        const codigo = String(tipoCodigo || "").trim();
+        if (!codigo) continue;
+
+        const [tipoRows] = await connection.execute(
+          `
+          SELECT id
+          FROM tipos_consulta
+          WHERE codigo = ?
+            AND deleted_at IS NULL
+          LIMIT 1
+          `,
+          [codigo]
+        );
+
+        if (tipoRows.length === 0) continue;
+
+        const tipoId = tipoRows[0].id;
+
+        await connection.execute(
+          `
+          INSERT INTO consulta_tipos (
+            id,
+            consulta_id,
+            tipo_consulta_id,
+            deleted_at,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, NULL, NOW(), NOW())
+          `,
+          [crypto.randomUUID(), consultaId, tipoId]
+        );
+      }
+    }
 
     if (Array.isArray(medicaciones) && medicaciones.length > 0) {
       for (const medicamento of medicaciones) {
@@ -662,6 +902,23 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
     const resultado = [];
 
     for (const consulta of consultas) {
+      const [tipos] = await pool.execute(
+        `
+        SELECT
+          tc.id,
+          tc.codigo,
+          tc.nombre
+        FROM consulta_tipos ct
+        INNER JOIN tipos_consulta tc
+          ON tc.id = ct.tipo_consulta_id
+        WHERE ct.consulta_id = ?
+          AND ct.deleted_at IS NULL
+          AND tc.deleted_at IS NULL
+        ORDER BY tc.nombre ASC
+        `,
+        [consulta.id]
+      );
+
       const [medicaciones] = await pool.execute(
         `
         SELECT medicamento, indicaciones
@@ -708,6 +965,8 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
 
       resultado.push({
         ...consulta,
+        tipos_consulta: tipos.map((t) => t.codigo),
+        tipos_consulta_detalle: tipos,
         treatment:
           medicaciones.length > 0
             ? medicaciones.map((m) => m.medicamento).join(", ")
@@ -741,7 +1000,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (!username || !password || !role) {
       return res.status(400).json({
-        message: "Username, password and role are required.",
+        message: "Username and password and role are required.",
       });
     }
 
@@ -751,7 +1010,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (!cleanUsername || !cleanPassword || !cleanRole) {
       return res.status(400).json({
-        message: "Username, password and role are required.",
+        message: "Username and password and role are required.",
       });
     }
 

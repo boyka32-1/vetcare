@@ -1,7 +1,12 @@
 import "./register.css";
 import { useState } from "react";
-import { User, Mail, Lock, ShieldCheck } from "lucide-react";
+import { User, Mail, Lock, ShieldCheck, Phone, IdCard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  applyFieldFormatting,
+  validateFields,
+  validators,
+} from "../utils/formRules";
 
 export default function CreateAccountVetCare() {
   const navigate = useNavigate();
@@ -9,21 +14,85 @@ export default function CreateAccountVetCare() {
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
+    cedula: "",
+    telefono: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const fieldRules = {
+    nombre: {
+      required: true,
+      requiredMessage: "El nombre es obligatorio.",
+      formatter: "lettersAndAccents",
+    },
+    apellido: {
+      required: true,
+      requiredMessage: "El apellido es obligatorio.",
+      formatter: "lettersAndAccents",
+    },
+    cedula: {
+      required: true,
+      requiredMessage: "La cédula es obligatoria.",
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.exactLength(13),
+          message: "La cédula debe tener exactamente 11 dígitos.",
+        },
+      ],
+    },
+    telefono: {
+      required: true,
+      requiredMessage: "El teléfono es obligatorio.",
+      formatter: "onlyNumbers",
+      validate: [
+        {
+          test: validators.minLength(10),
+          message: "El teléfono no puede tener menos de 10 dígitos.",
+        },
+      ],
+    },
+    email: {
+      required: true,
+      requiredMessage: "El email es obligatorio.",
+      formatter: "email",
+      validate: [
+        {
+          test: validators.email,
+          message: "El email no es válido.",
+        },
+      ],
+    },
+    password: {
+      required: true,
+      requiredMessage: "La contraseña es obligatoria.",
+    },
+    confirmPassword: {
+      required: true,
+      requiredMessage: "Debes confirmar la contraseña.",
+    },
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    const formattedValue = applyFieldFormatting(name, value, fieldRules);
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: formattedValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
     }));
   };
 
@@ -32,16 +101,17 @@ export default function CreateAccountVetCare() {
 
     setError("");
     setSuccess("");
+    setFieldErrors({});
 
-    const { nombre, apellido, email, password, confirmPassword } = formData;
+    const errors = validateFields(formData, fieldRules);
 
-    if (!nombre || !apellido || !email || !password || !confirmPassword) {
-      setError("Completa todos los campos.");
-      return;
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Las contraseñas no coinciden.";
     }
 
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError("Corrige los campos marcados.");
       return;
     }
 
@@ -54,8 +124,8 @@ export default function CreateAccountVetCare() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: email.trim(),
-          password: password.trim(),
+          username: formData.email.trim(),
+          password: formData.password.trim(),
           role: "ADMIN",
         }),
       });
@@ -72,6 +142,8 @@ export default function CreateAccountVetCare() {
       setFormData({
         nombre: "",
         apellido: "",
+        cedula: "",
+        telefono: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -80,7 +152,7 @@ export default function CreateAccountVetCare() {
       setTimeout(() => {
         navigate("/");
       }, 1500);
-    } catch (err) {
+    } catch {
       setError("Error al conectar con el servidor.");
     } finally {
       setLoading(false);
@@ -104,7 +176,7 @@ export default function CreateAccountVetCare() {
           <div className="cl-form-container">
             <form className="cl-form" onSubmit={handleSubmit}>
               <div className="cl-field">
-                <label>NOMBRE</label>
+                <label>NOMBRE <span className="req">*</span></label>
                 <div className="cl-input-wrap">
                   <User size={18} />
                   <input
@@ -115,10 +187,11 @@ export default function CreateAccountVetCare() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
               </div>
 
               <div className="cl-field">
-                <label>APELLIDO</label>
+                <label>APELLIDO <span className="req">*</span></label>
                 <div className="cl-input-wrap">
                   <User size={18} />
                   <input
@@ -129,10 +202,43 @@ export default function CreateAccountVetCare() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.apellido && <small>{fieldErrors.apellido}</small>}
               </div>
 
               <div className="cl-field">
-                <label>EMAIL</label>
+                <label>CÉDULA <span className="req">*</span></label>
+                <div className="cl-input-wrap">
+                  <IdCard size={18} />
+                  <input
+                    type="text"
+                    name="cedula"
+                    placeholder="Enter your ID"
+                    value={formData.cedula}
+                    onChange={handleChange}
+                    maxLength={11}
+                  />
+                </div>
+                {fieldErrors.cedula && <small>{fieldErrors.cedula}</small>}
+              </div>
+
+              <div className="cl-field">
+                <label>TELÉFONO <span className="req">*</span></label>
+                <div className="cl-input-wrap">
+                  <Phone size={18} />
+                  <input
+                    type="text"
+                    name="telefono"
+                    placeholder="Enter your phone"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    maxLength={10}
+                  />
+                </div>
+                {fieldErrors.telefono && <small>{fieldErrors.telefono}</small>}
+              </div>
+
+              <div className="cl-field">
+                <label>EMAIL <span className="req">*</span></label>
                 <div className="cl-input-wrap">
                   <Mail size={18} />
                   <input
@@ -143,10 +249,11 @@ export default function CreateAccountVetCare() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.email && <small>{fieldErrors.email}</small>}
               </div>
 
               <div className="cl-field">
-                <label>CONTRASEÑA</label>
+                <label>CONTRASEÑA <span className="req">*</span></label>
                 <div className="cl-input-wrap">
                   <Lock size={18} />
                   <input
@@ -157,10 +264,11 @@ export default function CreateAccountVetCare() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.password && <small>{fieldErrors.password}</small>}
               </div>
 
               <div className="cl-field">
-                <label>CONFIRMAR CONTRASEÑA</label>
+                <label>CONFIRMAR CONTRASEÑA <span className="req">*</span></label>
                 <div className="cl-input-wrap">
                   <Lock size={18} />
                   <input
@@ -171,26 +279,20 @@ export default function CreateAccountVetCare() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.confirmPassword && (
+                  <small>{fieldErrors.confirmPassword}</small>
+                )}
               </div>
 
-              {error && (
-                <p style={{ color: "red", marginTop: "10px" }}>{error}</p>
-              )}
+              {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+              {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
 
-              {success && (
-                <p style={{ color: "green", marginTop: "10px" }}>{success}</p>
-              )}
-
-              <button
-                type="submit"
-                className="cl-btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" className="cl-btn-primary" disabled={loading}>
                 {loading ? "CREANDO..." : "CREAR CUENTA"}
               </button>
 
               <Link to="/" className="cl-btn-secondary">
-                Back to Login
+                Devuelta al inicio de sesión
               </Link>
 
               <div className="cl-note">

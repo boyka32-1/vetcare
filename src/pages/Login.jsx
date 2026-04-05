@@ -75,7 +75,7 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="vc-header-tagline">Veterinary management system</p>
+          <p className="vc-header-tagline">Sistema de gestión veterinaria</p>
         </div>
 
         <div className="vc-card-body">
@@ -84,7 +84,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="vc-field">
-              <label htmlFor="usuario">Nombre de usuario</label>
+              <label htmlFor="usuario">Nombre de usuario <span class = "req">*</span></label>
               <div className="vc-input-wrap">
                 <input
                   type="text"
@@ -99,7 +99,7 @@ export default function Login() {
             </div>
 
             <div className="vc-field">
-              <label htmlFor="contrasena">Contraseña</label>
+              <label htmlFor="contrasena">Contraseña <span class = "req">*</span></label>
               <div className="vc-input-wrap">
                 <input
                   type={passType}
@@ -129,7 +129,7 @@ export default function Login() {
             )}
 
             <button className="vc-btn-login" type="submit" disabled={loading}>
-              {loading ? "Checking..." : "LOG IN"}
+              {loading ? "Checking..." : "Ingresar"}
             </button>
 
             <Link to="/register" className="vc-btn-register">
@@ -139,7 +139,7 @@ export default function Login() {
             <div className="vc-security-badge">
               <svg
                 width="12"
-                height="12"
+                height="10"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -147,7 +147,7 @@ export default function Login() {
               >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
-              Secure encrypted connection
+              Conexión segura y encriptada
             </div>
           </form>
         </div>
