@@ -4,101 +4,6 @@ import "./historialMascota.css";
 
 const API_URL = "http://localhost:5000";
 
-export default function HistorialMascota() {
-  const navigate = useNavigate();
-  const { mascotaId } = useParams();
-
-  const [consultas, setConsultas] = useState([]);
-  const [mascotaInfo, setMascotaInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const cargarHistorial = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        // 1) Cargar lista de mascotas para sacar información básica
-        const mascotasRes = await fetch(`${API_URL}/api/mascotas`);
-        const mascotasRaw = await mascotasRes.text();
-
-        let mascotasData = [];
-        try {
-          mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
-        } catch {
-          throw new Error("Invalid JSON while loading pets.");
-        }
-
-        if (!mascotasRes.ok) {
-          throw new Error("Could not load pets.");
-        }
-
-        if (!Array.isArray(mascotasData)) {
-          throw new Error("Pets response is not an array.");
-        }
-
-        const mascota = mascotasData.find((item) => item.id === mascotaId) || null;
-        setMascotaInfo(mascota);
-
-        // 2) Cargar historial clínico de la mascota
-        const historialRes = await fetch(
-          `${API_URL}/api/mascotas/${mascotaId}/consultas`
-        );
-        const historialRaw = await historialRes.text();
-
-        let historialData = [];
-        try {
-          historialData = historialRaw ? JSON.parse(historialRaw) : [];
-        } catch {
-          throw new Error("Invalid JSON while loading pet clinical history.");
-        }
-
-        if (!historialRes.ok) {
-          throw new Error(
-            historialData.message || "Could not load pet clinical history."
-          );
-        }
-
-        if (!Array.isArray(historialData)) {
-          throw new Error("Clinical history response is not an array.");
-        }
-
-        setConsultas(historialData);
-      } catch (err) {
-        console.error(err);
-        setError(err.message || "No se pudo cargar el historial clínico.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (mascotaId) {
-      cargarHistorial();
-    }
-  }, [mascotaId]);
-
-  const formatDate = (date) => {
-    if (!date) return "No date";
-
-    const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) return date;
-
-    return parsed.toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const mascotaNombre = mascotaInfo?.name || "No name";
-  const mascotaRaza = mascotaInfo?.breed || "No breed";
-  const mascotaEdad = mascotaInfo?.age_years || "No age";
-  const clienteNombre =
-    `${mascotaInfo?.first_name || ""} ${mascotaInfo?.last_name || ""}`.trim() ||
-    "No owner";
 const VISIT_TYPE_LABELS = {
   vac: "Vacuna",
   gen: "Examen general",
@@ -108,9 +13,17 @@ const VISIT_TYPE_LABELS = {
   den: "Dental",
   rou: "Control rutinario",
   eme: "Emergencia",
+  emb: "Embarazo",
 };
 
-const formatConsultaTypes = (tipos) => {
+function normalizeVisitTypes(tipos, tiposDetalle) {
+  if (Array.isArray(tiposDetalle) && tiposDetalle.length > 0) {
+    return tiposDetalle
+      .map((item) => item?.nombre || VISIT_TYPE_LABELS[item?.codigo] || item?.codigo)
+      .filter(Boolean)
+      .join(", ");
+  }
+
   if (!tipos) return "Sin tipo";
 
   let parsed = tipos;
@@ -126,6 +39,167 @@ const formatConsultaTypes = (tipos) => {
   if (Array.isArray(parsed)) {
     return parsed.map((type) => VISIT_TYPE_LABELS[type] || type).join(", ");
   }
+
+  return VISIT_TYPE_LABELS[parsed] || parsed;
+}
+
+export default function HistorialMascota() {
+  const navigate = useNavigate();
+  const { mascotaId } = useParams();
+
+  const [consultas, setConsultas] = useState([]);
+  const [mascotaInfo, setMascotaInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        // 1) Cargar lista de mascotas para sacar información básica
+        const mascotasRes = await fetch(`${API_URL}/api/mascotas`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (mascotasRes.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const mascotasRaw = await mascotasRes.text();
+
+        let mascotasData = [];
+        try {
+          mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
+        } catch {
+          throw new Error("JSON inválido al cargar mascotas.");
+        }
+
+        if (!mascotasRes.ok) {
+          throw new Error(
+            mascotasData?.message || "No se pudieron cargar las mascotas."
+          );
+        }
+
+        if (!Array.isArray(mascotasData)) {
+          throw new Error("La respuesta de mascotas no es un arreglo.");
+        }
+
+        const mascota =
+          mascotasData.find(
+            (item) =>
+              String(
+                item.id ??
+                  item.Id ??
+                  item.ID ??
+                  item.mascotaId ??
+                  item.MascotaId ??
+                  item._id ??
+                  ""
+              ) === String(mascotaId)
+          ) || null;
+
+        setMascotaInfo(mascota);
+
+        // 2) Cargar historial clínico de la mascota
+        const historialRes = await fetch(
+          `${API_URL}/api/mascotas/${mascotaId}/consultas`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (historialRes.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const historialRaw = await historialRes.text();
+
+        let historialData = [];
+        try {
+          historialData = historialRaw ? JSON.parse(historialRaw) : [];
+        } catch {
+          throw new Error("JSON inválido al cargar historial clínico.");
+        }
+
+        if (!historialRes.ok) {
+          throw new Error(
+            historialData?.message || "No se pudo cargar el historial clínico."
+          );
+        }
+
+        if (!Array.isArray(historialData)) {
+          throw new Error("La respuesta del historial clínico no es un arreglo.");
+        }
+
+        setConsultas(historialData);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "No se pudo cargar el historial clínico.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (mascotaId) {
+      cargarHistorial();
+    }
+  }, [mascotaId, navigate]);
+
+  const formatDate = (date) => {
+    if (!date) return "Sin fecha";
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return date;
+
+    return parsed.toLocaleString("es-DO", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const mascotaNombre =
+    mascotaInfo?.name ??
+    mascotaInfo?.nombre ??
+    "Sin nombre";
+
+  const mascotaRaza =
+    mascotaInfo?.breed ??
+    mascotaInfo?.raza ??
+    "Sin raza";
+
+  const mascotaEdad =
+    mascotaInfo?.age_years ??
+    mascotaInfo?.edad ??
+    "Sin edad";
+
+  const clienteNombre =
+    `${mascotaInfo?.first_name ?? ""} ${mascotaInfo?.last_name ?? ""}`.trim() ||
+    mascotaInfo?.clienteNombre ||
+    "Sin dueño";
 
   return VISIT_TYPE_LABELS[parsed] || parsed;
 };
@@ -148,7 +222,7 @@ const formatConsultaTypes = (tipos) => {
         </header>
 
         {loading ? (
-          <div className="hcd-state-card">Loading clinical history...</div>
+          <div className="hcd-state-card">Cargando historial clínico...</div>
         ) : error ? (
           <div className="hcd-state-card hcd-state-card--error">{error}</div>
         ) : (
@@ -192,7 +266,7 @@ const formatConsultaTypes = (tipos) => {
 
               {consultas.length === 0 ? (
                 <p className="hcd-empty-text">
-                  No clinical history found for this pet.
+                  No se encontró historial clínico para esta mascota.
                 </p>
               ) : (
                 <div className="hcd-consultation-list">
@@ -200,31 +274,34 @@ const formatConsultaTypes = (tipos) => {
                     <article key={consulta.id} className="hcd-consultation-card">
                       <div className="hcd-consultation-top">
                         <div>
-                          <h3>{consulta.reason || "No reason"}</h3>
+                          <h3>{consulta.reason || "Sin motivo"}</h3>
                           <p>{formatDate(consulta.visit_at)}</p>
                         </div>
 
                         <div className="hcd-badges">
                           <span className="hcd-badge">
-                            {consulta.doctor || "No doctor"}
+                            {consulta.doctor || "Sin doctor"}
                           </span>
                           <span className="hcd-badge hcd-badge--soft">
-                          {formatConsultaTypes(consulta.tipos_consulta)}
-                        </span>
+                            {normalizeVisitTypes(
+                              consulta.tipos_consulta,
+                              consulta.tipos_consulta_detalle
+                            )}
+                          </span>
                         </div>
                       </div>
 
                       <div className="hcd-consultation-body">
                         <p>
-                          <strong>Diagnosis:</strong>{" "}
-                          {consulta.diagnosis || "No diagnosis"}
+                          <strong>Diagnóstico:</strong>{" "}
+                          {consulta.diagnosis || "Sin diagnóstico"}
                         </p>
                         <p>
-                          <strong>Treatment:</strong>{" "}
-                          {consulta.treatment || "No treatment"}
+                          <strong>Tratamiento:</strong>{" "}
+                          {consulta.treatment || "Sin tratamiento"}
                         </p>
                         <p>
-                          <strong>Notes:</strong> {consulta.notes || "No notes"}
+                          <strong>Notas:</strong> {consulta.notes || "Sin notas"}
                         </p>
                       </div>
                     </article>

@@ -7,6 +7,8 @@ import {
   validators,
 } from "../utils/formRules";
 
+const API_URL = "http://localhost:5000";
+
 export default function Clientes() {
   const navigate = useNavigate();
 
@@ -24,7 +26,6 @@ export default function Clientes() {
   const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // 🔥 RULES (reusable and scalable)
   const fieldRules = {
     nombre: {
       required: true,
@@ -110,7 +111,6 @@ export default function Clientes() {
     setSuccess("");
     setFieldErrors({});
 
-    // 🔥 VALIDATION
     const errors = validateFields(form, fieldRules);
 
     if (Object.keys(errors).length > 0) {
@@ -122,13 +122,30 @@ export default function Clientes() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/clientes", {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/clientes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
       const raw = await response.text();
 
@@ -142,7 +159,7 @@ export default function Clientes() {
         return;
       }
 
-      setSuccess("Client saved successfully.");
+      setSuccess(data.message || "Client saved successfully.");
 
       setForm({
         nombre: "",

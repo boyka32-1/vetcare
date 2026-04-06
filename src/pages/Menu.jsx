@@ -148,8 +148,41 @@ export default function MenuPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/stats");
-        const data = await res.json();
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.warn("No hay token guardado. Redirigiendo al login.");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/stats", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(data?.message || "No se pudieron cargar las estadísticas");
+        }
+
+        const nextCounts = {
+          clientes: Number(data.clientes ?? 0),
+          mascotas: Number(data.mascotas ?? 0),
+          consultas: Number(data.consultas ?? 0),
+          alertas: Number(data.alertas ?? 0),
+        };
+
+        setCounts(nextCounts);
 
         const nextCounts = {
           clientes: Number(data.clientes ?? 0),
@@ -188,7 +221,7 @@ export default function MenuPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [navigate]);
 
   const menuSections = useMemo(() => {
     return baseMenuSections.map((section) => ({
@@ -429,7 +462,7 @@ export default function MenuPage() {
                 }
               }}
             >
-              {action.badge !== undefined && (
+              {action.badge !== undefined && action.id === "alertas" && (
                 <span className="action-card__badge">
                   {action.badge} alertas
                 </span>

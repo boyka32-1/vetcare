@@ -18,34 +18,87 @@ export default function HistorialClinico() {
         setLoading(true);
         setError("");
 
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         // 1) Cargar mascotas
-        const mascotasRes = await fetch(`${API_URL}/api/mascotas`);
+        const mascotasRes = await fetch(`${API_URL}/api/mascotas`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (mascotasRes.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const mascotasRaw = await mascotasRes.text();
 
         let mascotasData = [];
         try {
           mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
         } catch {
-          throw new Error("Invalid JSON while loading pets.");
+          throw new Error("JSON inválido al cargar mascotas.");
         }
 
         if (!mascotasRes.ok) {
-          throw new Error("Could not load pets.");
+          throw new Error(
+            mascotasData?.message || "No se pudieron cargar las mascotas."
+          );
         }
 
         if (!Array.isArray(mascotasData)) {
-          throw new Error("Pets response is not an array.");
+          throw new Error("La respuesta de mascotas no es un arreglo.");
         }
 
         // 2) Para cada mascota cargar sus consultas
         const resumenPromises = mascotasData.map(async (pet, index) => {
-          const mascotaId = pet.id ?? `pet-${index}`;
+          const mascotaId =
+            pet.id ??
+            pet.Id ??
+            pet.ID ??
+            pet.mascotaId ??
+            pet.MascotaId ??
+            pet._id ??
+            `pet-${index}`;
 
           let consultas = [];
+
           try {
             const consultasRes = await fetch(
-              `${API_URL}/api/mascotas/${mascotaId}/consultas`
+              `${API_URL}/api/mascotas/${mascotaId}/consultas`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
             );
+
+            if (consultasRes.status === 401) {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              navigate("/", { replace: true });
+              return {
+                mascotaId,
+                nombre: pet.name ?? pet.nombre ?? "Sin nombre",
+                raza: pet.breed ?? pet.raza ?? "Sin raza",
+                edad: pet.age_years ?? pet.edad ?? "Sin edad",
+                clienteNombre:
+                  `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() ||
+                  "Sin dueño",
+                consultasTotal: 0,
+                ultimaConsulta: "",
+              };
+            }
 
             const consultasRaw = await consultasRes.text();
 
@@ -72,11 +125,12 @@ export default function HistorialClinico() {
 
           return {
             mascotaId,
-            nombre: pet.name ?? pet.nombre ?? "No name",
-            raza: pet.breed ?? pet.raza ?? "No breed",
-            edad: pet.age_years ?? pet.edad ?? "No age",
+            nombre: pet.name ?? pet.nombre ?? "Sin nombre",
+            raza: pet.breed ?? pet.raza ?? "Sin raza",
+            edad: pet.age_years ?? pet.edad ?? "Sin edad",
             clienteNombre:
-              `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() || "No owner",
+              `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() ||
+              "Sin dueño",
             consultasTotal: consultas.length,
             ultimaConsulta,
           };
@@ -87,14 +141,14 @@ export default function HistorialClinico() {
         setMascotasResumen(resumen);
       } catch (err) {
         console.error(err);
-        setError(err.message || "Could not load clinical history.");
+        setError(err.message || "No se pudo cargar el historial clínico.");
       } finally {
         setLoading(false);
       }
     };
 
     loadResumen();
-  }, []);
+  }, [navigate]);
 
   const filteredMascotas = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -111,15 +165,18 @@ export default function HistorialClinico() {
   }, [mascotasResumen, search]);
 
   const totalConsultas = useMemo(() => {
-    return mascotasResumen.reduce((acc, item) => acc + (item.consultasTotal || 0), 0);
+    return mascotasResumen.reduce(
+      (acc, item) => acc + (item.consultasTotal || 0),
+      0
+    );
   }, [mascotasResumen]);
 
   const formatDate = (date) => {
-    if (!date) return "No date";
+    if (!date) return "Sin fecha";
     const parsed = new Date(date);
     if (Number.isNaN(parsed.getTime())) return date;
 
-    return parsed.toLocaleDateString("en-GB", {
+    return parsed.toLocaleDateString("es-DO", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -185,16 +242,17 @@ export default function HistorialClinico() {
             </div>
 
             <div className="hc-results">
-              {filteredMascotas.length} paciente{filteredMascotas.length !== 1 ? "s" : ""}
+              {filteredMascotas.length} paciente
+              {filteredMascotas.length !== 1 ? "s" : ""}
             </div>
           </div>
 
           {loading ? (
-            <div className="hc-state-card">Loading clinical history...</div>
+            <div className="hc-state-card">Cargando historial clínico...</div>
           ) : error ? (
             <div className="hc-state-card hc-state-card--error">{error}</div>
           ) : filteredMascotas.length === 0 ? (
-            <div className="hc-state-card">No patients found.</div>
+            <div className="hc-state-card">No se encontraron pacientes.</div>
           ) : (
             <div className="hc-list">
               {filteredMascotas.map((pet, index) => (
@@ -212,15 +270,16 @@ export default function HistorialClinico() {
                     <div className="hc-pet-main">
                       <h2>{pet.nombre}</h2>
                       <p>
-                        {pet.raza || "No breed"} · {pet.edad || "No age"} ·{" "}
-                        {pet.clienteNombre || "No owner"}
+                        {pet.raza || "Sin raza"} · {pet.edad || "Sin edad"} ·{" "}
+                        {pet.clienteNombre || "Sin dueño"}
                       </p>
                     </div>
                   </div>
 
                   <div className="hc-pet-right">
                     <span className="hc-pill">
-                      {pet.consultasTotal} consulta{pet.consultasTotal !== 1 ? "s" : ""}
+                      {pet.consultasTotal} consulta
+                      {pet.consultasTotal !== 1 ? "s" : ""}
                     </span>
 
                     <span className="hc-last-date">
