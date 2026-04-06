@@ -66,6 +66,21 @@ function getAlertLabel(type) {
   }
 }
 
+function mapBackendCategoryToFrontend(category) {
+  switch (category) {
+    case "atrasadas":
+      return "overdue";
+    case "hoy":
+      return "today";
+    case "manana":
+      return "tomorrow";
+    case "proximas":
+      return "upcoming";
+    default:
+      return "upcoming";
+  }
+}
+
 export default function Alertas() {
   const navigate = useNavigate();
 
@@ -88,7 +103,21 @@ export default function Alertas() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("http://localhost:5000/api/alertas");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/api/alertas", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const raw = await response.text();
 
         let data = {};
@@ -96,6 +125,13 @@ export default function Alertas() {
           data = raw ? JSON.parse(raw) : {};
         } catch {
           data = {};
+        }
+
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
         }
 
         if (!response.ok) {
@@ -109,29 +145,34 @@ export default function Alertas() {
         const resumen = data?.resumen || {};
         const lista = Array.isArray(data?.alertas) ? data.alertas : [];
 
-        const normalized = lista.map((item, index) => ({
-          id: item?.id ?? `row-${index}`,
-          fecha: item?.proxima_cita ?? item?.fecha ?? "",
-          hora: item?.proxima_cita ? formatTime(item.proxima_cita) : formatTime(item.fecha),
-          motivo:
-            item?.motivo ??
-            item?.motivo_seguimiento ??
-            item?.diagnostico ??
-            "",
-          estado: item?.estado ?? "pendiente",
-          patientId: item?.pet_id ?? "",
-          patientName: item?.mascota_nombre ?? "Sin nombre",
-          raza: item?.mascota_raza ?? "",
-          ownerName: item?.cliente_nombre ?? "Sin dueño",
-          phone: item?.cliente_telefono ?? "",
-          doctorName: item?.doctor_nombre ?? "",
-          categoria: item?.categoria ?? "upcoming",
-          rawFechaConsulta: item?.fecha ?? "",
-          rawProximaCita: item?.proxima_cita ?? "",
-          gravedad: item?.gravedad ?? "",
-          observaciones: item?.observaciones ?? "",
-          diagnostico: item?.diagnostico ?? "",
-        }));
+        const normalized = lista.map((item, index) => {
+          const fechaBase = item?.proxima_cita || item?.fecha || "";
+          const frontendCategory = mapBackendCategoryToFrontend(item?.categoria);
+
+          return {
+            id: item?.id ?? `row-${index}`,
+            fecha: fechaBase,
+            hora: formatTime(fechaBase),
+            motivo:
+              item?.motivo ??
+              item?.motivo_seguimiento ??
+              item?.diagnostico ??
+              "",
+            estado: item?.estado ?? "pendiente",
+            patientId: item?.pet_id ?? "",
+            patientName: item?.mascota_nombre ?? "Sin nombre",
+            raza: item?.mascota_raza ?? "",
+            ownerName: item?.cliente_nombre ?? "Sin dueño",
+            phone: item?.cliente_telefono ?? "",
+            doctorName: item?.doctor_nombre ?? "",
+            categoria: frontendCategory,
+            rawFechaConsulta: item?.fecha ?? "",
+            rawProximaCita: item?.proxima_cita ?? "",
+            gravedad: item?.gravedad ?? "",
+            observaciones: item?.observaciones ?? "",
+            diagnostico: item?.diagnostico ?? "",
+          };
+        });
 
         setAlertas(normalized);
 
@@ -151,7 +192,7 @@ export default function Alertas() {
     };
 
     loadAlertas();
-  }, []);
+  }, [navigate]);
 
   const filteredAlertas = useMemo(() => {
     let result = [...alertas];
@@ -171,7 +212,7 @@ export default function Alertas() {
     }
 
     if (filter !== "all") {
-      result = result.filter((item) => getAlertType(item.fecha) === filter);
+      result = result.filter((item) => item.categoria === filter);
     }
 
     result.sort((a, b) => {
@@ -321,7 +362,7 @@ export default function Alertas() {
                 </thead>
                 <tbody>
                   {filteredAlertas.map((item) => {
-                    const type = getAlertType(item.fecha);
+                    const type = item.categoria || getAlertType(item.fecha);
 
                     return (
                       <tr key={item.id}>

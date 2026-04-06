@@ -9,6 +9,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import rateLimit from "express-rate-limit";
 
 dotenv.config({ path: "./.env" });
 
@@ -93,6 +94,50 @@ function toNullableNumber(value) {
   return Number.isNaN(n) ? null : n;
 }
 
+function requireAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "No autorizado. Token requerido.",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Token inválido o expirado.",
+    });
+  }
+}
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 150,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Demasiadas solicitudes. Intenta nuevamente en unos minutos.",
+  },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Demasiados intentos de inicio de sesión. Intenta más tarde.",
+  },
+});
+
+app.use("/api", apiLimiter);
+
 // =============================
 // ROOT
 // =============================
@@ -113,7 +158,7 @@ app.get("/test", (req, res) => {
 // =============================
 // REGISTER CLIENT
 // =============================
-app.post("/api/clientes", async (req, res) => {
+app.post("/api/clientes", requireAuth, async (req, res) => {
   try {
     const { nombre, cedula, direccion, correo, telefono, telefono2 } = req.body;
 
@@ -199,11 +244,13 @@ app.post("/api/clientes", async (req, res) => {
 
 // =============================
 // GET CLIENTS
+// Filtro por id
 // =============================
-app.get("/api/clientes", async (req, res) => {
+app.get("/api/clientes", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.execute(
-      `
+    const { id } = req.query;
+
+    let sql = `
       SELECT
         id,
         CONCAT(first_name, ' ', last_name) AS nombre,
@@ -214,16 +261,25 @@ app.get("/api/clientes", async (req, res) => {
         phone_secondary AS telefono2
       FROM clients
       WHERE deleted_at IS NULL
-      ORDER BY first_name, last_name
-      `
-    );
+    `;
+
+    const params = [];
+
+    if (id) {
+      sql += ` AND id = ? `;
+      params.push(id);
+    }
+
+    sql += ` ORDER BY first_name, last_name `;
+
+    const [rows] = await pool.execute(sql, params);
 
     return res.json(rows);
   } catch (error) {
     console.error("Error loading clients:", error);
 
     return res.status(500).json({
-      message: "Internal server error",
+      message: "Error interno del servidor",
     });
   }
 });
@@ -231,7 +287,7 @@ app.get("/api/clientes", async (req, res) => {
 // =============================
 // REGISTER PET
 // =============================
-app.post("/api/mascotas", async (req, res) => {
+app.post("/api/mascotas", requireAuth, async (req, res) => {
   try {
     const { clienteId, nombre, edad, raza, sexo, peso, observaciones } = req.body;
 
@@ -315,11 +371,13 @@ app.post("/api/mascotas", async (req, res) => {
 
 // =============================
 // GET PETS
+// Filtro por id y clienteId
 // =============================
-app.get("/api/mascotas", async (req, res) => {
+app.get("/api/mascotas", requireAuth, async (req, res) => {
   try {
-    const [rows] = await pool.execute(
-      `
+    const { id, clienteId } = req.query;
+
+    let sql = `
       SELECT
         p.id,
         p.client_id AS clienteId,
@@ -340,9 +398,23 @@ app.get("/api/mascotas", async (req, res) => {
       JOIN clients c ON p.client_id = c.id
       WHERE p.deleted_at IS NULL
         AND c.deleted_at IS NULL
-      ORDER BY p.name
-      `
-    );
+    `;
+
+    const params = [];
+
+    if (id) {
+      sql += ` AND p.id = ? `;
+      params.push(id);
+    }
+
+    if (clienteId) {
+      sql += ` AND p.client_id = ? `;
+      params.push(clienteId);
+    }
+
+    sql += ` ORDER BY p.name `;
+
+    const [rows] = await pool.execute(sql, params);
 
     return res.json(rows);
   } catch (error) {
@@ -357,7 +429,7 @@ app.get("/api/mascotas", async (req, res) => {
 // =============================
 // GET DOCTORS
 // =============================
-app.get("/api/doctores", async (req, res) => {
+app.get("/api/doctores", requireAuth, async (req, res) => {
   try {
     const [rows] = await pool.execute(
       `
@@ -387,9 +459,9 @@ app.get("/api/doctores", async (req, res) => {
 
 // =============================
 // GET TIPOS DE CONSULTA
-// Incluye embarazo si existe en la tabla tipos_consulta
+// Si agregaste emb en la tabla, aquí sale automáticamente
 // =============================
-app.get("/api/tipos-consulta", async (req, res) => {
+app.get("/api/tipos-consulta", requireAuth, async (req, res) => {
   try {
     const [rows] = await pool.execute(
       `
@@ -419,7 +491,7 @@ app.get("/api/tipos-consulta", async (req, res) => {
 // =============================
 // STATS
 // =============================
-app.get("/api/stats", async (req, res) => {
+app.get("/api/stats", requireAuth, async (req, res) => {
   try {
     const [[clientesRow]] = await pool.execute(`
       SELECT COUNT(*) AS total
@@ -470,7 +542,7 @@ app.get("/api/stats", async (req, res) => {
 // =============================
 // ALERTAS
 // =============================
-app.get("/api/alertas", async (req, res) => {
+app.get("/api/alertas", requireAuth, async (req, res) => {
   try {
     const [rows] = await pool.execute(`
       SELECT
@@ -588,7 +660,7 @@ app.get("/api/alertas", async (req, res) => {
 // =============================
 // REGISTER CONSULTA
 // =============================
-app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
+app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req, res) => {
   let connection;
 
   try {
@@ -596,28 +668,34 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
     await connection.beginTransaction();
 
     const {
-      pet_id,
-      client_id,
-      doctor_id,
-      fecha,
-      hora,
-      motivo,
-      diagnostico,
-      observaciones,
-      estado,
-      gravedad,
-      proxima_cita,
-      motivo_seguimiento,
-      notas_medicacion,
-      notas_analisis,
-      lote_vacuna,
-      weight,
-      temp,
-      hr,
-      rr,
-      bp,
-      spo2,
-    } = req.body;
+  pet_id,
+  client_id,
+  doctor_id,
+  fecha,
+  hora,
+  motivo,
+  diagnostico,
+  observaciones,
+  estado,
+  gravedad,
+  proxima_cita,
+  motivo_seguimiento,
+  notas_medicacion,
+  notas_analisis,
+  lote_vacuna,
+  weight,
+  temp,
+  hr,
+  rr,
+  bp,
+  spo2,
+  meses_gestacion,
+  cantidad_crias,
+  riesgo_embarazo,
+  tipo_parto,
+  fecha_probable_parto,
+  observaciones_embarazo,
+} = req.body;
 
     const medicaciones = parseJsonArray(req.body.medicaciones);
     const analisis = parseJsonArray(req.body.analisis);
@@ -690,9 +768,6 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
       ]
     );
 
-    // =============================
-    // GUARDAR TIPOS DE CONSULTA
-    // =============================
     if (Array.isArray(tiposConsulta) && tiposConsulta.length > 0) {
       for (const tipoCodigo of tiposConsulta) {
         const codigo = String(tipoCodigo || "").trim();
@@ -729,6 +804,36 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
         );
       }
     }
+    if (Array.isArray(tiposConsulta) && tiposConsulta.includes("emb")) {
+  await connection.execute(
+    `
+    INSERT INTO consulta_embarazo (
+      id,
+      consulta_id,
+      meses_gestacion,
+      cantidad_crias,
+      riesgo,
+      tipo_parto,
+      fecha_probable_parto,
+      observaciones_embarazo,
+      deleted_at,
+      created_at,
+      updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
+    `,
+    [
+      crypto.randomUUID(),
+      consultaId,
+      meses_gestacion ? Number(meses_gestacion) : null,
+      cantidad_crias ? Number(cantidad_crias) : null,
+      riesgo_embarazo || "bajo",
+      tipo_parto || null,
+      fecha_probable_parto || null,
+      observaciones_embarazo || null,
+    ]
+  );
+}
 
     if (Array.isArray(medicaciones) && medicaciones.length > 0) {
       for (const medicamento of medicaciones) {
@@ -862,7 +967,7 @@ app.post("/api/consultas", upload.array("adjuntos", 10), async (req, res) => {
 // =============================
 // GET PET CLINICAL HISTORY
 // =============================
-app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
+app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
   try {
     const { mascotaId } = req.params;
 
@@ -995,13 +1100,13 @@ app.get("/api/mascotas/:mascotaId/consultas", async (req, res) => {
 // =============================
 // REGISTER USER
 // =============================
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", requireAuth, async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
     if (!username || !password || !role) {
       return res.status(400).json({
-        message: "Username and password and role are required.",
+        message: "Username, password and role are required.",
       });
     }
 
@@ -1011,7 +1116,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (!cleanUsername || !cleanPassword || !cleanRole) {
       return res.status(400).json({
-        message: "Username and password and role are required.",
+        message: "Username, password and role are required.",
       });
     }
 
@@ -1081,7 +1186,7 @@ app.post("/api/auth/register", async (req, res) => {
 // =============================
 // LOGIN USER
 // =============================
-app.post("/api/auth/login", async (req, res) => {
+app.post("/api/auth/login", authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
