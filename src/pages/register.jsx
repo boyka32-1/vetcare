@@ -43,7 +43,7 @@ export default function CreateAccountVetCare() {
       formatter: "onlyNumbers",
       validate: [
         {
-          test: validators.exactLength(13),
+          test: validators.exactLength(11),
           message: "La cédula debe tener exactamente 11 dígitos.",
         },
       ],

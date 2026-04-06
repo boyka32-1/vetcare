@@ -6,6 +6,7 @@ import {
   validateFields,
   validators,
 } from "../utils/formRules";
+import Swal from 'sweetalert2';
 
 export default function Mascotas() {
   const navigate = useNavigate();
@@ -167,11 +168,24 @@ export default function Mascotas() {
       }
 
       if (!response.ok) {
-        setError(data.message || `Request failed with status ${response.status}`);
-        return;
-      }
+       Swal.fire({
+       title: "Error",
+       text: data.message || "La mascota no pudo ser guardada.",
+       timer: 4000,
+      showConfirmButton: false,
+      icon: "error",
+      });
 
-      setSuccess(data.message || "Pet saved successfully.");
+     return;
+           }
+     
+           Swal.fire({
+             title: "Listo",
+             text: data.message || "La mascota fue guardada exitosamente.",
+             icon: "success",
+             timer: 4000,
+             showConfirmButton: false,
+           });
 
       setForm({
         clienteId: "",
@@ -219,7 +233,7 @@ export default function Mascotas() {
                 </option>
               ))}
             </select>
-            {fieldErrors.clienteId && <small>{fieldErrors.clienteId}</small>}
+            {fieldErrors.clienteId && <small className="cl-error-text">{fieldErrors.clienteId}</small>}
           </div>
 
           <div className="ms-field">
@@ -234,7 +248,7 @@ export default function Mascotas() {
               value={form.nombre}
               onChange={handleChange}
             />
-            {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
+            {fieldErrors.nombre && <small className="cl-error-text">{fieldErrors.nombre}</small>}
           </div>
 
           <div className="ms-grid-2">
@@ -253,7 +267,7 @@ export default function Mascotas() {
                   handleChange({ target: { name: "edad", value: clean } });
                 }}
               />
-              {fieldErrors.edad && <small>{fieldErrors.edad}</small>}
+              {fieldErrors.edad && <small className="cl-error-text">{fieldErrors.edad}</small>}
             </div>
 
             <div className="ms-field">
@@ -268,7 +282,7 @@ export default function Mascotas() {
                 value={form.raza}
                 onChange={handleChange}
               />
-              {fieldErrors.raza && <small>{fieldErrors.raza}</small>}
+              {fieldErrors.raza && <small className="cl-error-text">{fieldErrors.raza}</small>}
             </div>
           </div>
 
@@ -287,7 +301,7 @@ export default function Mascotas() {
                 <option value="Macho">Macho</option>
                 <option value="Hembra">Hembra</option>
               </select>
-              {fieldErrors.sexo && <small>{fieldErrors.sexo}</small>}
+              {fieldErrors.sexo && <small className="cl-error-text">{fieldErrors.sexo}</small>}
             </div>
 
             <div className="ms-field">
@@ -305,7 +319,7 @@ export default function Mascotas() {
                   handleChange({ target: { name: "peso", value: clean } });
                 }}
               />
-              {fieldErrors.peso && <small>{fieldErrors.peso}</small>}
+              {fieldErrors.peso && <small className="cl-error-text">{fieldErrors.peso}</small>}
             </div>
           </div>
 
@@ -320,17 +334,7 @@ export default function Mascotas() {
             />
           </div>
 
-          {error && (
-            <div style={{ color: "red", marginBottom: "12px" }}>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div style={{ color: "green", marginBottom: "12px" }}>
-              {success}
-            </div>
-          )}
+          
 
           <button className="ms-btn-primary" type="submit" disabled={loading}>
             {loading ? "Guardando..." : "Guardar mascota"}

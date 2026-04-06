@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./menu.css";
+import Swal from 'sweetalert2';
 
 const baseMenuSections = [
   {

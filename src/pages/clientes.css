@@ -287,3 +287,14 @@ select {
   font-weight: bold;
   font-size: 18px;
 }
+.requiredMessage {
+  color: #e05c4b;
+  font-size: 14px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+}
+.cl-error-text{
+  color: #e05c4b;
+  font-size: 14px;
+  margin-top: 5px;
+}

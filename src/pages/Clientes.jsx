@@ -6,6 +6,8 @@ import {
   validateFields,
   validators,
 } from "../utils/formRules";
+import Swal from 'sweetalert2';
+
 
 export default function Clientes() {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function Clientes() {
     cedula: {
       required: true,
       formatter: "onlyNumbers",
+      requiredMessage: "La cédula es obligatoria.",
       validate: [
         {
           test: validators.exactLength(13),
@@ -44,6 +47,7 @@ export default function Clientes() {
     telefono: {
       required: true,
       formatter: "onlyNumbers",
+      requiredMessage: "El teléfono es obligatorio.",
       validate: [
         {
           test: validators.minLength(10),
@@ -56,6 +60,7 @@ export default function Clientes() {
     },
     correo: {
       required: true,
+      requiredMessage: "El nombre es obligatorio.",
       validate: [
         {
           test: validators.email,
@@ -138,11 +143,23 @@ export default function Clientes() {
       } catch {}
 
       if (!response.ok) {
-        setError(data.message || "Could not save client.");
+        Swal.fire({
+          title: "Error",
+          text: data.message || "Could not save client.",
+          timer: 4000,
+          showConfirmButton: false,
+          icon: "error",
+        });
         return;
       }
 
-      setSuccess("Client saved successfully.");
+      Swal.fire({
+        title: "Listo",
+        text: data.message || "Client saved successfully.",
+        icon: "success",
+        timer: 4000,
+        showConfirmButton: false,
+      });
 
       setForm({
         nombre: "",
@@ -182,7 +199,7 @@ export default function Clientes() {
                 onChange={handleChange}
                 placeholder="Nombre"
               />
-              {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
+              {fieldErrors.nombre && <small className="cl-error-text">{fieldErrors.nombre}</small>}
             </div>
 
             <div className="cl-field">
@@ -195,7 +212,7 @@ export default function Clientes() {
                 onChange={handleChange}
                 placeholder="000-0000000-0"
               />
-              {fieldErrors.cedula && <small>{fieldErrors.cedula}</small>}
+              {fieldErrors.cedula && <small className="cl-error-text">{fieldErrors.cedula}</small>}
             </div>
           </div>
 
@@ -211,14 +228,14 @@ export default function Clientes() {
             </div>
 
             <div className="cl-field">
-              <label>Correo</label>
+              <label>Correo <span className="req">*</span></label>
               <input
                 name="correo"
                 value={form.correo}
                 onChange={handleChange}
                 placeholder="correo@noemail.com"
               />
-              {fieldErrors.correo && <small>{fieldErrors.correo}</small>}
+              {fieldErrors.correo && <small className="cl-error-text">{fieldErrors.correo}</small>}
             </div>
           </div>
 
@@ -233,7 +250,7 @@ export default function Clientes() {
                 onChange={handleChange}
                 placeholder="000-000-0000"
               />
-              {fieldErrors.telefono && <small>{fieldErrors.telefono}</small>}
+              {fieldErrors.telefono && <small className="cl-error-text">{fieldErrors.telefono}</small>}
             </div>
 
             <div className="cl-field">
@@ -247,8 +264,7 @@ export default function Clientes() {
             </div>
           </div>
 
-          {error && <div style={{ color: "red" }}>{error}</div>}
-          {success && <div style={{ color: "green" }}>{success}</div>}
+          
 
           <button className="cl-btn-primary" type="submit" disabled={loading}>
             {loading ? "Guardando..." : "Guardar cliente"}

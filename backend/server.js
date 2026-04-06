@@ -9,6 +9,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import Swal from 'sweetalert2';
 
 dotenv.config({ path: "./.env" });
 
