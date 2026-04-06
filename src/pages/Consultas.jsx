@@ -658,6 +658,20 @@ console.log("isPregnancyVisit:", isPregnancyVisit);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        patientSearchRef.current &&
+        !patientSearchRef.current.contains(event.target)
+      ) {
+        setShowPatientResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const mascotasConDueno = useMemo(() => {
     return mascotas.map((mascota) => {
       const cliente = clientes.find(

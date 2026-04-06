@@ -71,6 +71,7 @@ export default function Clientes() {
 
     let formattedValue = applyFieldFormatting(name, value, fieldRules);
 
+    // 🔥 FORMAT VISUAL (cedula + telefono)
     if (name === "cedula") {
       const digits = formattedValue.slice(0, 11);
 
