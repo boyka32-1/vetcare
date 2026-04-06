@@ -9,6 +9,8 @@ import {
 import Swal from 'sweetalert2';
 
 
+const API_URL = "http://localhost:5000";
+
 export default function Clientes() {
   const navigate = useNavigate();
 
@@ -26,7 +28,6 @@ export default function Clientes() {
   const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // 🔥 RULES (reusable and scalable)
   const fieldRules = {
     nombre: {
       required: true,
@@ -75,7 +76,6 @@ export default function Clientes() {
 
     let formattedValue = applyFieldFormatting(name, value, fieldRules);
 
-    // 🔥 FORMAT VISUAL (cedula + telefono)
     if (name === "cedula") {
       const digits = formattedValue.slice(0, 11);
 
@@ -115,7 +115,6 @@ export default function Clientes() {
     setSuccess("");
     setFieldErrors({});
 
-    // 🔥 VALIDATION
     const errors = validateFields(form, fieldRules);
 
     if (Object.keys(errors).length > 0) {
@@ -127,13 +126,30 @@ export default function Clientes() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/clientes", {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/clientes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
       const raw = await response.text();
 
@@ -153,6 +169,7 @@ export default function Clientes() {
         return;
       }
 
+<<<<<<< HEAD
       Swal.fire({
         title: "Listo",
         text: data.message || "Client saved successfully.",
@@ -160,6 +177,9 @@ export default function Clientes() {
         timer: 4000,
         showConfirmButton: false,
       });
+=======
+      setSuccess(data.message || "Client saved successfully.");
+>>>>>>> a18ceaf0033337e4911dc80d2cdfc680063fe87d
 
       setForm({
         nombre: "",

@@ -8,6 +8,8 @@ import {
 } from "../utils/formRules";
 import Swal from 'sweetalert2';
 
+const API_URL = "http://localhost:5000";
+
 export default function Mascotas() {
   const navigate = useNavigate();
 
@@ -77,7 +79,30 @@ export default function Mascotas() {
     const loadClientes = async () => {
       try {
         setLoadingClientes(true);
-        const response = await fetch("http://localhost:5000/api/clientes");
+        setError("");
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/api/clientes`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const raw = await response.text();
 
         let data = [];
@@ -88,21 +113,45 @@ export default function Mascotas() {
         }
 
         if (!response.ok) {
-          setError("Could not load clients.");
+          setError(data?.message || "No se pudieron cargar los clientes.");
           return;
         }
 
-        setClientes(data);
-      } catch (error) {
-        console.error(error);
-        setError("Could not connect to the server.");
+        const normalizedClientes = Array.isArray(data)
+          ? data.map((cliente) => ({
+              id:
+                cliente.id ??
+                cliente.Id ??
+                cliente.ID ??
+                cliente.clienteId ??
+                cliente.ClienteId ??
+                cliente._id ??
+                "",
+              nombre:
+                cliente.nombre ??
+                cliente.Nombre ??
+                cliente.nombreCompleto ??
+                cliente.NombreCompleto ??
+                "",
+              cedula:
+                cliente.cedula ??
+                cliente.Cedula ??
+                cliente.national_id ??
+                "",
+            }))
+          : [];
+
+        setClientes(normalizedClientes);
+      } catch (err) {
+        console.error(err);
+        setError("No se pudo conectar con el servidor.");
       } finally {
         setLoadingClientes(false);
       }
     };
 
     loadClientes();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,7 +184,7 @@ export default function Mascotas() {
     setFieldErrors({});
 
     if (clientes.length === 0) {
-      setError("You must register at least one client first.");
+      setError("Debes registrar al menos un cliente primero.");
       return;
     }
 
@@ -150,13 +199,30 @@ export default function Mascotas() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/mascotas", {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/mascotas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(form),
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
       const raw = await response.text();
 
@@ -168,6 +234,7 @@ export default function Mascotas() {
       }
 
       if (!response.ok) {
+<<<<<<< HEAD
        Swal.fire({
        title: "Error",
        text: data.message || "La mascota no pudo ser guardada.",
@@ -186,6 +253,13 @@ export default function Mascotas() {
              timer: 4000,
              showConfirmButton: false,
            });
+=======
+        setError(data?.message || `La solicitud falló con estado ${response.status}`);
+        return;
+      }
+
+      setSuccess(data?.message || "Mascota guardada exitosamente.");
+>>>>>>> a18ceaf0033337e4911dc80d2cdfc680063fe87d
 
       setForm({
         clienteId: "",
@@ -196,9 +270,9 @@ export default function Mascotas() {
         peso: "",
         observaciones: "",
       });
-    } catch (error) {
-      console.error(error);
-      setError("Could not connect to the server.");
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo conectar con el servidor.");
     } finally {
       setLoading(false);
     }

@@ -11,16 +11,7 @@ const baseMenuSections = [
         id: "registrar-clientes",
         path: "/clientes",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
             <line x1="19" y1="8" x2="19" y2="14" />
@@ -33,16 +24,7 @@ const baseMenuSections = [
         id: "registrar-mascotas",
         path: "/mascotas",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
             <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
             <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
@@ -56,16 +38,7 @@ const baseMenuSections = [
         id: "ver-registrados",
         path: "/Registro",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -83,16 +56,7 @@ const baseMenuSections = [
         id: "nueva-consulta",
         path: "/consultas",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <line x1="12" y1="18" x2="12" y2="12" />
@@ -105,16 +69,7 @@ const baseMenuSections = [
         id: "historial",
         path: "/historial",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -130,16 +85,7 @@ const baseMenuSections = [
         id: "alertas",
         path: "/alertas",
         icon: (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
@@ -181,13 +127,6 @@ const baseQuickActions = [
   },
 ];
 
-const initialStats = [
-  { label: "Clientes", value: "0", accent: "#2a9d8f" },
-  { label: "Mascotas", value: "0", accent: "#e76f51" },
-  { label: "Consultas", value: "0", accent: "#457b9d" },
-  { label: "Alertas", value: "0", accent: "#8e44ad" },
-];
-
 export default function MenuPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -200,27 +139,45 @@ export default function MenuPage() {
     alertas: 0,
   });
 
-  const [stats, setStats] = useState(initialStats);
+  const [stats, setStats] = useState([
+    { label: "Clientes", value: "0", accent: "#2a9d8f" },
+    { label: "Mascotas", value: "0", accent: "#e76f51" },
+    { label: "Consultas", value: "0", accent: "#457b9d" },
+    { label: "Alertas", value: "0", accent: "#8e44ad" },
+  ]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/stats");
-        const raw = await res.text();
+        const token = localStorage.getItem("token");
 
-        let data = {};
-        try {
-          data = raw ? JSON.parse(raw) : {};
-        } catch {
-          throw new Error("La respuesta de /api/stats no es JSON válido.");
+        if (!token) {
+          console.warn("No hay token guardado. Redirigiendo al login.");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/stats", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
         }
 
         if (!res.ok) {
-          throw new Error(data.message || "No se pudieron cargar las estadísticas.");
+          throw new Error(data?.message || "No se pudieron cargar las estadísticas");
         }
 
         const nextCounts = {
-          clientes: Number(data.clientes ?? data.pacientes ?? 0),
+          clientes: Number(data.clientes ?? 0),
           mascotas: Number(data.mascotas ?? 0),
           consultas: Number(data.consultas ?? 0),
           alertas: Number(data.alertas ?? 0),
@@ -252,20 +209,11 @@ export default function MenuPage() {
         ]);
       } catch (error) {
         console.error("Error loading stats:", error);
-
-        setCounts({
-          clientes: 0,
-          mascotas: 0,
-          consultas: 0,
-          alertas: 0,
-        });
-
-        setStats(initialStats);
       }
     };
 
     fetchStats();
-  }, []);
+  }, [navigate]);
 
   const menuSections = useMemo(() => {
     return baseMenuSections.map((section) => ({
@@ -378,16 +326,7 @@ export default function MenuPage() {
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo">
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#2a9d8f"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
               <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
               <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
@@ -402,16 +341,7 @@ export default function MenuPage() {
             onClick={() => setSidebarOpen(false)}
             aria-label="Cerrar menu"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -425,9 +355,7 @@ export default function MenuPage() {
               {section.items.map((item) => (
                 <button
                   key={item.id}
-                  className={`sidebar__item ${
-                    activeItem === item.id ? "sidebar__item--active" : ""
-                  }`}
+                  className={`sidebar__item ${activeItem === item.id ? "sidebar__item--active" : ""}`}
                   onClick={() => handleNavClick(item.id, item.path)}
                 >
                   <span className="sidebar__item-icon">{item.icon}</span>
@@ -443,16 +371,7 @@ export default function MenuPage() {
 
         <div className="sidebar__footer">
           <button className="sidebar__logout" onClick={handleLogout}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
@@ -468,16 +387,7 @@ export default function MenuPage() {
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir menu"
         >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
@@ -485,16 +395,7 @@ export default function MenuPage() {
         </button>
 
         <div className="topbar__title">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#2a9d8f"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
             <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
             <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
@@ -508,16 +409,7 @@ export default function MenuPage() {
             aria-label="Alertas"
             onClick={() => navigate("/alertas")}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
@@ -532,9 +424,7 @@ export default function MenuPage() {
       <main className="main">
         <div className="main__greeting">
           <p className="main__greeting-sub">{capitalizedDate}</p>
-          <h1 className="main__greeting-title">
-            Bienvenido de nuevo, Doctor/a
-          </h1>
+          <h1 className="main__greeting-title">Bienvenido de nuevo, Doctor/a</h1>
         </div>
 
         <div className="stats">
@@ -556,9 +446,7 @@ export default function MenuPage() {
           {quickActions.map((action) => (
             <button
               key={action.id}
-              className={`action-card ${
-                action.featured ? "action-card--featured" : ""
-              }`}
+              className={`action-card ${action.featured ? "action-card--featured" : ""}`}
               onClick={() => {
                 setActiveItem(action.id);
                 if (action.path) {
@@ -574,16 +462,7 @@ export default function MenuPage() {
               <p className="action-card__title">{action.title}</p>
               <p className="action-card__desc">{action.desc}</p>
               <span className="action-card__arrow">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12" />
                   <polyline points="12 5 19 12 12 19" />
                 </svg>
@@ -593,24 +472,12 @@ export default function MenuPage() {
         </div>
 
         <div className="tip-banner">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#2a9d8f"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <span>
-            Usa el menú lateral para navegar entre todas las secciones del
-            sistema.
-          </span>
+          <span>Usa el menú lateral para navegar entre todas las secciones del sistema.</span>
         </div>
       </main>
     </div>

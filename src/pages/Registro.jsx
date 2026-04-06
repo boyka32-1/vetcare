@@ -17,9 +17,26 @@ export default function Registro() {
         setLoading(true);
         setError("");
 
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const [clientesResponse, mascotasResponse] = await Promise.all([
-          fetch("http://localhost:5000/api/clientes"),
-          fetch("http://localhost:5000/api/mascotas"),
+          fetch("http://localhost:5000/api/clientes", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch("http://localhost:5000/api/mascotas", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
         ]);
 
         const clientesRaw = await clientesResponse.text();
@@ -31,23 +48,34 @@ export default function Registro() {
         try {
           clientesData = clientesRaw ? JSON.parse(clientesRaw) : [];
         } catch {
-          throw new Error("Invalid JSON while loading clients.");
+          throw new Error("JSON inválido al cargar clientes.");
         }
 
         try {
           mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
         } catch {
-          throw new Error("Invalid JSON while loading pets.");
+          throw new Error("JSON inválido al cargar mascotas.");
+        }
+
+        if (clientesResponse.status === 401 || mascotasResponse.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
         }
 
         if (!clientesResponse.ok) {
-          throw new Error(clientesData.message || "Could not load clients.");
+          throw new Error(
+            clientesData?.message || "No se pudieron cargar los clientes."
+          );
         }
 
         if (!mascotasResponse.ok) {
-          throw new Error(mascotasData.message || "Could not load pets.");
+          throw new Error(
+            mascotasData?.message || "No se pudieron cargar las mascotas."
+          );
         }
-//normalized clients and pets to have consistent field names regardless of backend inconsistencies
+
         const normalizedClientes = Array.isArray(clientesData)
           ? clientesData.map((cliente) => ({
               id:
@@ -154,14 +182,14 @@ export default function Registro() {
         setMascotas(normalizedMascotas);
       } catch (err) {
         console.error(err);
-        setError(err.message || "Could not load the registry.");
+        setError(err.message || "No se pudo cargar el registro.");
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [navigate]);
 
   const mascotasAgrupadas = useMemo(() => {
     const mapa = {};
@@ -229,17 +257,17 @@ export default function Registro() {
         <div className="rg-list-wrap">
           {loading ? (
             <div className="rg-empty">
-              <h2>Loading records...</h2>
+              <h2>Cargando registros...</h2>
             </div>
           ) : error ? (
             <div className="rg-empty">
-              <h2>Load error</h2>
+              <h2>Error de carga</h2>
               <p>{error}</p>
             </div>
           ) : clientes.length === 0 ? (
             <div className="rg-empty">
               <h2>No hay clientes registrados</h2>
-              <p>Register a client first, then you can associate pets.</p>
+              <p>Primero registra un cliente y luego podrás asociarle mascotas.</p>
             </div>
           ) : (
             <>
@@ -254,7 +282,7 @@ export default function Registro() {
                 </div>
 
                 <div className="rg-results-count">
-                  {clientesFiltrados.length} result
+                  {clientesFiltrados.length} resultado
                   {clientesFiltrados.length !== 1 ? "s" : ""}
                 </div>
               </div>
@@ -273,8 +301,8 @@ export default function Registro() {
                     return (
                       <article key={cliente.id} className="rg-record">
                         <div className="rg-record-header">
-                          <h2>{cliente.nombre || "Unnamed client"}</h2>
-                          <span>{cliente.cedula || "No ID"}</span>
+                          <h2>{cliente.nombre || "Cliente sin nombre"}</h2>
+                          <span>{cliente.cedula || "Sin cédula"}</span>
                         </div>
 
                         <div className="rg-record-grid">
@@ -303,7 +331,7 @@ export default function Registro() {
 
                             {mascotasCliente.length === 0 ? (
                               <p className="rg-no-pets">
-                                This client does not have registered pets yet.
+                                Este cliente todavía no tiene mascotas registradas.
                               </p>
                             ) : (
                               <div className="rg-pets">
@@ -330,8 +358,8 @@ export default function Registro() {
                                       {mascota.peso || "No registrado"}
                                     </p>
                                     <p>
-                                      <strong>Notes:</strong>{" "}
-                                      {mascota.observaciones || "No notes"}
+                                      <strong>Observaciones:</strong>{" "}
+                                      {mascota.observaciones || "Sin observaciones"}
                                     </p>
                                   </div>
                                 ))}

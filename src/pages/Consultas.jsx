@@ -8,6 +8,8 @@ import {
 } from "../utils/formRules";
 import Swal from 'sweetalert2';
 
+const API_URL = "http://localhost:5000";
+
 const STATUS_OPTS = [
   { id: "open", label: "Abierta", colorClass: styles.statusOpen },
   { id: "follow", label: "Seguimiento", colorClass: styles.statusFollow },
@@ -55,6 +57,7 @@ function getVisitTypeColorClass(codigo) {
     den: "",
     rou: "",
     eme: "",
+    emb: "",
   };
 
   return map[codigo] || "";
@@ -273,6 +276,12 @@ export default function ConsultaForm({ onSave }) {
   const [observations, setObservations] = useState("");
   const [nextAppt, setNextAppt] = useState("");
   const [followReason, setFollowReason] = useState("");
+  const [pregMonths, setPregMonths] = useState("");
+const [pregBabies, setPregBabies] = useState("");
+const [pregRisk, setPregRisk] = useState("bajo");
+const [pregDeliveryType, setPregDeliveryType] = useState("");
+const [pregDueDate, setPregDueDate] = useState("");
+const [pregNotes, setPregNotes] = useState("");
 
   const [meds, setMeds] = useState([]);
   const [medNotes, setMedNotes] = useState("");
@@ -293,6 +302,9 @@ export default function ConsultaForm({ onSave }) {
 
   const todayDate = today();
   const nowTime = currentTime();
+  const isPregnancyVisit = visitTypes.includes("emb");
+  console.log("visitTypes:", visitTypes);
+console.log("isPregnancyVisit:", isPregnancyVisit);
 
   const vitalRules = {
     weight: {
@@ -360,7 +372,7 @@ export default function ConsultaForm({ onSave }) {
     spo2: setSpo2,
   };
 
-  const handleVitalChange = (name, value) => {
+ const handleVitalChange = (name, value) => {
     let formattedValue = applyFieldFormatting(name, value, vitalRules);
 
     if (name === "weight") formattedValue = formattedValue.slice(0, 5);
@@ -403,7 +415,28 @@ export default function ConsultaForm({ onSave }) {
   useEffect(() => {
     const loadMascotas = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/mascotas");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/mascotas", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const data = await res.json();
 
         const normalizedMascotas = Array.isArray(data)
@@ -442,12 +475,33 @@ export default function ConsultaForm({ onSave }) {
     };
 
     loadMascotas();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const loadClientes = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/clientes");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/clientes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const data = await res.json();
 
         const normalizedClientes = Array.isArray(data)
@@ -484,12 +538,33 @@ export default function ConsultaForm({ onSave }) {
     };
 
     loadClientes();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const loadDoctores = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/doctores");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/doctores", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const data = await res.json();
 
         const normalizedDoctores = Array.isArray(data)
@@ -520,12 +595,33 @@ export default function ConsultaForm({ onSave }) {
     };
 
     loadDoctores();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const loadTiposConsulta = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/tipos-consulta");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/tipos-consulta", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/", { replace: true });
+          return;
+        }
+
         const data = await res.json();
 
         const normalizedTipos = Array.isArray(data)
@@ -547,7 +643,7 @@ export default function ConsultaForm({ onSave }) {
     };
 
     loadTiposConsulta();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -577,7 +673,7 @@ export default function ConsultaForm({ onSave }) {
     });
   }, [mascotas, clientes]);
 
-  const filteredMascotas = useMemo(() => {
+ const filteredMascotas = useMemo(() => {
     const search = patientSearch.trim().toLowerCase();
 
     if (!search) return mascotasConDueno;
@@ -776,6 +872,22 @@ return;
 });
       return;
     }
+    if (isPregnancyVisit) {
+  if (!pregMonths.trim()) {
+    alert("Debes indicar los meses de gestación.");
+    return;
+  }
+
+  if (!pregBabies.trim()) {
+    alert("Debes indicar cuántas crías son.");
+    return;
+  }
+
+  if (!pregDeliveryType) {
+    alert("Debes seleccionar el tipo de parto.");
+    return;
+  }
+}
 
     if (status === "follow") {
       if (!nextAppt) {
@@ -821,6 +933,16 @@ return;
           tipos_consulta: visitTypes,
           proxima_cita: nextAppt || null,
           motivo_seguimiento: followReason || null,
+          embarazo: isPregnancyVisit
+  ? {
+      meses_gestacion: pregMonths,
+      cantidad_crias: pregBabies,
+      riesgo: pregRisk,
+      tipo_parto: pregDeliveryType,
+      fecha_probable_parto: pregDueDate || null,
+      observaciones_embarazo: pregNotes || null,
+    }
+  : null,
           vitals: { weight, temp, hr, rr, bp, spo2 },
           medicaciones: meds,
           notas_medicacion: medNotes,
@@ -844,6 +966,15 @@ return;
  return;
 }
 
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
       const formData = new FormData();
 
       formData.append("consulta_codigo", consultaId);
@@ -859,6 +990,14 @@ return;
       formData.append("gravedad", mapSeverityToDb(severity));
       formData.append("proxima_cita", nextAppt || "");
       formData.append("motivo_seguimiento", followReason || "");
+      formData.append("meses_gestacion", isPregnancyVisit ? pregMonths : "");
+formData.append("cantidad_crias", isPregnancyVisit ? pregBabies : "");
+formData.append("riesgo_embarazo", isPregnancyVisit ? pregRisk : "");
+formData.append("tipo_parto", isPregnancyVisit ? pregDeliveryType : "");
+formData.append("fecha_probable_parto", isPregnancyVisit ? pregDueDate : "");
+formData.append( "observaciones_embarazo",
+  isPregnancyVisit ? pregNotes : ""
+);
 
       formData.append("weight", weight || "");
       formData.append("temp", temp || "");
@@ -882,8 +1021,18 @@ return;
 
       const res = await fetch("http://localhost:5000/api/consultas", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
 
@@ -924,7 +1073,7 @@ return;
           </div>
         </div>
 
-        <div className={styles.formGrid}>
+       <div className={styles.formGrid}>
           <SectionCard
             icon={<IconUser />}
             title="Identificación"
@@ -1243,6 +1392,67 @@ return;
               </Field>
             </div>
           </SectionCard>
+          {isPregnancyVisit && (
+  <SectionCard
+    icon={<IconFile />}
+    title="Control de embarazo"
+    className={styles.full}
+  >
+    <div className={`${styles.bodyGrid} ${styles.cols2}`}>
+      <Field label="Meses de gestación" required>
+        <input
+          type="text"
+          value={pregMonths}
+          onChange={(e) => setPregMonths(e.target.value)}
+        />
+      </Field>
+
+      <Field label="Cantidad de crías" required>
+        <input
+          type="text"
+          value={pregBabies}
+          onChange={(e) => setPregBabies(e.target.value)}
+        />
+      </Field>
+
+      <Field label="Riesgo del embarazo" required>
+        <select
+          value={pregRisk}
+          onChange={(e) => setPregRisk(e.target.value)}
+        >
+          <option value="bajo">Bajo</option>
+          <option value="alto">Alto</option>
+        </select>
+      </Field>
+
+      <Field label="Tipo de parto" required>
+        <select
+          value={pregDeliveryType}
+          onChange={(e) => setPregDeliveryType(e.target.value)}
+        >
+          <option value="">— Seleccionar —</option>
+          <option value="normal">Normal</option>
+          <option value="cesarea">Cesárea</option>
+        </select>
+      </Field>
+
+      <Field label="Fecha probable de parto">
+        <input
+          type="date"
+          value={pregDueDate}
+          onChange={(e) => setPregDueDate(e.target.value)}
+        />
+      </Field>
+
+      <Field label="Observaciones del embarazo" full>
+        <textarea
+          value={pregNotes}
+          onChange={(e) => setPregNotes(e.target.value)}
+        />
+      </Field>
+    </div>
+  </SectionCard>
+)}
 
           <SectionCard icon={<IconPill />} title="Medicación">
             <TagInput
@@ -1278,7 +1488,7 @@ return;
             </Field>
           </SectionCard>
 
-          <SectionCard icon={<IconSyringe />} title="Vacunas aplicadas">
+         <SectionCard icon={<IconSyringe />} title="Vacunas aplicadas">
             <TagInput
               tags={vaccines}
               onAdd={addTag(setVaccines)}
@@ -1389,3 +1599,4 @@ return;
     </div>
   );
 }
+
