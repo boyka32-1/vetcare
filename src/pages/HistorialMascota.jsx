@@ -281,7 +281,7 @@ export default function HistorialMascota() {
                             {consulta.doctor || "Sin doctor"}
                           </span>
                           <span className="hcd-badge hcd-badge--soft">
-                            {normalizeVisitTypes(
+                           {normalizeVisitTypes(
                               consulta.tipos_consulta,
                               consulta.tipos_consulta_detalle
                             )}

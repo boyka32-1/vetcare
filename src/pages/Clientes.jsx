@@ -169,7 +169,6 @@ export default function Clientes() {
         return;
       }
 
-<<<<<<< HEAD
       Swal.fire({
         title: "Listo",
         text: data.message || "Client saved successfully.",
@@ -177,9 +176,6 @@ export default function Clientes() {
         timer: 4000,
         showConfirmButton: false,
       });
-=======
-      setSuccess(data.message || "Client saved successfully.");
->>>>>>> a18ceaf0033337e4911dc80d2cdfc680063fe87d
 
       setForm({
         nombre: "",

@@ -1040,11 +1040,27 @@ formData.append( "observaciones_embarazo",
         throw new Error(data?.message || "Error al guardar la consulta");
       }
 
-      alert("Consulta guardada correctamente.");
+      Swal.fire({
+        title: "Guardado",
+        text: "Consulta guardada correctamente.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+        position: "center",
+        
+      });
       navigate(-1);
+
     } catch (error) {
       console.error("Error saving consulta:", error);
-      alert(error.message || "No se pudo guardar la consulta.");
+      Swal.fire({
+        title: "Error",
+        text: error.message || "No se pudo guardar la consulta.",
+        icon: "error",
+        timer: 4000,
+        showConfirmButton: true,
+        position: "center",
+      });
     } finally {
       setSaving(false);
     }

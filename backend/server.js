@@ -9,11 +9,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-<<<<<<< HEAD
-import Swal from 'sweetalert2';
-=======
 import rateLimit from "express-rate-limit";
->>>>>>> a18ceaf0033337e4911dc80d2cdfc680063fe87d
 
 dotenv.config({ path: "./.env" });
 
@@ -472,7 +468,8 @@ app.get("/api/tipos-consulta", requireAuth, async (req, res) => {
         id,
         codigo,
         nombre
-      FROM tipos_consulta
+      FROM 
+      tipos_consulta
       WHERE deleted_at IS NULL
       ORDER BY nombre
       `
@@ -1011,22 +1008,24 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
     const resultado = [];
 
     for (const consulta of consultas) {
-      const [tipos] = await pool.execute(
-        `
-        SELECT
-          tc.id,
-          tc.codigo,
-          tc.nombre
-        FROM consulta_tipos ct
-        INNER JOIN tipos_consulta tc
-          ON tc.id = ct.tipo_consulta_id
-        WHERE ct.consulta_id = ?
-          AND ct.deleted_at IS NULL
-          AND tc.deleted_at IS NULL
-        ORDER BY tc.nombre ASC
-        `,
-        [consulta.id]
-      );
+const [tipos] = await pool.execute(
+  `
+  SELECT
+    tc.id,
+    tc.codigo,
+    tc.nombre
+  FROM consulta_tipos ct
+  INNER JOIN tipos_consulta tc
+    ON tc.id = ct.tipo_consulta_id
+  WHERE ct.consulta_id = ?
+    AND ct.deleted_at IS NULL
+    AND tc.deleted_at IS NULL
+  ORDER BY tc.nombre ASC
+  `,
+  [consulta.id]
+);
+console.log("consulta.id:", consulta.id);
+console.log("tipos encontrados:", tipos);
 
       const [medicaciones] = await pool.execute(
         `

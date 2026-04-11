@@ -234,7 +234,6 @@ export default function Mascotas() {
       }
 
       if (!response.ok) {
-<<<<<<< HEAD
        Swal.fire({
        title: "Error",
        text: data.message || "La mascota no pudo ser guardada.",
@@ -253,13 +252,6 @@ export default function Mascotas() {
              timer: 4000,
              showConfirmButton: false,
            });
-=======
-        setError(data?.message || `La solicitud falló con estado ${response.status}`);
-        return;
-      }
-
-      setSuccess(data?.message || "Mascota guardada exitosamente.");
->>>>>>> a18ceaf0033337e4911dc80d2cdfc680063fe87d
 
       setForm({
         clienteId: "",
