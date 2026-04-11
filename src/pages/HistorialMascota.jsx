@@ -201,6 +201,8 @@ export default function HistorialMascota() {
     mascotaInfo?.clienteNombre ||
     "Sin dueño";
 
+  return VISIT_TYPE_LABELS[parsed] || parsed;
+};
   return (
     <div className="hcd-page">
       <div className="hcd-container">
@@ -312,4 +314,3 @@ export default function HistorialMascota() {
       </div>
     </div>
   );
-}

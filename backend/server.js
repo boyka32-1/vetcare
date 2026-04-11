@@ -236,7 +236,12 @@ app.post("/api/clientes", requireAuth, async (req, res) => {
     console.error("Error saving client:", error);
 
     return res.status(500).json({
+<<<<<<< HEAD
       message: "El correo suministrado ya está registrado o ocurrió un error al guardar el cliente.",
+=======
+      message:
+        "El correo suministrado ya está registrado u ocurrió un error al guardar el cliente.",
+>>>>>>> d40543669b1dbb228ccfe906642e0a17d1050d9b
     });
   }
 });
@@ -732,6 +737,7 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
         observaciones,
         estado,
         gravedad,
+        tipos_consulta,
         proxima_cita,
         motivo_seguimiento,
         peso,
@@ -757,6 +763,7 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
         observaciones || null,
         estado || "abierta",
         gravedad || "moderada",
+        JSON.stringify(tiposConsulta),
         proxima_cita || null,
         motivo_seguimiento || null,
         peso,
@@ -987,6 +994,7 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
         c.observaciones AS notes,
         c.estado,
         c.gravedad,
+        c.tipos_consulta,
         c.proxima_cita,
         c.motivo_seguimiento,
         c.peso,
