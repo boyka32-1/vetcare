@@ -236,8 +236,12 @@ app.post("/api/clientes", requireAuth, async (req, res) => {
     console.error("Error saving client:", error);
 
     return res.status(500).json({
+<<<<<<< HEAD
+      message: "El correo suministrado ya está registrado o ocurrió un error al guardar el cliente.",
+=======
       message:
         "El correo suministrado ya está registrado u ocurrió un error al guardar el cliente.",
+>>>>>>> d40543669b1dbb228ccfe906642e0a17d1050d9b
     });
   }
 });
@@ -469,7 +473,8 @@ app.get("/api/tipos-consulta", requireAuth, async (req, res) => {
         id,
         codigo,
         nombre
-      FROM tipos_consulta
+      FROM 
+      tipos_consulta
       WHERE deleted_at IS NULL
       ORDER BY nombre
       `
@@ -1011,22 +1016,24 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
     const resultado = [];
 
     for (const consulta of consultas) {
-      const [tipos] = await pool.execute(
-        `
-        SELECT
-          tc.id,
-          tc.codigo,
-          tc.nombre
-        FROM consulta_tipos ct
-        INNER JOIN tipos_consulta tc
-          ON tc.id = ct.tipo_consulta_id
-        WHERE ct.consulta_id = ?
-          AND ct.deleted_at IS NULL
-          AND tc.deleted_at IS NULL
-        ORDER BY tc.nombre ASC
-        `,
-        [consulta.id]
-      );
+const [tipos] = await pool.execute(
+  `
+  SELECT
+    tc.id,
+    tc.codigo,
+    tc.nombre
+  FROM consulta_tipos ct
+  INNER JOIN tipos_consulta tc
+    ON tc.id = ct.tipo_consulta_id
+  WHERE ct.consulta_id = ?
+    AND ct.deleted_at IS NULL
+    AND tc.deleted_at IS NULL
+  ORDER BY tc.nombre ASC
+  `,
+  [consulta.id]
+);
+console.log("consulta.id:", consulta.id);
+console.log("tipos encontrados:", tipos);
 
       const [medicaciones] = await pool.execute(
         `

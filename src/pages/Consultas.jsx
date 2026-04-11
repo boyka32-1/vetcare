@@ -6,6 +6,7 @@ import {
   validateFields,
   validators,
 } from "../utils/formRules";
+import Swal from 'sweetalert2';
 
 const API_URL = "http://localhost:5000";
 
@@ -777,37 +778,75 @@ console.log("isPregnancyVisit:", isPregnancyVisit);
 
   const handleSave = async () => {
     if (!patientId) {
-      alert("Debes seleccionar una mascota.");
-      return;
+      Swal.fire({
+  title: "Error",
+  text: "Debes seleccionar una mascota.",
+  icon: "error",
+  position: "center",
+});
+return;
     }
 
     if (!doctor) {
-      alert("Debes seleccionar un doctor.");
+      Swal.fire({
+  title: "Error",
+  text: "Debes seleccionar un doctor.",
+  icon: "error",
+  position: "bottom",
+});
       return;
     }
 
     if (!date || date !== todayDate) {
-      alert("La consulta solo puede registrarse con la fecha actual.");
+      Swal.fire({
+  title: "Error",
+  text: "La consulta solo puede registrarse con la fecha actual.",
+  icon: "error",
+  position: "center",
+});
       return;
     }
 
     if (!time || time < nowTime) {
-      alert("La hora no puede ser menor que la hora actual.");
+      Swal.fire({
+  title: "Error",
+  text: "La hora no puede ser menor que la hora actual.",
+  icon: "error",
+  position: "center",
+});
       return;
     }
 
     if (!reason.trim()) {
-      alert("Debes escribir el motivo de consulta.");
+      Swal.fire({
+  title: "Error",
+  text: "Debes escribir el motivo de consulta.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
 
     if (!diagnosis.trim()) {
-      alert("Debes escribir el diagnóstico.");
+      Swal.fire({
+  title: "Error",
+  text: "Debes escribir el diagnóstico.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
 
     if (visitTypes.length === 0) {
-      alert("Debes seleccionar al menos un tipo de consulta.");
+      Swal.fire({
+  title: "Error",
+  text: "Debes seleccionar al menos un tipo de consulta.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
 
@@ -816,17 +855,35 @@ console.log("isPregnancyVisit:", isPregnancyVisit);
 
     if (Object.keys(vitalErrors).length > 0) {
       setFieldErrors(vitalErrors);
-      alert("Corrige los campos de signos vitales.");
+      Swal.fire({
+  title: "Error",
+  text: "Corrige los campos de signos vitales.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
 
     if (visitTypes.includes("vac") && vaccines.length === 0) {
-      alert("Si seleccionas tipo Vacuna, debes agregar al menos una vacuna aplicada.");
+      Swal.fire({
+  title: "Error",
+  text: "Si seleccionas tipo Vacuna, debes agregar al menos una vacuna aplicada.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
 
     if (visitTypes.includes("med") && meds.length === 0) {
-      alert("Si seleccionas tipo Medicación, debes agregar al menos un medicamento.");
+      Swal.fire({
+  title: "Error",
+  text: "Si seleccionas tipo Medicación, debes agregar al menos un medicamento.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
       return;
     }
     if (isPregnancyVisit) {
@@ -848,12 +905,25 @@ console.log("isPregnancyVisit:", isPregnancyVisit);
 
     if (status === "follow") {
       if (!nextAppt) {
-        alert("Debes indicar la próxima cita para una consulta de seguimiento.");
+        Swal.fire({
+  title: "Error",
+  text: "Debes indicar la próxima cita para una consulta de seguimiento.",
+  icon: "error",
+  timer: 4000,  
+  position: "center",
+
+});
         return;
       }
 
       if (!followReason.trim()) {
-        alert("Debes indicar el motivo de seguimiento.");
+        Swal.fire({
+  title: "Error",
+  text: "Debes indicar el motivo de seguimiento.",
+  icon: "error",
+  timer: 4000,
+  position: "center",
+});
         return;
       }
     }
@@ -898,9 +968,17 @@ console.log("isPregnancyVisit:", isPregnancyVisit);
           attachedFiles,
         });
 
-        alert("Consulta guardada correctamente.");
-        return;
-      }
+        Swal.fire({
+        title: "Guardado",
+        text: "Consulta guardada correctamente.",
+        icon: "success",
+        timer: 4000,
+        showConfirmButton: false,
+        position: "center",
+
+      });
+ return;
+}
 
       const token = localStorage.getItem("token");
 
@@ -976,11 +1054,27 @@ formData.append( "observaciones_embarazo",
         throw new Error(data?.message || "Error al guardar la consulta");
       }
 
-      alert("Consulta guardada correctamente.");
+      Swal.fire({
+        title: "Guardado",
+        text: "Consulta guardada correctamente.",
+        icon: "success",
+        timer: 3000,
+        showConfirmButton: false,
+        position: "center",
+        
+      });
       navigate(-1);
+
     } catch (error) {
       console.error("Error saving consulta:", error);
-      alert(error.message || "No se pudo guardar la consulta.");
+      Swal.fire({
+        title: "Error",
+        text: error.message || "No se pudo guardar la consulta.",
+        icon: "error",
+        timer: 4000,
+        showConfirmButton: true,
+        position: "center",
+      });
     } finally {
       setSaving(false);
     }
@@ -1201,7 +1295,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("weight", e.target.value)}
                 />
                 {fieldErrors.weight && (
-                  <small style={{ color: "red" }}>{fieldErrors.weight}</small>
+                  <small className="cl-error-text">{fieldErrors.weight}</small>
                 )}
               </Field>
 
@@ -1213,7 +1307,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("temp", e.target.value)}
                 />
                 {fieldErrors.temp && (
-                  <small style={{ color: "red" }}>{fieldErrors.temp}</small>
+                  <small className="cl-error-text">{fieldErrors.temp}</small>
                 )}
               </Field>
 
@@ -1225,7 +1319,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("hr", e.target.value)}
                 />
                 {fieldErrors.hr && (
-                  <small style={{ color: "red" }}>{fieldErrors.hr}</small>
+                  <small className="cl-error-text">{fieldErrors.hr}</small>
                 )}
               </Field>
 
@@ -1237,7 +1331,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("rr", e.target.value)}
                 />
                 {fieldErrors.rr && (
-                  <small style={{ color: "red" }}>{fieldErrors.rr}</small>
+                  <small className="cl-error-text">{fieldErrors.rr}</small>
                 )}
               </Field>
 
@@ -1249,7 +1343,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("bp", e.target.value)}
                 />
                 {fieldErrors.bp && (
-                  <small style={{ color: "red" }}>{fieldErrors.bp}</small>
+                  <small className="cl-error-text">{fieldErrors.bp}</small>
                 )}
               </Field>
 
@@ -1261,7 +1355,7 @@ formData.append( "observaciones_embarazo",
                   onChange={(e) => handleVitalChange("spo2", e.target.value)}
                 />
                 {fieldErrors.spo2 && (
-                  <small style={{ color: "red" }}>{fieldErrors.spo2}</small>
+                  <small className="cl-error-text">{fieldErrors.spo2}</small>
                 )}
               </Field>
             </div>
@@ -1275,19 +1369,31 @@ formData.append( "observaciones_embarazo",
             <div className={`${styles.bodyGrid} ${styles.cols2}`}>
               <Field label="Motivo de consulta" full required>
                 <textarea
-                  placeholder="Describe el motivo principal de la visita…"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  style={{ minHeight: 56 }}
-                />
+                value={reason}
+                onChange={(e) => {
+                  setReason(e.target.value);
+                  setFieldErrors(prev => ({ ...prev, reason: "" }));
+                }}
+              />
+
+              {fieldErrors.reason && (
+                <small className="cl-error-text">{fieldErrors.reason}</small>
+              )}
               </Field>
+
 
               <Field label="Diagnóstico" full required>
                 <textarea
-                  placeholder="Diagnóstico del veterinario…"
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
-                />
+                value={diagnosis}
+                onChange={(e) => {
+                  setDiagnosis(e.target.value);
+                  setFieldErrors(prev => ({ ...prev, diagnosis: "" }));
+                }}
+              />
+
+              {fieldErrors.diagnosis && (
+                <small className="cl-error-text">{fieldErrors.diagnosis}</small>
+              )}
               </Field>
 
               <Field label="Observaciones" full>
