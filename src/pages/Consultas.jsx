@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import styles from "./consultas.module.css";
 import {
   applyFieldFormatting,
   validateFields,
   validators,
+  finalizeDecimal,
 } from "../utils/formRules";
 import Swal from "sweetalert2";
 
@@ -37,11 +40,25 @@ function genId() {
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function currentTime() {
-  return new Date().toTimeString().slice(0, 5);
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function buildDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return new Date();
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
 }
 
 function initials(str = "") {
@@ -156,12 +173,6 @@ const IconPlus = () => (
   </svg>
 );
 
-const IconWave = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-  </svg>
-);
-
 const IconFile = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -255,9 +266,17 @@ export default function ConsultaForm({ onSave }) {
   const [loadingDoctores, setLoadingDoctores] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const todayDate = today();
-  const nowTime = currentTime();
+  const getTodayDate = () => today();
+  const getNowTime = () => currentTime();
   const isPregnancyVisit = visitTypes.includes("emb");
+
+  const datePickerValue = useMemo(() => {
+    return date ? buildDateTime(date, "00:00") : new Date();
+  }, [date]);
+
+  const timePickerValue = useMemo(() => {
+    return buildDateTime(date || getTodayDate(), time || getNowTime());
+  }, [date, time]);
 
   const vitalRules = {
     weight: {
@@ -270,11 +289,10 @@ export default function ConsultaForm({ onSave }) {
       ],
     },
     temp: {
-      formatter: "decimalNumber",
       validate: [
         {
-          test: validators.maxLength(4),
-          message: "La temperatura no puede exceder 4 caracteres.",
+          test: validators.maxLength(5),
+          message: "La temperatura no puede exceder 5 caracteres.",
         },
       ],
     },
@@ -325,13 +343,37 @@ export default function ConsultaForm({ onSave }) {
     spo2: setSpo2,
   };
 
+  const formatTemperatureAuto = (value) => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 4);
+
+    if (digits.length === 0) return "";
+    if (digits.length <= 2) return digits;
+    if (digits.length === 3) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+
+    return `${digits.slice(0, 2)}.${digits.slice(2, 4)}`;
+  };
+
   const handleVitalChange = (name, value) => {
     let formattedValue = applyFieldFormatting(name, value, vitalRules);
 
-    if (name === "weight") formattedValue = formattedValue.slice(0, 5);
-    if (name === "temp") formattedValue = formattedValue.slice(0, 4);
-    if (name === "hr" || name === "rr" || name === "spo2") formattedValue = formattedValue.slice(0, 3);
-    if (name === "bp") formattedValue = formattedValue.slice(0, 7);
+    if (name === "temp") {
+      formattedValue = formatTemperatureAuto(value);
+    }
+
+    if (name === "weight") {
+      const [int = "", dec] = formattedValue.split(".");
+      const safeInt = int.slice(0, 4);
+      formattedValue =
+        dec !== undefined ? `${safeInt}.${dec.slice(0, 2)}` : safeInt;
+    }
+
+    if (name === "hr" || name === "rr" || name === "spo2") {
+      formattedValue = formattedValue.slice(0, 3);
+    }
+
+    if (name === "bp") {
+      formattedValue = formattedValue.slice(0, 7);
+    }
 
     vitalSetters[name](formattedValue);
 
@@ -341,27 +383,61 @@ export default function ConsultaForm({ onSave }) {
     }));
   };
 
-  const handleDateChange = (value) => {
-    if (value !== todayDate) {
-      setDate(todayDate);
+  const handleDateChange = (selectedDate) => {
+    if (!selectedDate) return;
+
+    const liveToday = getTodayDate();
+    const liveNow = getNowTime();
+    const pickedDate = `${selectedDate.getFullYear()}-${String(
+      selectedDate.getMonth() + 1
+    ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+
+    if (pickedDate !== liveToday) {
+      setDate(liveToday);
+      setTime(liveNow);
       return;
     }
 
-    setDate(value);
+    setDate(pickedDate);
 
-    if (time < nowTime) {
-      setTime(nowTime);
+    if (!time || time < liveNow) {
+      setTime(liveNow);
     }
   };
 
-  const handleTimeChange = (value) => {
-    if (date === todayDate && value < nowTime) {
-      setTime(nowTime);
+  const handleTimeChange = (selectedTime) => {
+    if (!selectedTime) return;
+
+    const pickedTime = `${String(selectedTime.getHours()).padStart(2, "0")}:${String(
+      selectedTime.getMinutes()
+    ).padStart(2, "0")}`;
+
+    const liveToday = getTodayDate();
+    const liveNow = getNowTime();
+
+    if (date === liveToday && pickedTime < liveNow) {
+      setTime(liveNow);
       return;
     }
 
-    setTime(value);
+    setTime(pickedTime);
   };
+
+  useEffect(() => {
+    const syncLiveTime = () => {
+      const liveToday = getTodayDate();
+      const liveNow = getNowTime();
+
+      if (date === liveToday && (!time || time < liveNow)) {
+        setTime(liveNow);
+      }
+    };
+
+    syncLiveTime();
+
+    const interval = setInterval(syncLiveTime, 30000);
+    return () => clearInterval(interval);
+  }, [date, time]);
 
   useEffect(() => {
     const loadMascotas = async () => {
@@ -716,6 +792,9 @@ export default function ConsultaForm({ onSave }) {
     const vitalErrors = validateFields(vitalValues, vitalRules);
 
     if (step === 0) {
+      const liveToday = getTodayDate();
+      const liveNow = getNowTime();
+
       if (!patientId) {
         showStepError("Debes seleccionar una mascota.");
         return false;
@@ -726,13 +805,14 @@ export default function ConsultaForm({ onSave }) {
         return false;
       }
 
-      if (!date || date !== todayDate) {
+      if (!date || date !== liveToday) {
         showStepError("La consulta solo puede registrarse con la fecha actual.");
         return false;
       }
 
-      if (!time || time < nowTime) {
-        showStepError("La hora no puede ser menor que la hora actual.");
+      if (!time || (date === liveToday && time < liveNow)) {
+        setTime(liveNow);
+        showStepError("La hora se actualizó automáticamente a la hora actual.");
         return false;
       }
 
@@ -1101,21 +1181,26 @@ export default function ConsultaForm({ onSave }) {
                 </Field>
 
                 <Field label="Fecha" required>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => handleDateChange(e.target.value)}
-                    min={todayDate}
-                    max={todayDate}
+                  <DatePicker
+                    selected={datePickerValue}
+                    onChange={handleDateChange}
+                    dateFormat="MM/dd/yyyy"
+                    minDate={new Date()}
+                    maxDate={new Date()}
+                    className={styles.datePickerInput}
                   />
                 </Field>
 
                 <Field label="Hora" required>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => handleTimeChange(e.target.value)}
-                    min={date === todayDate ? nowTime : undefined}
+                  <DatePicker
+                    selected={timePickerValue}
+                    onChange={handleTimeChange}
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={1}
+                    timeCaption="Hora"
+                    dateFormat="h:mm aa"
+                    className={styles.datePickerInput}
                   />
                 </Field>
 
@@ -1213,6 +1298,10 @@ export default function ConsultaForm({ onSave }) {
                     placeholder="0.0"
                     value={weight}
                     onChange={(e) => handleVitalChange("weight", e.target.value)}
+                    onBlur={(e) => {
+                      const nextValue = finalizeDecimal(e.target.value);
+                      setWeight(nextValue);
+                    }}
                   />
                   <div className={styles.vitalUnit}>kg</div>
                   {fieldErrors.weight && <small className={styles.errorText}>{fieldErrors.weight}</small>}
@@ -1225,6 +1314,10 @@ export default function ConsultaForm({ onSave }) {
                     placeholder="38.5"
                     value={temp}
                     onChange={(e) => handleVitalChange("temp", e.target.value)}
+                    onBlur={(e) => {
+                      const nextValue = finalizeDecimal(e.target.value);
+                      setTemp(nextValue);
+                    }}
                   />
                   <div className={styles.vitalUnit}>°C</div>
                   {fieldErrors.temp && <small className={styles.errorText}>{fieldErrors.temp}</small>}

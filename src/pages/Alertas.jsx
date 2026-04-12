@@ -168,33 +168,34 @@ export default function Alertas() {
         const lista = Array.isArray(data?.alertas) ? data.alertas : [];
 
         const normalized = lista.map((item, index) => {
-          const fechaBase = item?.proxima_cita || item?.fecha || "";
-          const frontendCategory = mapBackendCategoryToFrontend(item?.categoria);
+  const fechaBase = item?.proxima_cita || item?.fecha || "";
+  const frontendCategory = mapBackendCategoryToFrontend(item?.categoria);
 
-          return {
-            id: item?.id ?? `row-${index}`,
-            fecha: fechaBase,
-            hora: formatTime(fechaBase),
-            motivo:
-              item?.motivo ??
-              item?.motivo_seguimiento ??
-              item?.diagnostico ??
-              "",
-            estado: item?.estado ?? "pendiente",
-            patientId: item?.pet_id ?? "",
-            patientName: item?.mascota_nombre ?? "Sin nombre",
-            raza: item?.mascota_raza ?? "",
-            ownerName: item?.cliente_nombre ?? "Sin dueño",
-            phone: item?.cliente_telefono ?? "",
-            doctorName: item?.doctor_nombre ?? "",
-            categoria: frontendCategory,
-            rawFechaConsulta: item?.fecha ?? "",
-            rawProximaCita: item?.proxima_cita ?? "",
-            gravedad: item?.gravedad ?? "",
-            observaciones: item?.observaciones ?? "",
-            diagnostico: item?.diagnostico ?? "",
-          };
-        });
+  return {
+    id: item?.id ?? `row-${index}`,
+    consultaId: item?.consulta_id ?? item?.id ?? "",
+    fecha: fechaBase,
+    hora: formatTime(fechaBase),
+    motivo:
+      item?.motivo ??
+      item?.motivo_seguimiento ??
+      item?.diagnostico ??
+      "",
+    estado: item?.estado ?? "pendiente",
+    patientId: item?.pet_id ?? "",
+    patientName: item?.mascota_nombre ?? "Sin nombre",
+    raza: item?.mascota_raza ?? "",
+    ownerName: item?.cliente_nombre ?? "Sin dueño",
+    phone: item?.cliente_telefono ?? "",
+    doctorName: item?.doctor_nombre ?? "",
+    categoria: frontendCategory,
+    rawFechaConsulta: item?.fecha ?? "",
+    rawProximaCita: item?.proxima_cita ?? "",
+    gravedad: item?.gravedad ?? "",
+    observaciones: item?.observaciones ?? "",
+    diagnostico: item?.diagnostico ?? "",
+  };
+});
 
         setAlertas(normalized);
 
@@ -445,9 +446,17 @@ export default function Alertas() {
         <button
           type="button"
           className={styles.outlineBtn}
-          onClick={() => navigate(`/consultas?patientId=${item.patientId}`)}
+          onClick={() => navigate(`/consulta/${item.consultaId}`)}
         >
           Abrir
+        </button>
+
+        <button
+          type="button"
+          className={styles.outlineBtn2}
+          onClick={() => navigate(`/consulta/${item.consultaId}`)}
+        >
+          Enviar Correo
         </button>
       </td>
     </tr>
