@@ -252,7 +252,7 @@ body {
   transition: color 0.2s;
 }
 .topbar__alert-btn:hover {
-  background: rgba(80, 200, 255, 0.4);
+  background: rgba(77, 167, 251, 0.4);
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
   filter: brightness(1.05);
