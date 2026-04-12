@@ -56,18 +56,19 @@ function initials(str = "") {
 
 function getVisitTypeColorClass(codigo) {
   const map = {
-    vac: styles.typeVac,
-    gen: styles.typeGen,
-    ill: styles.typeIll,
-    sur: styles.typeSur,
-    med: styles.typeMed,
-    den: "",
-    rou: "",
-    eme: "",
-    emb: "",
+    vac: styles.typeVac,   // vacunas
+    gen: styles.typeGen,   // general
+    ill: styles.typeIll,   // enfermedad
+    sur: styles.typeSur,   // cirugía
+    med: styles.typeMed,   // medicación
+    den: styles.typeDen,   // dental
+    rou: styles.typeRou,   // rutina
+    eme: styles.typeEme,   // emergencia
+    emb: styles.typeEmb,   // embarazo
   };
 
-  return map[codigo] || "";
+  return map[codigo] || styles.typeDefault;
+
 }
 
 function SectionCard({ icon, title, children, className = "" }) {
