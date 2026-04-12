@@ -8,15 +8,22 @@ export const formatters = {
   onlyNumbers: (value = "") => value.replace(/\D/g, ""),
 
   decimalNumber: (value = "") => {
-    let clean = value.replace(/[^0-9.]/g, "");
-    const parts = clean.split(".");
+  let clean = value.replace(/[^\d.]/g, "");
 
-    if (parts.length > 2) {
-      clean = parts[0] + "." + parts.slice(1).join("");
-    }
+  const parts = clean.split(".");
+  if (parts.length > 2) {
+    clean = parts[0] + "." + parts.slice(1).join("");
+  }
 
-    return clean;
-  },
+  let [int = "", dec] = clean.split(".");
+
+  if (dec !== undefined) {
+    dec = dec.slice(0, 2);
+    return `${int}.${dec}`;
+  }
+
+  return int;
+},
 
   bloodPressure: (value = "") => {
   const digits = value.replace(/\D/g, "").slice(0, 6);
@@ -47,6 +54,15 @@ export const applyFieldFormatting = (name, value, fieldRules) => {
   const formatterName = fieldRules?.[name]?.formatter;
   const formatter = formatterName ? formatters[formatterName] : null;
   return formatter ? formatter(value) : value;
+};
+
+export const finalizeDecimal = (value = "") => {
+  if (value === "" || value == null) return "";
+
+  const num = parseFloat(value);
+  if (Number.isNaN(num)) return "";
+
+  return num.toFixed(2);
 };
 
 export const validateFields = (formData, fieldRules) => {
