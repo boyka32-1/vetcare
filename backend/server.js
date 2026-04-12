@@ -553,6 +553,7 @@ app.get("/api/alertas", requireAuth, async (req, res) => {
         c.doctor_id,
         c.fecha,
         c.proxima_cita,
+        cl.email AS cliente_correo,
         c.motivo,
         c.diagnostico,
         c.observaciones,
