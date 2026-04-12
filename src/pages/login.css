@@ -11,7 +11,7 @@
  
   --warm-white: #fff7ed;
   --teal-deepi: #062f37;
-  --teal-deepa:#31828f;
+  --teal-deepa:#266582;
   --teal-mid: #2a939d;
   --teal-light: #4bbec8;
   --teal-pale: #D6EEF5;
@@ -26,7 +26,7 @@
    --cremita: #fff5e8;
 
   /* mapped aliases so you don't have to rewrite everything */
-  --primary: var(--teal-light);
+
   --primary-dark: var(--teal-mid);
   --primary-soft: var(--teal-pale);
 
@@ -46,7 +46,7 @@
   justify-content: center;
   padding: 32px;
 
-  background-color: var(--cremita);
+  background-color: #fcf9f5;
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(75, 170, 200, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(232, 168, 66, 0.08) 0%, transparent 45%),
@@ -58,7 +58,7 @@
 /* Tarjeta centrada y responsive */
 .vc-card {
   width: min(520px, 96vw);
-  background: var(--card);
+  background: white;
   border-radius: 24px;
   box-shadow:
     0 4px 10px rgba(28, 43, 51, 0.04),
@@ -75,7 +75,7 @@
 
 /* Header */
 .vc-card-header {
-  background: linear-gradient(135deg, var(--teal-deepa) 0%,var(--teal-light )100%);
+  background: linear-gradient(135deg, var(--teal-deepa) 0%,#39a8c7 100%);
   padding: 34px 42px 30px;
   text-align: center;
   position: relative;
@@ -296,7 +296,7 @@
 .vc-btn-login {
   width: 100%;
   padding: 15px;
-  background: linear-gradient(135deg, var(--teal-deep) 30%, var(--teal-mid) 90%);
+  background: linear-gradient(135deg, var(--teal-deepa) 30%, #098eae 90%);
   color: #fff;
   font-family: inherit;
   font-size: 14px;
@@ -373,8 +373,8 @@
   padding: 15px;
   border-radius: 12px;
   border: 1.5px solid #E7E0D7;
-  background: white;
-  color: var(--teal-mid);
+  background: #f3f6f7;
+  color: rgb(3, 72, 104);
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;

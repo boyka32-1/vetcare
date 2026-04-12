@@ -1,7 +1,13 @@
+body{
+  background: #fcf6ee;
+}
+
 .page {
   min-height: 100%;
-  background: #f4f8f8;
+  background: #fcf6ee;
   padding: 24px;
+  scale: 0.9;
+  
 }
 
 .container {
@@ -34,7 +40,7 @@
 .primaryBtn {
   border: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #2f5d7c, #193e57);
+  background: #2f6e7c;
   color: white;
   padding: 12px 18px;
   font-weight: 700;
@@ -43,7 +49,9 @@
 }
 
 .primaryBtn:hover {
-  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
 }
 
 .statsGrid {
@@ -88,6 +96,23 @@
 .statUpcoming {
   border-left: 5px solid #2f6b7c;
 }
+
+.statCard{
+  height: 85px;
+}
+
+
+ .statValue {
+  .statValue {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  position: relative;
+  
+}
+}
+
 
 .toolbar {
   display: flex;
@@ -213,19 +238,20 @@
   align-items: center;
   gap: 12px;
 }
-
 .avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2f7c79, #244244);
-  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 12px;
   font-weight: 800;
   flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  letter-spacing: 0.02em;
+  
 }
+
 
 .patientName {
   font-weight: 700;
@@ -311,7 +337,7 @@
 
 .backBtn {
   border: 1px solid #cfe0df;
-  background: rgb(209, 248, 255);
+  background: rgb(209, 238, 255);
   color: #244244;
   border-radius: 12px;
   padding: 8px 12px;
@@ -321,5 +347,7 @@
 }
 
 .backBtn:hover {
-  background: #f4f8f8;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
 }

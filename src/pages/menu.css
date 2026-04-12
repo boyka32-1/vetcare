@@ -95,10 +95,10 @@ body {
     color: var(--teal-loco);
   }
 .sidebar__close {
-  background:var(--teal-loco);
+  background: rgb(170, 230, 242);
   border: none;
   cursor: pointer;
-  color: var(--text-soft);
+  color: var(--text-dark);
   padding: 6px;
   border-radius: 8px;
   display: flex;
@@ -106,7 +106,7 @@ body {
 }
 .sidebar__close:hover {
   background: var(--teal-lighti);
-  color: var(--teal);
+  color: var(--text-dark);
 }
 
 .sidebar__nav {
@@ -144,8 +144,8 @@ body {
   transition: all 0.2s ease;
 }
 .sidebar__item:hover {
-  background: var(--teal-lighta);
-  color: var(--teal-mid);
+  background: rgb(181, 232, 246);
+  color: var(--text-dark);
   border-left-color: var(--teal);
 }
 .sidebar__item--active {

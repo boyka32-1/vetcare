@@ -27,7 +27,6 @@ export default function HistorialClinico() {
           return;
         }
 
-        // 1) Cargar mascotas
         const mascotasRes = await fetch(`${API_URL}/api/mascotas`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -60,7 +59,6 @@ export default function HistorialClinico() {
           throw new Error("La respuesta de mascotas no es un arreglo.");
         }
 
-        // 2) Para cada mascota cargar sus consultas
         const resumenPromises = mascotasData.map(async (pet, index) => {
           const mascotaId =
             pet.id ??
@@ -137,7 +135,6 @@ export default function HistorialClinico() {
         });
 
         const resumen = await Promise.all(resumenPromises);
-
         setMascotasResumen(resumen);
       } catch (err) {
         console.error(err);
@@ -170,6 +167,16 @@ export default function HistorialClinico() {
       0
     );
   }, [mascotasResumen]);
+
+  const conConsultas = useMemo(
+    () => filteredMascotas.filter((pet) => pet.consultasTotal > 0),
+    [filteredMascotas]
+  );
+
+  const sinConsultas = useMemo(
+    () => filteredMascotas.filter((pet) => pet.consultasTotal === 0),
+    [filteredMascotas]
+  );
 
   const formatDate = (date) => {
     if (!date) return "Sin fecha";
@@ -204,95 +211,114 @@ export default function HistorialClinico() {
     return variants[index % variants.length];
   };
 
+  const renderRow = (pet, index, muted = false) => (
+    <button
+      type="button"
+      key={pet.mascotaId}
+      className={`hc-pet-row ${muted ? "hc-pet-row--muted" : ""}`}
+      onClick={() => navigate(`/historial-clinico/${pet.mascotaId}`)}
+    >
+      <div className="hc-pet-left">
+        <div className={`hc-pet-avatar ${avatarClassByIndex(index)}`}>
+          {getInitials(pet.nombre)}
+        </div>
+
+        <div className="hc-pet-main">
+          <h2>{pet.nombre}</h2>
+          <p>
+            {pet.raza || "Sin raza"} · {pet.edad || "Sin edad"} ·{" "}
+            {pet.clienteNombre || "Sin dueño"}
+          </p>
+        </div>
+      </div>
+
+      <div className="hc-pet-right">
+        <span className={`hc-pill ${muted ? "hc-pill--muted" : ""}`}>
+          {pet.consultasTotal > 0
+            ? `${pet.consultasTotal} consulta${pet.consultasTotal !== 1 ? "s" : ""}`
+            : "sin consultas"}
+        </span>
+
+        <span className="hc-last-date">
+          {pet.consultasTotal > 0 ? formatDate(pet.ultimaConsulta) : ""}
+        </span>
+
+        <span className="hc-chevron">›</span>
+      </div>
+    </button>
+  );
+
   return (
     <div className="hc-page">
-      <div className="hc-shell">
-        <div className="hc-card">
-          <header className="hc-hero">
-            <button
-              type="button"
-              className="hc-hero-back"
-              onClick={() => navigate("/menu")}
-            >
-              <span className="hc-hero-back-arrow">←</span>
-              <span>Back</span>
-            </button>
+      <div className="hc-container">
+        <header className="hc-hero">
+          <button
+            type="button"
+            className="hc-hero-back"
+            onClick={() => navigate("/menu")}
+          >
+            <span className="hc-hero-back-arrow">←</span>
+            <span>volver</span>
+          </button>
 
-            <div className="hc-hero-copy">
-              <h1>Historial Clínico</h1>
-              <p>Expedientes por paciente</p>
-            </div>
-
-            <div className="hc-hero-stats">
-              <strong>{totalConsultas}</strong>
-              <span>consultas totales</span>
-            </div>
-          </header>
-
-          <div className="hc-toolbar">
-            <div className="hc-search-wrap">
-              <span className="hc-search-icon">⌕</span>
-              <input
-                type="text"
-                className="hc-search"
-                placeholder="Buscar por paciente, dueño, raza..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-
-            <div className="hc-results">
-              {filteredMascotas.length} paciente
-              {filteredMascotas.length !== 1 ? "s" : ""}
-            </div>
+          <div className="hc-hero-copy">
+            <h1>Historial clínico</h1>
+            <p>Expedientes por paciente</p>
           </div>
 
-          {loading ? (
-            <div className="hc-state-card">Cargando historial clínico...</div>
-          ) : error ? (
-            <div className="hc-state-card hc-state-card--error">{error}</div>
-          ) : filteredMascotas.length === 0 ? (
-            <div className="hc-state-card">No se encontraron pacientes.</div>
-          ) : (
-            <div className="hc-list">
-              {filteredMascotas.map((pet, index) => (
-                <button
-                  type="button"
-                  key={pet.mascotaId}
-                  className="hc-pet-row"
-                  onClick={() => navigate(`/historial-clinico/${pet.mascotaId}`)}
-                >
-                  <div className="hc-pet-left">
-                    <div className={`hc-pet-avatar ${avatarClassByIndex(index)}`}>
-                      {getInitials(pet.nombre)}
-                    </div>
+          <div className="hc-hero-stats">
+            <strong>{totalConsultas}</strong>
+            <span>consultas totales</span>
+          </div>
+        </header>
 
-                    <div className="hc-pet-main">
-                      <h2>{pet.nombre}</h2>
-                      <p>
-                        {pet.raza || "Sin raza"} · {pet.edad || "Sin edad"} ·{" "}
-                        {pet.clienteNombre || "Sin dueño"}
-                      </p>
-                    </div>
-                  </div>
+        <div className="hc-toolbar">
+          <div className="hc-search-wrap">
+            <span className="hc-search-icon">⌕</span>
+            <input
+              type="text"
+              className="hc-search"
+              placeholder="Buscar paciente, dueño, raza..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-                  <div className="hc-pet-right">
-                    <span className="hc-pill">
-                      {pet.consultasTotal} consulta
-                      {pet.consultasTotal !== 1 ? "s" : ""}
-                    </span>
-
-                    <span className="hc-last-date">
-                      {formatDate(pet.ultimaConsulta)}
-                    </span>
-
-                    <span className="hc-chevron">﹀</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="hc-results">
+            {filteredMascotas.length} paciente
+            {filteredMascotas.length !== 1 ? "s" : ""}
+          </div>
         </div>
+
+        {loading ? (
+          <div className="hc-state-card">Cargando historial clínico...</div>
+        ) : error ? (
+          <div className="hc-state-card hc-state-card--error">{error}</div>
+        ) : filteredMascotas.length === 0 ? (
+          <div className="hc-state-card">No se encontraron pacientes.</div>
+        ) : (
+          <>
+            {conConsultas.length > 0 && (
+              <section className="hc-section">
+                <h3 className="hc-section-title">Con visitas recientes</h3>
+                <div className="hc-list">
+                  {conConsultas.map((pet, index) => renderRow(pet, index))}
+                </div>
+              </section>
+            )}
+
+            {sinConsultas.length > 0 && (
+              <section className="hc-section">
+                <h3 className="hc-section-title">Sin consultas</h3>
+                <div className="hc-list">
+                  {sinConsultas.map((pet, index) =>
+                    renderRow(pet, index + conConsultas.length, true)
+                  )}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

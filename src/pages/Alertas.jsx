@@ -66,6 +66,26 @@ function getAlertLabel(type) {
   }
 }
 
+const getAvatarColor = (text = "") => {
+        const colors = [
+          "#f6c5ca", // soft pink
+          "#c5e1f5", // light blue
+          "#cbf3dc", // mint green
+          "#FCF3CF", // soft yellow
+          "#e9d3f4", // lavender
+          "#FDEBD0", // peach
+          "#d4f8f5", // pale green
+          "#d1eaf8", // icy blue
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+          hash = text.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        return colors[Math.abs(hash) % colors.length];
+      };
+
 function mapBackendCategoryToFrontend(category) {
   switch (category) {
     case "atrasadas":
@@ -117,6 +137,8 @@ export default function Alertas() {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        
 
         const raw = await response.text();
 
@@ -362,72 +384,75 @@ export default function Alertas() {
                 </thead>
                 <tbody>
                   {filteredAlertas.map((item) => {
-                    const type = item.categoria || getAlertType(item.fecha);
+  const type = item.categoria || getAlertType(item.fecha);
+  const bgColor = getAvatarColor(item.patientName || "");
 
-                    return (
-                      <tr key={item.id}>
-                        <td>
-                          <span
-                            className={`${styles.badge} ${
-                              type === "overdue"
-                                ? styles.badgeOverdue
-                                : type === "today"
-                                ? styles.badgeToday
-                                : type === "tomorrow"
-                                ? styles.badgeTomorrow
-                                : styles.badgeUpcoming
-                            }`}
-                          >
-                            {getAlertLabel(type)}
-                          </span>
-                        </td>
+  return (
+    <tr key={item.id}>
+      <td>
+        <span
+          className={`${styles.badge} ${
+            type === "overdue"
+              ? styles.badgeOverdue
+              : type === "today"
+              ? styles.badgeToday
+              : type === "tomorrow"
+              ? styles.badgeTomorrow
+              : styles.badgeUpcoming
+          }`}
+        >
+          {getAlertLabel(type)}
+        </span>
+      </td>
 
-                        <td>
-                          <div className={styles.patientCell}>
-                            <div className={styles.avatar}>
-                              {String(item.patientName || "?")
-                                .slice(0, 2)
-                                .toUpperCase()}
-                            </div>
-                            <div>
-                              <div className={styles.patientName}>
-                                {item.patientName || "Sin nombre"}
-                              </div>
-                              <div className={styles.patientSub}>
-                                {item.raza || "Sin raza"}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
+      <td>
+        <div className={styles.patientCell}>
+          <div
+            className={styles.avatar}
+            style={{ backgroundColor: bgColor }}
+          >
+            {String(item.patientName || "?")
+              .slice(0, 2)
+              .toUpperCase()}
+          </div>
 
-                        <td>
-                          <div className={styles.ownerName}>
-                            {item.ownerName || "Sin dueño"}
-                          </div>
-                          <div className={styles.ownerPhone}>
-                            {item.phone || "—"}
-                          </div>
-                        </td>
+          <div>
+            <div className={styles.patientName}>
+              {item.patientName || "Sin nombre"}
+            </div>
+            <div className={styles.patientSub}>
+              {item.raza || "Sin raza"}
+            </div>
+          </div>
+        </div>
+      </td>
 
-                        <td>{item.doctorName || "—"}</td>
-                        <td>{formatDate(item.fecha)}</td>
-                        <td>{item.hora || "—"}</td>
-                        <td className={styles.reasonCell}>{item.motivo || "—"}</td>
+      <td>
+        <div className={styles.ownerName}>
+          {item.ownerName || "Sin dueño"}
+        </div>
+        <div className={styles.ownerPhone}>
+          {item.phone || "—"}
+        </div>
+      </td>
 
-                        <td>
-                          <button
-                            type="button"
-                            className={styles.outlineBtn}
-                            onClick={() =>
-                              navigate(`/consultas?patientId=${item.patientId}`)
-                            }
-                          >
-                            Abrir
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+      <td>{item.doctorName || "—"}</td>
+      <td>{formatDate(item.fecha)}</td>
+      <td>{item.hora || "—"}</td>
+      <td className={styles.reasonCell}>{item.motivo || "—"}</td>
+
+      <td>
+        <button
+          type="button"
+          className={styles.outlineBtn}
+          onClick={() => navigate(`/consultas?patientId=${item.patientId}`)}
+        >
+          Abrir
+        </button>
+      </td>
+    </tr>
+  );
+})}
                 </tbody>
               </table>
             </div>

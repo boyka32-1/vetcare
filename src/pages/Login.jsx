@@ -21,7 +21,7 @@ export default function Login() {
     setError("");
 
     if (!usuario.trim() || !contrasena.trim()) {
-      setError("Username and password are required.");
+      setError("Nombre de usuario y contraseña son obligatorios.");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "Login failed.");
+        setError(data.message || "Inicio de sesión fallido.");
         return;
       }
 
@@ -52,7 +52,7 @@ export default function Login() {
       navigate("/menu");
     } catch (err) {
       console.error(err);
-      setError("Could not connect to the server.");
+      setError("No se pudo conectar al servidor.");
     } finally {
       setLoading(false);
     }

@@ -175,131 +175,133 @@ export default function CreateAccountVetCare() {
         <div className="cl-form-body">
           <div className="cl-form-container">
             <form className="cl-form" onSubmit={handleSubmit}>
-              <div className="cl-field">
-                <label>NOMBRE <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <User size={18} />
-                  <input
-                    type="text"
-                    name="nombre"
-                    placeholder="Enter your first name"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
-              </div>
+  <div className="cl-form-grid">
+    <div className="cl-field">
+      <label>NOMBRE <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <User size={18} />
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Enter your first name"
+          value={formData.nombre}
+          onChange={handleChange}
+        />
+      </div>
+      {fieldErrors.nombre && <small>{fieldErrors.nombre}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>APELLIDO <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <User size={18} />
-                  <input
-                    type="text"
-                    name="apellido"
-                    placeholder="Enter your last name"
-                    value={formData.apellido}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.apellido && <small>{fieldErrors.apellido}</small>}
-              </div>
+    <div className="cl-field">
+      <label>APELLIDO <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <User size={18} />
+        <input
+          type="text"
+          name="apellido"
+          placeholder="Enter your last name"
+          value={formData.apellido}
+          onChange={handleChange}
+        />
+      </div>
+      {fieldErrors.apellido && <small>{fieldErrors.apellido}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>CÉDULA <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <IdCard size={18} />
-                  <input
-                    type="text"
-                    name="cedula"
-                    placeholder="Enter your ID"
-                    value={formData.cedula}
-                    onChange={handleChange}
-                    maxLength={11}
-                  />
-                </div>
-                {fieldErrors.cedula && <small>{fieldErrors.cedula}</small>}
-              </div>
+    <div className="cl-field">
+      <label>CÉDULA <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <IdCard size={18} />
+        <input
+          type="text"
+          name="cedula"
+          placeholder="Enter your ID"
+          value={formData.cedula}
+          onChange={handleChange}
+          maxLength={11}
+        />
+      </div>
+      {fieldErrors.cedula && <small>{fieldErrors.cedula}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>TELÉFONO <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <Phone size={18} />
-                  <input
-                    type="text"
-                    name="telefono"
-                    placeholder="Enter your phone"
-                    value={formData.telefono}
-                    onChange={handleChange}
-                    maxLength={10}
-                  />
-                </div>
-                {fieldErrors.telefono && <small>{fieldErrors.telefono}</small>}
-              </div>
+    <div className="cl-field">
+      <label>TELÉFONO <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <Phone size={18} />
+        <input
+          type="text"
+          name="telefono"
+          placeholder="Enter your phone"
+          value={formData.telefono}
+          onChange={handleChange}
+          maxLength={10}
+        />
+      </div>
+      {fieldErrors.telefono && <small>{fieldErrors.telefono}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>EMAIL <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <Mail size={18} />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.email && <small>{fieldErrors.email}</small>}
-              </div>
+    <div className="cl-field cl-field-full">
+      <label>EMAIL <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <Mail size={18} />
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter your email address"
+          value={formData.email}
+          onChange={handleChange}
+        />
+      </div>
+      {fieldErrors.email && <small>{fieldErrors.email}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>CONTRASEÑA <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <Lock size={18} />
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Choose a password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.password && <small>{fieldErrors.password}</small>}
-              </div>
+    <div className="cl-field">
+      <label>CONTRASEÑA <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <Lock size={18} />
+        <input
+          type="password"
+          name="password"
+          placeholder="Choose a password"
+          value={formData.password}
+          onChange={handleChange}
+        />
+      </div>
+      {fieldErrors.password && <small>{fieldErrors.password}</small>}
+    </div>
 
-              <div className="cl-field">
-                <label>CONFIRMAR CONTRASEÑA <span className="req">*</span></label>
-                <div className="cl-input-wrap">
-                  <Lock size={18} />
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Repeat your password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.confirmPassword && (
-                  <small>{fieldErrors.confirmPassword}</small>
-                )}
-              </div>
+    <div className="cl-field">
+      <label>CONFIRMAR CONTRASEÑA <span className="req">*</span></label>
+      <div className="cl-input-wrap">
+        <Lock size={18} />
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Repeat your password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+        />
+      </div>
+      {fieldErrors.confirmPassword && (
+        <small>{fieldErrors.confirmPassword}</small>
+      )}
+    </div>
+  </div>
 
-              {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
-              {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
+  {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+  {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
 
-              <button type="submit" className="cl-btn-primary" disabled={loading}>
-                {loading ? "CREANDO..." : "CREAR CUENTA"}
-              </button>
+  <button type="submit" className="cl-btn-primary" disabled={loading}>
+    {loading ? "CREANDO..." : "CREAR CUENTA"}
+  </button>
 
-              <Link to="/" className="cl-btn-secondary">
-                Devuelta al inicio de sesión
-              </Link>
+  <Link to="/" className="cl-btn-secondary">
+    Devuelta al inicio de sesión
+  </Link>
 
-              <div className="cl-note">
-                <ShieldCheck size={16} />
-                <span>Secure encrypted connection</span>
-              </div>
-            </form>
+  <div className="cl-note">
+    <ShieldCheck size={16} />
+    <span>Secure encrypted connection</span>
+  </div>
+</form>
           </div>
         </div>
       </div>

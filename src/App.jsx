@@ -10,6 +10,8 @@ import Alertas from "./pages/Alertas.jsx";
 import Consultas from "./pages/Consultas.jsx";
 import Historial from "./pages/Historial.jsx";
 import HistorialMascota from "./pages/HistorialMascota.jsx";
+import ConsultaDetalle from "./pages/ConsultaDetalle.jsx";
+import RegistroCliente from "./pages/RegistroCliente.jsx";
 
 export default function App() {
   return (
@@ -24,9 +26,9 @@ export default function App() {
         <Route path="/consultas" element={<Consultas />} />
         <Route path="/historial" element={<Historial />} />
         <Route path="/alertas" element={<Alertas />} />
-        <Route path="/historial-clinico/:mascotaId" element={<HistorialMascota />}
-        
-        />
+        <Route path="/historial-clinico/:mascotaId" element={<HistorialMascota />} />
+        <Route path="/consulta/:consultaId" element={<ConsultaDetalle />} />
+        <Route path="/registro/:clienteId" element={<RegistroCliente />} />
       </Routes>
     </BrowserRouter>
   );

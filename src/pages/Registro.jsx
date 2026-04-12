@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./registro.css";
 
+const API_URL = "http://localhost:5000";
+
 export default function Registro() {
   const navigate = useNavigate();
 
@@ -27,12 +29,12 @@ export default function Registro() {
         }
 
         const [clientesResponse, mascotasResponse] = await Promise.all([
-          fetch("http://localhost:5000/api/clientes", {
+          fetch(`${API_URL}/api/clientes`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch("http://localhost:5000/api/mascotas", {
+          fetch(`${API_URL}/api/mascotas`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -196,23 +198,33 @@ export default function Registro() {
 
     for (const mascota of mascotas) {
       const key = String(mascota.clienteId ?? "");
-      if (!mapa[key]) {
-        mapa[key] = [];
-      }
+      if (!mapa[key]) mapa[key] = [];
       mapa[key].push(mascota);
     }
 
     return mapa;
   }, [mascotas]);
 
+  const clientesConResumen = useMemo(() => {
+    return clientes.map((cliente) => {
+      const mascotasCliente = mascotasAgrupadas[String(cliente.id)] || [];
+
+      return {
+        ...cliente,
+        mascotas: mascotasCliente,
+        mascotasTotal: mascotasCliente.length,
+        ultimaMascota:
+          mascotasCliente.length > 0 ? mascotasCliente[0].nombre || "Mascota" : "",
+      };
+    });
+  }, [clientes, mascotasAgrupadas]);
+
   const clientesFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
 
-    if (!term) return clientes;
+    if (!term) return clientesConResumen;
 
-    return clientes.filter((cliente) => {
-      const mascotasCliente = mascotasAgrupadas[String(cliente.id)] || [];
-
+    return clientesConResumen.filter((cliente) => {
       const clienteMatch =
         String(cliente.nombre ?? "").toLowerCase().includes(term) ||
         String(cliente.cedula ?? "").toLowerCase().includes(term) ||
@@ -221,7 +233,7 @@ export default function Registro() {
         String(cliente.telefono ?? "").toLowerCase().includes(term) ||
         String(cliente.telefono2 ?? "").toLowerCase().includes(term);
 
-      const mascotaMatch = mascotasCliente.some((mascota) => {
+      const mascotaMatch = cliente.mascotas.some((mascota) => {
         return (
           String(mascota.nombre ?? "").toLowerCase().includes(term) ||
           String(mascota.edad ?? "").toLowerCase().includes(term) ||
@@ -234,157 +246,160 @@ export default function Registro() {
 
       return clienteMatch || mascotaMatch;
     });
-  }, [clientes, mascotasAgrupadas, search]);
+  }, [clientesConResumen, search]);
+
+  const totalMascotas = useMemo(() => {
+    return mascotas.length;
+  }, [mascotas]);
+
+  const conMascotas = useMemo(
+    () => clientesFiltrados.filter((cliente) => cliente.mascotasTotal > 0),
+    [clientesFiltrados]
+  );
+
+  const sinMascotas = useMemo(
+    () => clientesFiltrados.filter((cliente) => cliente.mascotasTotal === 0),
+    [clientesFiltrados]
+  );
+
+  const getInitials = (name = "") => {
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const avatarClassByIndex = (index) => {
+    const variants = [
+      "rg-avatar--mint",
+      "rg-avatar--blue",
+      "rg-avatar--purple",
+      "rg-avatar--orange",
+      "rg-avatar--gold",
+    ];
+    return variants[index % variants.length];
+  };
+
+  const renderRow = (cliente, index, muted = false) => (
+    <button
+      type="button"
+      key={cliente.id}
+      className={`rg-row ${muted ? "rg-row--muted" : ""}`}
+      onClick={() => navigate(`/registro/${cliente.id}`)}
+    >
+      <div className="rg-row-left">
+        <div className={`rg-avatar ${avatarClassByIndex(index)}`}>
+          {getInitials(cliente.nombre)}
+        </div>
+
+        <div className="rg-row-main">
+          <h2>{cliente.nombre || "Cliente sin nombre"}</h2>
+          <p>
+            {cliente.cedula || "Sin cédula"} ·{" "}
+            {cliente.telefono || cliente.telefono2 || "Sin teléfono"} ·{" "}
+            {cliente.mascotasTotal > 0
+              ? `${cliente.mascotasTotal} mascota${cliente.mascotasTotal !== 1 ? "s" : ""}`
+              : "sin mascotas"}
+          </p>
+        </div>
+      </div>
+
+      <div className="rg-row-right">
+        <span className={`rg-pill ${muted ? "rg-pill--muted" : ""}`}>
+          {cliente.mascotasTotal > 0
+            ? `${cliente.mascotasTotal} mascota${cliente.mascotasTotal !== 1 ? "s" : ""}`
+            : "sin mascotas"}
+        </span>
+
+        <span className="rg-last-text">
+          {cliente.mascotasTotal > 0 ? cliente.ultimaMascota : ""}
+        </span>
+
+        <span className="rg-chevron">›</span>
+      </div>
+    </button>
+  );
 
   return (
-    <div className="rg-body">
-      <div className="rg-card">
-        <div className="rg-topbar">
+    <div className="rg-page">
+      <div className="rg-container">
+        <header className="rg-hero">
           <button
-            className="rg-back"
             type="button"
+            className="rg-hero-back"
             onClick={() => navigate("/menu")}
           >
-            ← Back
+            <span className="rg-hero-back-arrow">←</span>
+            <span>volver</span>
           </button>
 
-          <div className="rg-title">
+          <div className="rg-hero-copy">
             <h1>Registro</h1>
-            <p>Clientes y mascotas registrados</p>
+            <p>Clientes y mascotas registradas</p>
+          </div>
+
+          <div className="rg-hero-stats">
+            <strong>{totalMascotas}</strong>
+            <span>mascotas totales</span>
+          </div>
+        </header>
+
+        <div className="rg-toolbar">
+          <div className="rg-search-wrap">
+            <span className="rg-search-icon">⌕</span>
+            <input
+              type="text"
+              className="rg-search"
+              placeholder="Buscar cliente, mascota, teléfono, ID, raza..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="rg-results">
+            {clientesFiltrados.length} cliente
+            {clientesFiltrados.length !== 1 ? "s" : ""}
           </div>
         </div>
 
-        <div className="rg-list-wrap">
-          {loading ? (
-            <div className="rg-empty">
-              <h2>Cargando registros...</h2>
-            </div>
-          ) : error ? (
-            <div className="rg-empty">
-              <h2>Error de carga</h2>
-              <p>{error}</p>
-            </div>
-          ) : clientes.length === 0 ? (
-            <div className="rg-empty">
-              <h2>No hay clientes registrados</h2>
-              <p>Primero registra un cliente y luego podrás asociarle mascotas.</p>
-            </div>
-          ) : (
-            <>
-              <div className="rg-toolbar">
-                <div className="rg-search">
-                  <input
-                    type="text"
-                    placeholder="Buscar por cliente, mascota, teléfono, ID, raza..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-
-                <div className="rg-results-count">
-                  {clientesFiltrados.length} resultado
-                  {clientesFiltrados.length !== 1 ? "s" : ""}
-                </div>
-              </div>
-
-              {clientesFiltrados.length === 0 ? (
-                <div className="rg-empty">
-                  <h2>No hay coincidencias</h2>
-                  <p>Intenta con otro término de búsqueda.</p>
-                </div>
-              ) : (
+        {loading ? (
+          <div className="rg-state-card">Cargando registros...</div>
+        ) : error ? (
+          <div className="rg-state-card rg-state-card--error">{error}</div>
+        ) : clientes.length === 0 ? (
+          <div className="rg-state-card">
+            No hay clientes registrados.
+          </div>
+        ) : clientesFiltrados.length === 0 ? (
+          <div className="rg-state-card">
+            No hay coincidencias. Intenta con otro término.
+          </div>
+        ) : (
+          <>
+            {conMascotas.length > 0 && (
+              <section className="rg-section">
+                <h3 className="rg-section-title">Con mascotas registradas</h3>
                 <div className="rg-list">
-                  {clientesFiltrados.map((cliente) => {
-                    const mascotasCliente =
-                      mascotasAgrupadas[String(cliente.id)] || [];
-
-                    return (
-                      <article key={cliente.id} className="rg-record">
-                        <div className="rg-record-header">
-                          <h2>{cliente.nombre || "Cliente sin nombre"}</h2>
-                          <span>{cliente.cedula || "Sin cédula"}</span>
-                        </div>
-
-                        <div className="rg-record-grid">
-                          <div className="rg-record-block">
-                            <h3>Datos del cliente</h3>
-                            <p>
-                              <strong>Dirección:</strong>{" "}
-                              {cliente.direccion || "No registrado"}
-                            </p>
-                            <p>
-                              <strong>Email:</strong>{" "}
-                              {cliente.correo || "No registrado"}
-                            </p>
-                            <p>
-                              <strong>Teléfono:</strong>{" "}
-                              {cliente.telefono || "No registrado"}
-                            </p>
-                            <p>
-                              <strong>Teléfono secundario:</strong>{" "}
-                              {cliente.telefono2 || "No registrado"}
-                            </p>
-                          </div>
-
-                          <div className="rg-record-block">
-                            <h3>Mascotas asociadas</h3>
-
-                            {mascotasCliente.length === 0 ? (
-                              <p className="rg-no-pets">
-                                Este cliente todavía no tiene mascotas registradas.
-                              </p>
-                            ) : (
-                              <div className="rg-pets">
-                                {mascotasCliente.map((mascota) => (
-                                  <div key={mascota.id} className="rg-pet-card">
-                                    <p>
-                                      <strong>Nombre:</strong>{" "}
-                                      {mascota.nombre || "No registrado"}
-                                    </p>
-                                    <p>
-                                      <strong>Edad:</strong>{" "}
-                                      {mascota.edad || "No registrado"}
-                                    </p>
-                                    <p>
-                                      <strong>Raza:</strong>{" "}
-                                      {mascota.raza || "No registrada"}
-                                    </p>
-                                    <p>
-                                      <strong>Sexo:</strong>{" "}
-                                      {mascota.sexo || "No registrado"}
-                                    </p>
-                                    <p>
-                                      <strong>Peso:</strong>{" "}
-                                      {mascota.peso || "No registrado"}
-                                    </p>
-                                    <p>
-                                      <strong>Observaciones:</strong>{" "}
-                                      {mascota.observaciones || "Sin observaciones"}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
+                  {conMascotas.map((cliente, index) => renderRow(cliente, index))}
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              </section>
+            )}
 
-        <div className="rg-back-menu-container">
-          <button
-            type="button"
-            className="rg-back-menu"
-            onClick={() => navigate("/menu")}
-          >
-            Devuelta al menú
-          </button>
-        </div>
+            {sinMascotas.length > 0 && (
+              <section className="rg-section">
+                <h3 className="rg-section-title">Sin mascotas</h3>
+                <div className="rg-list">
+                  {sinMascotas.map((cliente, index) =>
+                    renderRow(cliente, index + conMascotas.length, true)
+                  )}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ select {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background-color: var(--cremita);
+  background-color: #fbf6ef !important;
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(75, 170, 200, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 20%, rgba(232, 168, 66, 0.08) 0%, transparent 45%),

@@ -185,14 +185,7 @@ export default function MenuPage() {
 
         setCounts(nextCounts);
 
-        const nextCounts = {
-          clientes: Number(data.clientes ?? 0),
-          mascotas: Number(data.mascotas ?? 0),
-          consultas: Number(data.consultas ?? 0),
-          alertas: Number(data.alertas ?? 0),
-        };
-
-        setCounts(nextCounts);
+        
 
         setStats([
           {

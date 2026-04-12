@@ -117,7 +117,7 @@ function requireAuth(req, res, next) {
 }
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 1 * 60 * 1000,
   max: 150,
   standardHeaders: true,
   legacyHeaders: false,
@@ -127,12 +127,12 @@ const apiLimiter = rateLimit({
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: 1 * 60 * 1000,
+  max: 6,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: "Demasiados intentos de inicio de sesión. Intenta más tarde.",
+    message: "Demasiados intentos de inicio de sesión. Intenta dentro de 15 minutosS.",
   },
 });
 
@@ -236,12 +236,8 @@ app.post("/api/clientes", requireAuth, async (req, res) => {
     console.error("Error saving client:", error);
 
     return res.status(500).json({
-<<<<<<< HEAD
-      message: "El correo suministrado ya está registrado o ocurrió un error al guardar el cliente.",
-=======
       message:
         "El correo suministrado ya está registrado u ocurrió un error al guardar el cliente.",
->>>>>>> d40543669b1dbb228ccfe906642e0a17d1050d9b
     });
   }
 });
@@ -737,7 +733,6 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
         observaciones,
         estado,
         gravedad,
-        tipos_consulta,
         proxima_cita,
         motivo_seguimiento,
         peso,
@@ -763,7 +758,6 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
         observaciones || null,
         estado || "abierta",
         gravedad || "moderada",
-        JSON.stringify(tiposConsulta),
         proxima_cita || null,
         motivo_seguimiento || null,
         peso,
@@ -971,6 +965,139 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
   }
 });
 
+//consultation ID
+
+app.get("/api/consultas/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [consultas] = await pool.execute(
+      `
+      SELECT
+        c.id,
+        c.pet_id,
+        c.client_id,
+        c.doctor_id,
+        c.fecha AS visit_at,
+        c.motivo AS reason,
+        c.diagnostico AS diagnosis,
+        c.observaciones AS notes,
+        c.estado,
+        c.gravedad,
+        c.proxima_cita,
+        c.motivo_seguimiento,
+        c.peso,
+        c.temperatura,
+        c.frecuencia_cardiaca,
+        c.frecuencia_respiratoria,
+        c.presion_arterial,
+        c.saturacion_oxigeno,
+        d.full_name AS doctor
+      FROM consultas c
+      LEFT JOIN doctors d
+        ON d.id = c.doctor_id
+      WHERE c.id = ?
+        AND c.deleted_at IS NULL
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (consultas.length === 0) {
+      return res.status(404).json({
+        message: "Consulta no encontrada.",
+      });
+    }
+
+    const consulta = consultas[0];
+
+    const [tipos] = await pool.execute(
+      `
+      SELECT
+        tc.id,
+        tc.codigo,
+        tc.nombre
+      FROM consulta_tipos ct
+      INNER JOIN tipos_consulta tc
+        ON tc.id = ct.tipo_consulta_id
+      WHERE ct.consulta_id = ?
+        AND ct.deleted_at IS NULL
+        AND tc.deleted_at IS NULL
+      ORDER BY tc.nombre ASC
+      `,
+      [id]
+    );
+
+    const [medicaciones] = await pool.execute(
+      `
+      SELECT medicamento, indicaciones
+      FROM consulta_medicaciones
+      WHERE consulta_id = ?
+        AND deleted_at IS NULL
+      ORDER BY created_at ASC
+      `,
+      [id]
+    );
+
+    const [analisis] = await pool.execute(
+      `
+      SELECT analisis, resultado_observacion
+      FROM consulta_analisis
+      WHERE consulta_id = ?
+        AND deleted_at IS NULL
+      ORDER BY created_at ASC
+      `,
+      [id]
+    );
+
+    const [vacunas] = await pool.execute(
+      `
+      SELECT vacuna, lote_observaciones
+      FROM consulta_vacunas
+      WHERE consulta_id = ?
+        AND deleted_at IS NULL
+      ORDER BY created_at ASC
+      `,
+      [id]
+    );
+
+    const [adjuntos] = await pool.execute(
+      `
+      SELECT nombre_archivo, ruta_archivo, tipo_archivo, tamano_bytes
+      FROM consulta_adjuntos
+      WHERE consulta_id = ?
+        AND deleted_at IS NULL
+      ORDER BY created_at ASC
+      `,
+      [id]
+    );
+
+    return res.json({
+      ...consulta,
+      tipos_consulta: tipos.map((t) => t.codigo),
+      tipos_consulta_detalle: tipos,
+      treatment:
+        medicaciones.length > 0
+          ? medicaciones.map((m) => m.medicamento).join(", ")
+          : null,
+      medicaciones,
+      analisis,
+      vacunas,
+      adjuntos,
+    });
+  } catch (error) {
+    console.error("Error loading consulta detail:", error);
+
+    return res.status(500).json({
+      message: "Error interno al cargar la consulta.",
+      error: error.message,
+      sqlMessage: error.sqlMessage || null,
+      code: error.code || null,
+    });
+  }
+});
+
+
 // =============================
 // GET PET CLINICAL HISTORY
 // =============================
@@ -994,7 +1121,6 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
         c.observaciones AS notes,
         c.estado,
         c.gravedad,
-        c.tipos_consulta,
         c.proxima_cita,
         c.motivo_seguimiento,
         c.peso,
@@ -1202,7 +1328,7 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
 
     if (!username || !password) {
       return res.status(400).json({
-        message: "Username and password are required.",
+        message: "Nombre de usuario y contraseña son requeridos.",
       });
     }
 
@@ -1219,7 +1345,7 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(401).json({
-        message: "Invalid username or password",
+        message: " Usuario o contraseña incorrectos.",
       });
     }
 
@@ -1228,7 +1354,7 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
 
     if (!valid) {
       return res.status(401).json({
-        message: "Invalid username or password",
+        message: "Usuario o contraseña incorrectos.",
       });
     }
 
@@ -1254,6 +1380,10 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
     });
   }
 });
+
+
+
+
 
 // =============================
 // SERVER

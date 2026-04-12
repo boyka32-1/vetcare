@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./historialMascota.css";
 
@@ -67,7 +67,6 @@ export default function HistorialMascota() {
           return;
         }
 
-        // 1) Cargar lista de mascotas para sacar información básica
         const mascotasRes = await fetch(`${API_URL}/api/mascotas`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -87,17 +86,13 @@ export default function HistorialMascota() {
         try {
           mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
         } catch {
-          throw new Error("JSON inválido al cargar mascotas.");
+          throw new Error("Invalid JSON while loading pets.");
         }
 
         if (!mascotasRes.ok) {
           throw new Error(
-            mascotasData?.message || "No se pudieron cargar las mascotas."
+            mascotasData?.message || "Could not load pets."
           );
-        }
-
-        if (!Array.isArray(mascotasData)) {
-          throw new Error("La respuesta de mascotas no es un arreglo.");
         }
 
         const mascota =
@@ -116,7 +111,6 @@ export default function HistorialMascota() {
 
         setMascotaInfo(mascota);
 
-        // 2) Cargar historial clínico de la mascota
         const historialRes = await fetch(
           `${API_URL}/api/mascotas/${mascotaId}/consultas`,
           {
@@ -139,23 +133,23 @@ export default function HistorialMascota() {
         try {
           historialData = historialRaw ? JSON.parse(historialRaw) : [];
         } catch {
-          throw new Error("JSON inválido al cargar historial clínico.");
+          throw new Error("Invalid JSON while loading clinical history.");
         }
 
         if (!historialRes.ok) {
           throw new Error(
-            historialData?.message || "No se pudo cargar el historial clínico."
+            historialData?.message || "Could not load clinical history."
           );
         }
 
         if (!Array.isArray(historialData)) {
-          throw new Error("La respuesta del historial clínico no es un arreglo.");
+          throw new Error("Clinical history response is not an array.");
         }
 
         setConsultas(historialData);
       } catch (err) {
         console.error(err);
-        setError(err.message || "No se pudo cargar el historial clínico.");
+        setError(err.message || "Could not load clinical history.");
       } finally {
         setLoading(false);
       }
@@ -166,146 +160,191 @@ export default function HistorialMascota() {
     }
   }, [mascotaId, navigate]);
 
-  const formatDate = (date) => {
-    if (!date) return "Sin fecha";
-
-    const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) return date;
-
-    return parsed.toLocaleString("es-DO", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const mascotaNombre =
     mascotaInfo?.name ??
     mascotaInfo?.nombre ??
-    "Sin nombre";
+    "No name";
 
   const mascotaRaza =
     mascotaInfo?.breed ??
     mascotaInfo?.raza ??
-    "Sin raza";
+    "No breed";
 
   const mascotaEdad =
     mascotaInfo?.age_years ??
     mascotaInfo?.edad ??
-    "Sin edad";
+    "No age";
 
   const clienteNombre =
     `${mascotaInfo?.first_name ?? ""} ${mascotaInfo?.last_name ?? ""}`.trim() ||
     mascotaInfo?.clienteNombre ||
-    "Sin dueño";
+    "No owner";
 
-  return VISIT_TYPE_LABELS[parsed] || parsed;
-};
+  const clienteTelefono =
+    mascotaInfo?.telefono ??
+    mascotaInfo?.phone_primary ??
+    mascotaInfo?.clienteTelefono ??
+    "—";
+
+  const ultimaConsulta = useMemo(() => {
+    if (!consultas.length) return "—";
+    return consultas[0]?.visit_at || consultas[0]?.fecha || "—";
+  }, [consultas]);
+
+  const formatDateTime = (date) => {
+    if (!date) return "No date";
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return date;
+
+    return parsed.toLocaleString("es-DO", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const formatShortDate = (date) => {
+    if (!date || date === "—") return "—";
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return date;
+
+    return parsed.toLocaleDateString("es-DO", {
+      day: "numeric",
+      month: "short",
+    });
+  };
+
+  const getInitial = (text = "") => {
+    return text.trim().charAt(0).toUpperCase() || "?";
+  };
+
+  const getVisitTypeClass = (label) => {
+    const value = String(label || "").toLowerCase();
+
+    if (value.includes("cirug")) return "hcd-badge--surgery";
+    if (value.includes("seguimiento")) return "hcd-badge--follow";
+    return "hcd-badge--soft";
+  };
+
   return (
     <div className="hcd-page">
       <div className="hcd-container">
-        <header className="hcd-header">
+        <header className="hcd-hero">
           <button
             type="button"
             className="hcd-back-btn"
-            onClick={() => navigate("/historial")}
+            onClick={() => navigate(-1)}
           >
-            ← Back
+            <span className="hcd-back-arrow">←</span>
+            <span>volver</span>
           </button>
 
-          <div className="hcd-header-copy">
-            <h1>Historial de Mascota</h1>
+          <div className="hcd-hero-copy">
+            <h1>Historial de mascota</h1>
             <p>Detalle clínico del paciente</p>
           </div>
         </header>
 
         {loading ? (
-          <div className="hcd-state-card">Cargando historial clínico...</div>
+          <div className="hcd-state-card">Loading clinical history...</div>
         ) : error ? (
           <div className="hcd-state-card hcd-state-card--error">{error}</div>
         ) : (
           <>
             <section className="hcd-summary-grid">
-              <article className="hcd-card">
-                <h2>Mascota</h2>
-                <div className="hcd-info-list">
-                  <p>
-                    <strong>Nombre:</strong> {mascotaNombre}
-                  </p>
-                  <p>
-                    <strong>Raza:</strong> {mascotaRaza}
-                  </p>
-                  <p>
-                    <strong>Edad:</strong> {mascotaEdad}
-                  </p>
+              <article className="hcd-info-card">
+                <h3 className="hcd-card-label">Mascota</h3>
+
+                <div className="hcd-pet-block">
+                  <div className="hcd-avatar">{getInitial(mascotaNombre)}</div>
+
+                  <div className="hcd-pet-copy">
+                    <h2>{mascotaNombre}</h2>
+                    <p>
+                      {mascotaRaza} · {mascotaEdad} años
+                    </p>
+                  </div>
                 </div>
               </article>
 
-              <article className="hcd-card">
-                <h2>Propietario</h2>
-                <div className="hcd-info-list">
-                  <p>
-                    <strong>Cliente:</strong> {clienteNombre}
-                  </p>
-                  <p>
-                    <strong>Total consultas:</strong> {consultas.length}
-                  </p>
+              <article className="hcd-info-card">
+                <h3 className="hcd-card-label">Propietario</h3>
+
+                <div className="hcd-owner-grid">
+                  <div className="hcd-owner-row">
+                    <span>Cliente</span>
+                    <strong>{clienteNombre}</strong>
+                  </div>
+
+                  <div className="hcd-owner-row">
+                    <span>Teléfono</span>
+                    <strong>{clienteTelefono}</strong>
+                  </div>
+                </div>
+
+                <div className="hcd-stats-grid">
+                  <div className="hcd-stat-box">
+                    <strong>{consultas.length}</strong>
+                    <span>consultas</span>
+                  </div>
+
+                  <div className="hcd-stat-box">
+                    <strong>{formatShortDate(ultimaConsulta)}</strong>
+                    <span>última visita</span>
+                  </div>
                 </div>
               </article>
             </section>
 
-            <section className="hcd-card">
+            <section className="hcd-consultas-section">
               <div className="hcd-section-head">
                 <h2>Consultas clínicas</h2>
-                <span>
+                <span className="hcd-count-pill">
                   {consultas.length} consulta{consultas.length !== 1 ? "s" : ""}
                 </span>
               </div>
 
               {consultas.length === 0 ? (
                 <p className="hcd-empty-text">
-                  No se encontró historial clínico para esta mascota.
+                  No clinical history was found for this pet.
                 </p>
               ) : (
                 <div className="hcd-consultation-list">
-                  {consultas.map((consulta) => (
-                    <article key={consulta.id} className="hcd-consultation-card">
-                      <div className="hcd-consultation-top">
-                        <div>
+                  {consultas.map((consulta) => {
+                    const tipoLabel = normalizeVisitTypes(
+                      consulta.tipos_consulta,
+                      consulta.tipos_consulta_detalle
+                    );
+
+                    return (
+                      <article key={consulta.id} className="hcd-consultation-row">
+                        <div className="hcd-consultation-left">
                           <h3>{consulta.reason || "Sin motivo"}</h3>
-                          <p>{formatDate(consulta.visit_at)}</p>
+                          <p>{formatDateTime(consulta.visit_at)}</p>
                         </div>
 
-                        <div className="hcd-badges">
-                          <span className="hcd-badge">
+                        <div className="hcd-consultation-right">
+                          <span className="hcd-badge hcd-badge--doctor">
                             {consulta.doctor || "Sin doctor"}
                           </span>
-                          <span className="hcd-badge hcd-badge--soft">
-                           {normalizeVisitTypes(
-                              consulta.tipos_consulta,
-                              consulta.tipos_consulta_detalle
-                            )}
-                          </span>
-                        </div>
-                      </div>
 
-                      <div className="hcd-consultation-body">
-                        <p>
-                          <strong>Diagnóstico:</strong>{" "}
-                          {consulta.diagnosis || "Sin diagnóstico"}
-                        </p>
-                        <p>
-                          <strong>Tratamiento:</strong>{" "}
-                          {consulta.treatment || "Sin tratamiento"}
-                        </p>
-                        <p>
-                          <strong>Notas:</strong> {consulta.notes || "Sin notas"}
-                        </p>
-                      </div>
-                    </article>
-                  ))}
+                          <span className={`hcd-badge ${getVisitTypeClass(tipoLabel)}`}>
+                            {tipoLabel}
+                          </span>
+
+                          <button
+                          type="button"
+                          className="hcd-chevron-btn"
+                          onClick={() => navigate(`/consulta/${consulta.id}`)}
+                        >
+                          ›
+                        </button>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -314,3 +353,4 @@ export default function HistorialMascota() {
       </div>
     </div>
   );
+}
