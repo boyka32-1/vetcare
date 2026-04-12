@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./mascotas.css";
 import {
@@ -6,15 +6,20 @@ import {
   validateFields,
   validators,
 } from "../utils/formRules";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 
 const API_URL = "http://localhost:5000";
 
 export default function Mascotas() {
   const navigate = useNavigate();
+  const clienteSearchRef = useRef(null);
 
   const [clientes, setClientes] = useState([]);
   const [loadingClientes, setLoadingClientes] = useState(true);
+
+  const [clienteSearch, setClienteSearch] = useState("");
+  const [showClienteResults, setShowClienteResults] = useState(false);
+  const [highlightedClienteIndex, setHighlightedClienteIndex] = useState(-1);
 
   const [form, setForm] = useState({
     clienteId: "",
@@ -28,7 +33,6 @@ export default function Mascotas() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
   const fieldRules = {
@@ -138,6 +142,12 @@ export default function Mascotas() {
                 cliente.Cedula ??
                 cliente.national_id ??
                 "",
+              telefono:
+                cliente.telefono ??
+                cliente.Telefono ??
+                cliente.phone ??
+                cliente.Phone ??
+                "",
             }))
           : [];
 
@@ -152,6 +162,93 @@ export default function Mascotas() {
 
     loadClientes();
   }, [navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        clienteSearchRef.current &&
+        !clienteSearchRef.current.contains(event.target)
+      ) {
+        setShowClienteResults(false);
+        setHighlightedClienteIndex(-1);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredClientes = useMemo(() => {
+    const term = clienteSearch.trim().toLowerCase();
+
+    if (!term) return clientes;
+
+    return clientes.filter((cliente) => {
+      const nombre = (cliente.nombre || "").toLowerCase();
+      const cedula = String(cliente.cedula || "").toLowerCase();
+      const telefono = String(cliente.telefono || "").toLowerCase();
+      const id = String(cliente.id || "").toLowerCase();
+
+      return (
+        nombre.includes(term) ||
+        cedula.includes(term) ||
+        telefono.includes(term) ||
+        id.includes(term)
+      );
+    });
+  }, [clientes, clienteSearch]);
+
+  const selectCliente = (cliente) => {
+    setForm((prev) => ({
+      ...prev,
+      clienteId: cliente.id,
+    }));
+
+    setClienteSearch(
+      [cliente.nombre, cliente.cedula].filter(Boolean).join(" - ")
+    );
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      clienteId: "",
+    }));
+
+    setShowClienteResults(false);
+    setHighlightedClienteIndex(-1);
+  };
+
+  const handleClienteSearchKeyDown = (e) => {
+    if (!showClienteResults && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      setShowClienteResults(true);
+      return;
+    }
+
+    if (!filteredClientes.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedClienteIndex((prev) =>
+        prev < filteredClientes.length - 1 ? prev + 1 : 0
+      );
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedClienteIndex((prev) =>
+        prev > 0 ? prev - 1 : filteredClientes.length - 1
+      );
+    }
+
+    if (e.key === "Enter" && highlightedClienteIndex >= 0) {
+      e.preventDefault();
+      selectCliente(filteredClientes[highlightedClienteIndex]);
+    }
+
+    if (e.key === "Escape") {
+      setShowClienteResults(false);
+      setHighlightedClienteIndex(-1);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -180,7 +277,6 @@ export default function Mascotas() {
   const handleGuardar = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setFieldErrors({});
 
     if (clientes.length === 0) {
@@ -234,24 +330,23 @@ export default function Mascotas() {
       }
 
       if (!response.ok) {
-       Swal.fire({
-       title: "Error",
-       text: data.message || "La mascota no pudo ser guardada.",
-       timer: 4000,
-      showConfirmButton: false,
-      icon: "error",
-      });
+        Swal.fire({
+          title: "Error",
+          text: data.message || "La mascota no pudo ser guardada.",
+          timer: 4000,
+          showConfirmButton: false,
+          icon: "error",
+        });
+        return;
+      }
 
-     return;
-           }
-     
-           Swal.fire({
-             title: "Listo",
-             text: data.message || "La mascota fue guardada exitosamente.",
-             icon: "success",
-             timer: 4000,
-             showConfirmButton: false,
-           });
+      Swal.fire({
+        title: "Listo",
+        text: data.message || "La mascota fue guardada exitosamente.",
+        icon: "success",
+        timer: 4000,
+        showConfirmButton: false,
+      });
 
       setForm({
         clienteId: "",
@@ -262,6 +357,10 @@ export default function Mascotas() {
         peso: "",
         observaciones: "",
       });
+
+      setClienteSearch("");
+      setShowClienteResults(false);
+      setHighlightedClienteIndex(-1);
     } catch (err) {
       console.error(err);
       setError("No se pudo conectar con el servidor.");
@@ -279,42 +378,90 @@ export default function Mascotas() {
         </div>
 
         <form className="ms-form" onSubmit={handleGuardar}>
-          <div className="ms-field">
-            <label htmlFor="clienteId">
-              Cliente asociado <span className="req">*</span>
-            </label>
-            <select
-              id="clienteId"
-              name="clienteId"
-              value={form.clienteId}
-              onChange={handleChange}
-              disabled={loadingClientes}
-            >
-              <option value="">
-                {loadingClientes ? "Cargando clientes..." : "Seleccionar cliente..."}
-              </option>
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {cliente.nombre} - {cliente.cedula}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.clienteId && <small className="cl-error-text">{fieldErrors.clienteId}</small>}
-          </div>
+          <div className="ms-grid-2">
+            <div className="ms-field">
+              <label htmlFor="clienteSearch">
+                Cliente asociado <span className="req">*</span>
+              </label>
 
-          <div className="ms-field">
-            <label htmlFor="nombre">
-              Nombre <span className="req">*</span>
-            </label>
-            <input
-              id="nombre"
-              name="nombre"
-              type="text"
-              placeholder="Nombre"
-              value={form.nombre}
-              onChange={handleChange}
-            />
-            {fieldErrors.nombre && <small className="cl-error-text">{fieldErrors.nombre}</small>}
+              <div className="ms-search-wrap" ref={clienteSearchRef}>
+                <input
+                  id="clienteSearch"
+                  name="clienteSearch"
+                  type="text"
+                  placeholder={
+                    loadingClientes ? "Cargando clientes..." : "Buscar cliente..."
+                  }
+                  value={clienteSearch}
+                  onChange={(e) => {
+                    setClienteSearch(e.target.value);
+                    setShowClienteResults(true);
+                    setHighlightedClienteIndex(-1);
+                    setForm((prev) => ({
+                      ...prev,
+                      clienteId: "",
+                    }));
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      clienteId: "",
+                    }));
+                  }}
+                  onFocus={() => setShowClienteResults(true)}
+                  onKeyDown={handleClienteSearchKeyDown}
+                  autoComplete="off"
+                  disabled={loadingClientes}
+                />
+
+                {showClienteResults && !loadingClientes && (
+                  <div className="ms-search-results">
+                    {filteredClientes.length > 0 ? (
+                      filteredClientes.slice(0, 8).map((cliente, index) => (
+                        <button
+                          type="button"
+                          key={cliente.id}
+                          className={`ms-search-item ${
+                            highlightedClienteIndex === index ? "active" : ""
+                          }`}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectCliente(cliente)}
+                        >
+                          <span className="ms-search-name">{cliente.nombre}</span>
+                          <span className="ms-search-meta">
+                            {cliente.cedula || `ID: ${cliente.id}`}
+                            {cliente.telefono ? ` • ${cliente.telefono}` : ""}
+                          </span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="ms-search-empty">
+                        No se encontraron clientes.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {fieldErrors.clienteId && (
+                <small className="cl-error-text">{fieldErrors.clienteId}</small>
+              )}
+            </div>
+
+            <div className="ms-field">
+              <label htmlFor="nombre">
+                Nombre <span className="req">*</span>
+              </label>
+              <input
+                id="nombre"
+                name="nombre"
+                type="text"
+                placeholder="Nombre"
+                value={form.nombre}
+                onChange={handleChange}
+              />
+              {fieldErrors.nombre && (
+                <small className="cl-error-text">{fieldErrors.nombre}</small>
+              )}
+            </div>
           </div>
 
           <div className="ms-grid-2">
@@ -333,7 +480,9 @@ export default function Mascotas() {
                   handleChange({ target: { name: "edad", value: clean } });
                 }}
               />
-              {fieldErrors.edad && <small className="cl-error-text">{fieldErrors.edad}</small>}
+              {fieldErrors.edad && (
+                <small className="cl-error-text">{fieldErrors.edad}</small>
+              )}
             </div>
 
             <div className="ms-field">
@@ -348,7 +497,9 @@ export default function Mascotas() {
                 value={form.raza}
                 onChange={handleChange}
               />
-              {fieldErrors.raza && <small className="cl-error-text">{fieldErrors.raza}</small>}
+              {fieldErrors.raza && (
+                <small className="cl-error-text">{fieldErrors.raza}</small>
+              )}
             </div>
           </div>
 
@@ -367,7 +518,9 @@ export default function Mascotas() {
                 <option value="Macho">Macho</option>
                 <option value="Hembra">Hembra</option>
               </select>
-              {fieldErrors.sexo && <small className="cl-error-text">{fieldErrors.sexo}</small>}
+              {fieldErrors.sexo && (
+                <small className="cl-error-text">{fieldErrors.sexo}</small>
+              )}
             </div>
 
             <div className="ms-field">
@@ -385,7 +538,9 @@ export default function Mascotas() {
                   handleChange({ target: { name: "peso", value: clean } });
                 }}
               />
-              {fieldErrors.peso && <small className="cl-error-text">{fieldErrors.peso}</small>}
+              {fieldErrors.peso && (
+                <small className="cl-error-text">{fieldErrors.peso}</small>
+              )}
             </div>
           </div>
 
@@ -400,7 +555,7 @@ export default function Mascotas() {
             />
           </div>
 
-          
+          {error && <small className="cl-error-text">{error}</small>}
 
           <button className="ms-btn-primary" type="submit" disabled={loading}>
             {loading ? "Guardando..." : "Guardar mascota"}

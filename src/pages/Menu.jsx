@@ -119,6 +119,13 @@ const baseQuickActions = [
     featured: false,
   },
   {
+    id: "ver-registrados",
+    title: "Mascotas y Clientes",
+    path: "/Registro",
+    desc: "Consulta el listado general de clientes y mascotas",
+    featured: false,
+  },
+  {
     id: "alertas",
     title: "Ver Alertas",
     path: "/alertas",
@@ -130,7 +137,7 @@ const baseQuickActions = [
 export default function MenuPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState("nueva-consulta");
+  const [activeItem, setActiveItem] = useState("");
 
   const [counts, setCounts] = useState({
     clientes: 0,
@@ -185,8 +192,6 @@ export default function MenuPage() {
 
         setCounts(nextCounts);
 
-        
-
         setStats([
           {
             label: "Clientes",
@@ -218,41 +223,23 @@ export default function MenuPage() {
   }, [navigate]);
 
   const menuSections = useMemo(() => {
-    return baseMenuSections.map((section) => ({
-      ...section,
-      items: section.items.map((item) => {
-        if (item.id === "alertas") {
-          return {
-            ...item,
-            badge: counts.alertas > 0 ? counts.alertas : undefined,
-          };
-        }
+  return baseMenuSections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => {
+      if (item.id === "alertas") {
+        return {
+          ...item,
+          badge: counts.alertas > 0 ? counts.alertas : undefined,
+        };
+      }
 
-        if (item.id === "registrar-clientes") {
-          return {
-            ...item,
-            badge: counts.clientes > 0 ? counts.clientes : undefined,
-          };
-        }
-
-        if (item.id === "registrar-mascotas") {
-          return {
-            ...item,
-            badge: counts.mascotas > 0 ? counts.mascotas : undefined,
-          };
-        }
-
-        if (item.id === "historial" || item.id === "nueva-consulta") {
-          return {
-            ...item,
-            badge: counts.consultas > 0 ? counts.consultas : undefined,
-          };
-        }
-
-        return item;
-      }),
-    }));
-  }, [counts]);
+      return {
+        ...item,
+        badge: undefined,
+      };
+    }),
+  }));
+}, [counts]);
 
   const quickActions = useMemo(() => {
     return baseQuickActions.map((action) => {
@@ -278,6 +265,13 @@ export default function MenuPage() {
         return {
           ...action,
           desc: `${counts.mascotas} mascotas registradas`,
+        };
+      }
+
+      if (action.id === "ver-registrados") {
+        return {
+          ...action,
+          desc: `${counts.clientes} clientes y ${counts.mascotas} mascotas registradas`,
         };
       }
 

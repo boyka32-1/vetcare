@@ -144,7 +144,7 @@ body {
   transition: all 0.2s ease;
 }
 .sidebar__item:hover {
-  background: rgb(181, 232, 246);
+  background: rgb(181, 223, 246);
   color: var(--text-dark);
   border-left-color: var(--teal);
 }
@@ -252,7 +252,10 @@ body {
   transition: color 0.2s;
 }
 .topbar__alert-btn:hover {
-  color: var(--teal);
+  background: rgba(80, 200, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
 }
 .topbar__badge {
   position: absolute;

@@ -11,9 +11,9 @@
 :root {
  
   --warm-white: #FDFAF6;
-  --teal-deep: #1f6b7a;
-  --teal-mid: #2a809d;
-  --teal-lighti: #4ba5c8;
+  --teal-deep: #1f657a;
+  --teal-midi: #2a809d;
+  --teal-lighti: #21809a;
   --teal-pale: #D6EEF5;
   --amber: #E8A842;
   --amber-pale: #FDF3DC;
@@ -57,12 +57,14 @@ div {
     var(--creamita);
   font-family: "DM Sans", sans-serif;
   color: var(--text-dark);
+  scale: 0.9;
+  transform-origin: top center;
 }
 
 .ms-card {
   width: 100%;
   max-width: 860px;
-  background: var(--warm-white);
+  background: white;
   border: 1px solid rgba(42, 112, 144, 0.08);
   border-radius: 30px;
   overflow: hidden;
@@ -75,7 +77,7 @@ div {
 /* Top strip only, not giant header */
 .ms-header {
   position: relative;
-  background: linear-gradient(135deg,  var(--teal-deep), var(--teal-lighti));
+  background: linear-gradient(135deg,  var(--teal-deep), var(--teal-lighti)) !important;
   padding: 28px 28px 24px;
   overflow: hidden;
 }
@@ -160,7 +162,7 @@ div {
   padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: #F5FAFD;
+  background: #eaf5fc;
   color: var(--text-dark);
   font-size: 15px;
   font-family: "DM Sans", sans-serif;
@@ -261,7 +263,7 @@ div {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: #fff;
-  background: linear-gradient(135deg, var(--teal-lighti), var(--teal-mid));
+  background: linear-gradient(135deg, var(--teal-lighti), var(--teal-midi)) !important;
   box-shadow: 0 10px 24px rgba(42, 112, 144, 0.22);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   font-family: "DM Sans", sans-serif !important;
@@ -284,7 +286,7 @@ div {
   border-radius: 18px;
   padding: 15px 20px;
   background: #F4F8FB;
-  color: var(--teal-mid);
+  color: var(--teal-deep);
   font-size: 15px;
   font-weight: 700;
   text-align: center;
@@ -301,6 +303,10 @@ div {
 .ms-link:hover {
   background: #EAF4FA;
   transform: translateY(-1px);
+}
+
+.ms-col-2 {
+  grid-column: span 2;
 }
 
 @media (max-width: 768px) {
@@ -343,4 +349,58 @@ div {
   .ms-link {
     border-radius: 16px;
   }
+}
+
+.ms-search-wrap {
+  position: relative;
+}
+
+.ms-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(28, 43, 51, 0.12);
+  overflow: hidden;
+  z-index: 30;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.ms-search-item {
+  width: 100%;
+  border: none;
+  background: #fff;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.2s ease;
+}
+
+.ms-search-item:hover,
+.ms-search-item.active {
+  background: #f4f8fb;
+}
+
+.ms-search-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.ms-search-meta {
+  font-size: 12px;
+  color: var(--text-mid);
+}
+
+.ms-search-empty {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-mid);
 }

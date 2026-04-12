@@ -9,7 +9,7 @@
 :root {
   --page-bg: #f7f3ea;
   --card-bg: #ffffff;
-  --header-bg: #1f6b7a;
+  --header-bgi: #1f667a;
   --border: #cfe2e3;
   --text-dark: #1f3034;
   --text-mid: #86a7ac;
@@ -50,7 +50,7 @@ body {
 }
 
 .rg-hero {
-  background: var(--header-bg);
+  background: var(--header-bgi) !important;
   border-radius: 28px;
   padding: 28px 32px;
   display: flex;
