@@ -281,7 +281,7 @@ body{
 
 .outlineBtn {
   border: 1px solid #cfe0df;
-  background: white;
+  background: rgb(169, 221, 245);
   color: #243a44;
   border-radius: 12px;
   padding: 9px 12px;
@@ -289,8 +289,25 @@ body{
   cursor: pointer;
 }
 
+.outlineBtn2 {
+  border: 1px solid #cfe0df;
+  background: rgb(239, 138, 138);
+  color: #243a44;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 12px;
+}
+.outlineBtn2:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(151, 17, 17, 0.421);
+  filter: brightness(1.05);
+}
 .outlineBtn:hover {
-  background: #f4f8f8;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
 }
 
 .emptyState,

@@ -51,6 +51,17 @@ export default function HistorialMascota() {
   const [mascotaInfo, setMascotaInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+
+  const [form, setForm] = useState({
+    nombre: "",
+    raza: "",
+    edad: "",
+    sexo: "",
+    peso: "",
+    observaciones: "",
+  });
 
   useEffect(() => {
     const cargarHistorial = async () => {
@@ -90,9 +101,7 @@ export default function HistorialMascota() {
         }
 
         if (!mascotasRes.ok) {
-          throw new Error(
-            mascotasData?.message || "Could not load pets."
-          );
+          throw new Error(mascotasData?.message || "Could not load pets.");
         }
 
         const mascota =
@@ -110,6 +119,22 @@ export default function HistorialMascota() {
           ) || null;
 
         setMascotaInfo(mascota);
+
+        if (mascota) {
+          setForm({
+            nombre: mascota.name ?? mascota.nombre ?? "",
+            raza: mascota.breed ?? mascota.raza ?? "",
+            edad: mascota.age_years ?? mascota.edad ?? "",
+            sexo:
+              mascota.sex === "MALE"
+                ? "Macho"
+                : mascota.sex === "FEMALE"
+                ? "Hembra"
+                : mascota.sexo ?? "",
+            peso: mascota.weight_kg ?? mascota.peso ?? "",
+            observaciones: mascota.observations ?? mascota.observaciones ?? "",
+          });
+        }
 
         const historialRes = await fetch(
           `${API_URL}/api/mascotas/${mascotaId}/consultas`,
@@ -160,20 +185,10 @@ export default function HistorialMascota() {
     }
   }, [mascotaId, navigate]);
 
-  const mascotaNombre =
-    mascotaInfo?.name ??
-    mascotaInfo?.nombre ??
-    "No name";
-
-  const mascotaRaza =
-    mascotaInfo?.breed ??
-    mascotaInfo?.raza ??
-    "No breed";
-
-  const mascotaEdad =
-    mascotaInfo?.age_years ??
-    mascotaInfo?.edad ??
-    "No age";
+  const mascotaNombre = mascotaInfo?.name ?? mascotaInfo?.nombre ?? "No name";
+  const mascotaRaza = mascotaInfo?.breed ?? mascotaInfo?.raza ?? "No breed";
+  const mascotaEdad = mascotaInfo?.age_years ?? mascotaInfo?.edad ?? "No age";
+  const mascotaEstado = mascotaInfo?.estado ?? "activo";
 
   const clienteNombre =
     `${mascotaInfo?.first_name ?? ""} ${mascotaInfo?.last_name ?? ""}`.trim() ||
@@ -228,6 +243,87 @@ export default function HistorialMascota() {
     return "hcd-badge--soft";
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveMascota = async () => {
+    try {
+      setSaving(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/api/mascotas/${mascotaId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "No se pudo actualizar la mascota.");
+      }
+
+      setMascotaInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: form.nombre,
+              nombre: form.nombre,
+              breed: form.raza,
+              raza: form.raza,
+              age_years: form.edad,
+              edad: form.edad,
+              sex: form.sexo === "Macho" ? "MALE" : form.sexo === "Hembra" ? "FEMALE" : form.sexo,
+              sexo: form.sexo,
+              weight_kg: form.peso,
+              peso: form.peso,
+              observations: form.observaciones,
+              observaciones: form.observaciones,
+            }
+          : prev
+      );
+
+      alert(data.message || "Mascota actualizada correctamente.");
+      setEditMode(false);
+    } catch (err) {
+      alert(err.message || "Error actualizando mascota.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleMascota = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/api/mascotas/${mascotaId}/toggle`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "No se pudo cambiar el estado.");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || "Error cambiando estado.");
+    }
+  };
+
   return (
     <div className="hcd-page">
       <div className="hcd-container">
@@ -255,18 +351,159 @@ export default function HistorialMascota() {
           <>
             <section className="hcd-summary-grid">
               <article className="hcd-info-card">
-                <h3 className="hcd-card-label">Mascota</h3>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <h3 className="hcd-card-label">Mascota</h3>
 
-                <div className="hcd-pet-block">
-                  <div className="hcd-avatar">{getInitial(mascotaNombre)}</div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditMode((prev) => !prev)}
+                      style={{
+                        background: "#0f766e",
+                        color: "#fff",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {editMode ? "Cancelar" : "Editar"}
+                    </button>
 
-                  <div className="hcd-pet-copy">
-                    <h2>{mascotaNombre}</h2>
-                    <p>
-                      {mascotaRaza} · {mascotaEdad} años
-                    </p>
+                    <button
+                      type="button"
+                      onClick={handleToggleMascota}
+                      style={{
+                        background: mascotaEstado === "activo" ? "#fee2e2" : "#d1fae5",
+                        color: mascotaEstado === "activo" ? "#991b1b" : "#065f46",
+                        border: "none",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {mascotaEstado === "activo" ? "Desactivar" : "Activar"}
+                    </button>
                   </div>
                 </div>
+
+                {!editMode ? (
+                  <div className="hcd-pet-block">
+                    <div className="hcd-avatar">{getInitial(mascotaNombre)}</div>
+
+                    <div className="hcd-pet-copy">
+                      <h2>{mascotaNombre}</h2>
+                      <p>
+                        {mascotaRaza} · {mascotaEdad} años
+                      </p>
+
+                      <span
+                        style={{
+                          background: mascotaEstado === "activo" ? "#d1fae5" : "#fee2e2",
+                          color: mascotaEstado === "activo" ? "#065f46" : "#991b1b",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          display: "inline-block",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {mascotaEstado === "activo" ? "Activa" : "Inactiva"}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "12px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      name="nombre"
+                      placeholder="Nombre"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    />
+
+                    <input
+                      type="text"
+                      name="raza"
+                      placeholder="Raza"
+                      value={form.raza}
+                      onChange={handleChange}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    />
+
+                    <input
+                      type="number"
+                      name="edad"
+                      placeholder="Edad"
+                      value={form.edad}
+                      onChange={handleChange}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    />
+
+                    <select
+                      name="sexo"
+                      value={form.sexo}
+                      onChange={handleChange}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    >
+                      <option value="">Selecciona sexo</option>
+                      <option value="Macho">Macho</option>
+                      <option value="Hembra">Hembra</option>
+                    </select>
+
+                    <input
+                      type="number"
+                      name="peso"
+                      placeholder="Peso"
+                      value={form.peso}
+                      onChange={handleChange}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    />
+
+                    <textarea
+                      name="observaciones"
+                      placeholder="Observaciones"
+                      value={form.observaciones}
+                      onChange={handleChange}
+                      rows={4}
+                      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+                    />
+
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button
+                        type="button"
+                        onClick={handleSaveMascota}
+                        disabled={saving}
+                        style={{
+                          background: "#0f766e",
+                          color: "#fff",
+                          border: "none",
+                          padding: "10px 16px",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {saving ? "Guardando..." : "Guardar"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </article>
 
               <article className="hcd-info-card">
@@ -335,12 +572,12 @@ export default function HistorialMascota() {
                           </span>
 
                           <button
-                          type="button"
-                          className="hcd-chevron-btn"
-                          onClick={() => navigate(`/consulta/${consulta.id}`)}
-                        >
-                          ›
-                        </button>
+                            type="button"
+                            className="hcd-chevron-btn"
+                            onClick={() => navigate(`/consulta/${consulta.id}`)}
+                          >
+                            ›
+                          </button>
                         </div>
                       </article>
                     );
