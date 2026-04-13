@@ -86,19 +86,31 @@ export default function ConsultaDetalle() {
     <div className="cd-page">
       <div className="cd-container">
         <div className="cd-header">
-          <button
-            type="button"
-            className="cd-back-btn"
-            onClick={() => navigate(-1)}
-          >
-            ← Volver
-          </button>
+  <div className="cd-header-side cd-header-left">
+     <button
+          type="button"
+          className="cd-back-btn"
+          onClick={() => navigate(-1)}
+        >
+          ← Volver
+        </button>
+  </div>
 
-          <div className="cd-header-copy">
-            <h1>{consulta.reason || "Consulta"}</h1>
-            <p>{consulta.doctor || "Sin doctor"}</p>
-          </div>
-        </div>
+      <div className="cd-header-copy">
+        <h1>{consulta.reason || "Consulta"}</h1>
+        <p>{consulta.doctor || "Sin doctor"}</p>
+      </div>
+
+      <div className="cd-header-side cd-header-right">
+        <button
+      type="button"
+      className="cd-edit-btn"
+      onClick={() => navigate(`/consulta/${item.consultaId}?edit=1`)}
+    >
+      Editar 🖊
+    </button>
+      </div>
+    </div>
 
         <div className="cd-card">
           <h3 className="cd-card-title">Información</h3>

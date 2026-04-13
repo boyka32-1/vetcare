@@ -7,30 +7,50 @@ export const formatters = {
 
   onlyNumbers: (value = "") => value.replace(/\D/g, ""),
 
+  cedula: (value = "") => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 10) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    }
+    return `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
+  },
+
+  phone: (value = "") => {
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    }
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  },
+
   decimalNumber: (value = "") => {
-  let clean = value.replace(/[^\d.]/g, "");
+    let clean = value.replace(/[^\d.]/g, "");
 
-  const parts = clean.split(".");
-  if (parts.length > 2) {
-    clean = parts[0] + "." + parts.slice(1).join("");
-  }
+    const parts = clean.split(".");
+    if (parts.length > 2) {
+      clean = parts[0] + "." + parts.slice(1).join("");
+    }
 
-  let [int = "", dec] = clean.split(".");
+    let [int = "", dec] = clean.split(".");
 
-  if (dec !== undefined) {
-    dec = dec.slice(0, 2);
-    return `${int}.${dec}`;
-  }
+    if (dec !== undefined) {
+      dec = dec.slice(0, 2);
+      return `${int}.${dec}`;
+    }
 
-  return int;
-},
+    return int;
+  },
 
   bloodPressure: (value = "") => {
-  const digits = value.replace(/\D/g, "").slice(0, 6);
+    const digits = value.replace(/\D/g, "").slice(0, 6);
 
-  if (digits.length <= 3) return digits;
-  return `${digits.slice(0, 3)}/${digits.slice(3)}`;
-},
+    if (digits.length <= 3) return digits;
+    return `${digits.slice(0, 3)}/${digits.slice(3)}`;
+  },
 
   email: (value = "") => value.trimStart(),
 };

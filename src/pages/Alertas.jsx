@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./alertas.module.css";
+import Swal from "sweetalert2";
 
 function formatDate(dateString) {
   if (!dateString) return "—";
@@ -217,6 +218,66 @@ export default function Alertas() {
     loadAlertas();
   }, [navigate]);
 
+    const handleEnviarCorreo = async (id) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/consultas/${id}/enviar-recordatorio`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (!response.ok) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error al enviar correo",
+        html: `<p>${data?.message || "Ocurrió un error inesperado"}</p>`,
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    console.log("SUCCESS DATA:", data);
+
+    await Swal.fire({
+      icon: "success",
+      title: "Correo enviado manualmente",
+      html: `<p>${data?.message || "El correo fue enviado correctamente"}</p>`,
+      confirmButtonText: "OK",
+    });
+  } catch (error) {
+    console.error("Error enviando correo manual:", error);
+
+    await Swal.fire({
+      icon: "error",
+      title: "Error al enviar correo",
+      html: `<p>No se pudo conectar con el servidor</p>`,
+      confirmButtonText: "OK",
+    });
+  }
+};
   const filteredAlertas = useMemo(() => {
     let result = [...alertas];
     const q = search.trim().toLowerCase();
@@ -451,10 +512,10 @@ export default function Alertas() {
           Abrir
         </button>
 
-        <button
+                <button
           type="button"
           className={styles.outlineBtn2}
-          onClick={() => navigate(``)}
+          onClick={() => handleEnviarCorreo(item.consultaId)}
         >
           Enviar Correo
         </button>

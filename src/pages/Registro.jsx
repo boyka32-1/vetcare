@@ -13,6 +13,27 @@ export default function Registro() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
+  const formatCedula = (value = "") => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 11);
+
+    if (!digits) return "Sin cédula";
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    if (digits.length <= 10) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}-${digits.slice(10)}`;
+  };
+
+  const formatPhone = (value = "") => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 10);
+
+    if (!digits) return "Sin teléfono";
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -224,6 +245,8 @@ export default function Registro() {
 
     if (!term) return clientesConResumen;
 
+    const normalizedTerm = term.replace(/\D/g, "");
+
     return clientesConResumen.filter((cliente) => {
       const clienteMatch =
         String(cliente.nombre ?? "").toLowerCase().includes(term) ||
@@ -231,7 +254,11 @@ export default function Registro() {
         String(cliente.direccion ?? "").toLowerCase().includes(term) ||
         String(cliente.correo ?? "").toLowerCase().includes(term) ||
         String(cliente.telefono ?? "").toLowerCase().includes(term) ||
-        String(cliente.telefono2 ?? "").toLowerCase().includes(term);
+        String(cliente.telefono2 ?? "").toLowerCase().includes(term) ||
+        (normalizedTerm &&
+          (String(cliente.cedula ?? "").replace(/\D/g, "").includes(normalizedTerm) ||
+            String(cliente.telefono ?? "").replace(/\D/g, "").includes(normalizedTerm) ||
+            String(cliente.telefono2 ?? "").replace(/\D/g, "").includes(normalizedTerm)));
 
       const mascotaMatch = cliente.mascotas.some((mascota) => {
         return (
@@ -298,8 +325,14 @@ export default function Registro() {
         <div className="rg-row-main">
           <h2>{cliente.nombre || "Cliente sin nombre"}</h2>
           <p>
-            {cliente.cedula || "Sin cédula"} ·{" "}
-            {cliente.telefono || cliente.telefono2 || "Sin teléfono"} ·{" "}
+            <strong>Ced.</strong> {formatCedula(cliente.cedula)} ·{" "}
+            <strong>Tel.</strong>{" "}
+            {cliente.telefono
+              ? formatPhone(cliente.telefono)
+              : cliente.telefono2
+              ? formatPhone(cliente.telefono2)
+              : "Sin teléfono"}{" "}
+            ·{" "}
             {cliente.mascotasTotal > 0
               ? `${cliente.mascotasTotal} mascota${cliente.mascotasTotal !== 1 ? "s" : ""}`
               : "sin mascotas"}
@@ -370,9 +403,7 @@ export default function Registro() {
         ) : error ? (
           <div className="rg-state-card rg-state-card--error">{error}</div>
         ) : clientes.length === 0 ? (
-          <div className="rg-state-card">
-            No hay clientes registrados.
-          </div>
+          <div className="rg-state-card">No hay clientes registrados.</div>
         ) : clientesFiltrados.length === 0 ? (
           <div className="rg-state-card">
             No hay coincidencias. Intenta con otro término.

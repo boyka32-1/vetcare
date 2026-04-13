@@ -64,11 +64,11 @@ export default function Login() {
         <div className="vc-card-header">
           <div className="vc-brand">
             <div className="vc-brand-icon">
-              <img
-                src="/logo-vetcare.png"
-                alt="VetCare Logo"
-                style={{ width: "80px" }}
-              />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a9d8f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5" />
+              <path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.344-2.5" />
+              <path d="M8 14v.5A3.5 3.5 0 0 0 11.5 18h1a3.5 3.5 0 0 0 3.5-3.5V14a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2z" />
+            </svg>
             </div>
             <div className="vc-brand-name">
               Vet<span>Care</span>

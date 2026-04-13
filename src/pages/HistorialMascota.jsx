@@ -51,115 +51,146 @@ export default function HistorialMascota() {
   const [mascotaInfo, setMascotaInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [clienteInfo, setClienteInfo] = useState(null);
 
   useEffect(() => {
-    const cargarHistorial = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const cargarHistorial = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-        if (!token) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/", { replace: true });
-          return;
-        }
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
-        const mascotasRes = await fetch(`${API_URL}/api/mascotas`, {
+      const [mascotasRes, clientesRes, historialRes] = await Promise.all([
+        fetch(`${API_URL}/api/mascotas`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
+        }),
+        fetch(`${API_URL}/api/clientes`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API_URL}/api/mascotas/${mascotaId}/consultas`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
 
-        if (mascotasRes.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/", { replace: true });
-          return;
-        }
-
-        const mascotasRaw = await mascotasRes.text();
-
-        let mascotasData = [];
-        try {
-          mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
-        } catch {
-          throw new Error("Invalid JSON while loading pets.");
-        }
-
-        if (!mascotasRes.ok) {
-          throw new Error(
-            mascotasData?.message || "Could not load pets."
-          );
-        }
-
-        const mascota =
-          mascotasData.find(
-            (item) =>
-              String(
-                item.id ??
-                  item.Id ??
-                  item.ID ??
-                  item.mascotaId ??
-                  item.MascotaId ??
-                  item._id ??
-                  ""
-              ) === String(mascotaId)
-          ) || null;
-
-        setMascotaInfo(mascota);
-
-        const historialRes = await fetch(
-          `${API_URL}/api/mascotas/${mascotaId}/consultas`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (historialRes.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          navigate("/", { replace: true });
-          return;
-        }
-
-        const historialRaw = await historialRes.text();
-
-        let historialData = [];
-        try {
-          historialData = historialRaw ? JSON.parse(historialRaw) : [];
-        } catch {
-          throw new Error("Invalid JSON while loading clinical history.");
-        }
-
-        if (!historialRes.ok) {
-          throw new Error(
-            historialData?.message || "Could not load clinical history."
-          );
-        }
-
-        if (!Array.isArray(historialData)) {
-          throw new Error("Clinical history response is not an array.");
-        }
-
-        setConsultas(historialData);
-      } catch (err) {
-        console.error(err);
-        setError(err.message || "Could not load clinical history.");
-      } finally {
-        setLoading(false);
+      if (
+        mascotasRes.status === 401 ||
+        clientesRes.status === 401 ||
+        historialRes.status === 401
+      ) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
       }
-    };
 
-    if (mascotaId) {
-      cargarHistorial();
+      const mascotasRaw = await mascotasRes.text();
+      const clientesRaw = await clientesRes.text();
+      const historialRaw = await historialRes.text();
+
+      let mascotasData = [];
+      let clientesData = [];
+      let historialData = [];
+
+      try {
+        mascotasData = mascotasRaw ? JSON.parse(mascotasRaw) : [];
+      } catch {
+        throw new Error("Invalid JSON while loading pets.");
+      }
+
+      try {
+        clientesData = clientesRaw ? JSON.parse(clientesRaw) : [];
+      } catch {
+        throw new Error("Invalid JSON while loading clients.");
+      }
+
+      try {
+        historialData = historialRaw ? JSON.parse(historialRaw) : [];
+      } catch {
+        throw new Error("Invalid JSON while loading clinical history.");
+      }
+
+      if (!mascotasRes.ok) {
+        throw new Error(mascotasData?.message || "Could not load pets.");
+      }
+
+      if (!clientesRes.ok) {
+        throw new Error(clientesData?.message || "Could not load clients.");
+      }
+
+      if (!historialRes.ok) {
+        throw new Error(
+          historialData?.message || "Could not load clinical history."
+        );
+      }
+
+      if (!Array.isArray(historialData)) {
+        throw new Error("Clinical history response is not an array.");
+      }
+
+      const mascota =
+        mascotasData.find(
+          (item) =>
+            String(
+              item.id ??
+                item.Id ??
+                item.ID ??
+                item.mascotaId ??
+                item.MascotaId ??
+                item._id ??
+                ""
+            ) === String(mascotaId)
+        ) || null;
+
+      setMascotaInfo(mascota);
+
+      const clienteId =
+        mascota?.client_id ??
+        mascota?.clienteId ??
+        mascota?.cliente_id ??
+        "";
+
+      const cliente =
+        clientesData.find(
+          (c) =>
+            String(
+              c.id ??
+                c.Id ??
+                c.ID ??
+                c.clienteId ??
+                c.ClienteId ??
+                c._id ??
+                ""
+            ) === String(clienteId)
+        ) || null;
+
+      setClienteInfo(cliente);
+      setConsultas(historialData);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Could not load clinical history.");
+    } finally {
+      setLoading(false);
     }
-  }, [mascotaId, navigate]);
+  };
 
+  if (mascotaId) {
+    cargarHistorial();
+  }
+}, [mascotaId, navigate]);
   const mascotaNombre =
     mascotaInfo?.name ??
     mascotaInfo?.nombre ??
@@ -176,15 +207,18 @@ export default function HistorialMascota() {
     "No age";
 
   const clienteNombre =
-    `${mascotaInfo?.first_name ?? ""} ${mascotaInfo?.last_name ?? ""}`.trim() ||
-    mascotaInfo?.clienteNombre ||
-    "No owner";
+  clienteInfo?.nombre ??
+  `${clienteInfo?.first_name ?? ""} ${clienteInfo?.last_name ?? ""}`.trim() ??
+  "No owner";
 
-  const clienteTelefono =
-    mascotaInfo?.telefono ??
-    mascotaInfo?.phone_primary ??
-    mascotaInfo?.clienteTelefono ??
-    "—";
+const clienteTelefono =
+  clienteInfo?.telefono ??
+  clienteInfo?.Telefono ??
+  clienteInfo?.telefono2 ??
+  clienteInfo?.Telefono2 ??
+  clienteInfo?.tel ??
+  clienteInfo?.tel2 ??
+  "—";
 
   const ultimaConsulta = useMemo(() => {
     if (!consultas.length) return "—";
@@ -231,22 +265,36 @@ export default function HistorialMascota() {
   return (
     <div className="hcd-page">
       <div className="hcd-container">
-        <header className="hcd-hero">
-          <button
-            type="button"
-            className="hcd-back-btn"
-            onClick={() => navigate(-1)}
-          >
-            <span className="hcd-back-arrow">←</span>
-            <span>volver</span>
-          </button>
+  <header className="hcd-hero">
 
-          <div className="hcd-hero-copy">
-            <h1>Historial de mascota</h1>
-            <p>Detalle clínico del paciente</p>
-          </div>
+    <div className="hcd-left">
+      <button
+        type="button"
+        className="hcd-back-btn"
+        onClick={() => navigate(-1)}
+      >
+        <span className="hcd-back-arrow">←</span>
+        <span>volver</span>
+      </button>
+    </div>
+
+    <div className="hcd-hero-copy">
+      <h1>Historial de mascota</h1>
+      <p>Detalle clínico del paciente</p>
+    </div>
+
+    <div className="hcd-right">
+      <button
+        type="button"
+        className="hcd-edit-btn"
+        onClick={() => navigate(`/consultas/${consultaId}/editar`)}
+      >
+        Editar 🖊
+      </button>
+    </div>
+
         </header>
-
+      
         {loading ? (
           <div className="hcd-state-card">Loading clinical history...</div>
         ) : error ? (

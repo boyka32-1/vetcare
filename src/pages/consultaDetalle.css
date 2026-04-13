@@ -49,6 +49,8 @@ body {
   border-radius: 24px;
   padding: 20px 24px;
   margin-bottom: 24px;
+  position: relative;
+  justify-content: space-between;
 }
 
 .cd-back-btn {
@@ -61,11 +63,26 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+
+.cd-edit-btn {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: white;
+  color: #064761;
+  border-radius: 16px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  position: top-right;
+}
+.cd-edit-btn:hover,
 .cd-back-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
   filter: brightness(1.05);
 }
+
+
 
 .cd-header-copy h1 {
   margin: 0 0 4px;
@@ -79,7 +96,13 @@ body {
   color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
 }
+.cd-header-left {
+  justify-content: flex-start;
+}
 
+.cd-header-right {
+  justify-content: flex-end;
+}
 /* CARDS */
 
 .cd-card {
@@ -186,10 +209,7 @@ border-radius: 10px;
     max-width: 100%;
   }
 
-  .cd-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  
 
   .cd-info-row {
     flex-direction: column;

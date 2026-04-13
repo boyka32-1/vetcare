@@ -25,7 +25,7 @@
 .hc-page {
   min-height: 100vh;
   padding: 36px 20px 56px;
-  background: var(--warm-white);
+  background: #fffaf4;
   font-family: "DM Sans", system-ui, sans-serif;
   color: var(--text-dark);
   transform: scale(0.8);

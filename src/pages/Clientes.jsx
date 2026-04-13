@@ -6,8 +6,7 @@ import {
   validateFields,
   validators,
 } from "../utils/formRules";
-import Swal from 'sweetalert2';
-
+import Swal from "sweetalert2";
 
 const API_URL = "http://localhost:5000";
 
@@ -17,15 +16,17 @@ export default function Clientes() {
   const [form, setForm] = useState({
     nombre: "",
     cedula: "",
+    cedula_display: "",
     direccion: "",
     correo: "",
     telefono: "",
+    telefono_display: "",
     telefono2: "",
+    telefono2_display: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
   const fieldRules = {
@@ -36,32 +37,32 @@ export default function Clientes() {
     },
     cedula: {
       required: true,
-      formatter: "onlyNumbers",
+      formatter: "cedula",
       requiredMessage: "La cédula es obligatoria.",
       validate: [
         {
-          test: validators.exactLength(13),
+          test: (value) => String(value).replace(/\D/g, "").length === 11,
           message: "La cédula debe tener exactamente 11 dígitos.",
         },
       ],
     },
     telefono: {
       required: true,
-      formatter: "onlyNumbers",
+      formatter: "phone",
       requiredMessage: "El teléfono es obligatorio.",
       validate: [
         {
-          test: validators.minLength(10),
+          test: (value) => String(value).replace(/\D/g, "").length >= 10,
           message: "El teléfono no puede tener menos de 10 dígitos.",
         },
       ],
     },
     telefono2: {
-      formatter: "onlyNumbers",
+      formatter: "phone",
     },
     correo: {
       required: true,
-      requiredMessage: "El nombre es obligatorio.",
+      requiredMessage: "El correo es obligatorio.",
       validate: [
         {
           test: validators.email,
@@ -74,49 +75,46 @@ export default function Clientes() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    let formattedValue = applyFieldFormatting(name, value, fieldRules);
+    if (name === "cedula" || name === "telefono" || name === "telefono2") {
+      const raw = String(value).replace(/\D/g, "");
+      const displayValue = applyFieldFormatting(name, value, fieldRules);
 
-    // 🔥 FORMAT VISUAL (cedula + telefono)
-    if (name === "cedula") {
-      const digits = formattedValue.slice(0, 11);
+      setForm((prev) => ({
+        ...prev,
+        [name]: raw,
+        [`${name}_display`]: displayValue,
+      }));
+    } else {
+      const formattedValue = applyFieldFormatting(name, value, fieldRules);
 
-      if (digits.length <= 3) {
-        formattedValue = digits;
-      } else if (digits.length <= 10) {
-        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-      } else {
-        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3, 10)}-${digits.slice(10)}`;
-      }
+      setForm((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
     }
-
-    if (name === "telefono" || name === "telefono2") {
-      const digits = formattedValue.slice(0, 10);
-
-      if (digits.length <= 3) {
-        formattedValue = digits;
-      } else if (digits.length <= 6) {
-        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-      } else {
-        formattedValue = `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
-      }
-    }
-
-    setForm((prev) => ({ ...prev, [name]: formattedValue }));
 
     setFieldErrors((prev) => ({
       ...prev,
       [name]: "",
     }));
+    setError("");
   };
 
   const handleGuardar = async (e) => {
     e.preventDefault();
 
     setError("");
-    setSuccess("");
     setFieldErrors({});
 
-    const errors = validateFields(form, fieldRules);
+    const errors = validateFields(
+      {
+        ...form,
+        cedula: form.cedula,
+        telefono: form.telefono,
+        telefono2: form.telefono2,
+      },
+      fieldRules
+    );
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -136,13 +134,22 @@ export default function Clientes() {
         return;
       }
 
+      const payload = {
+        nombre: form.nombre,
+        cedula: form.cedula,
+        direccion: form.direccion,
+        correo: form.correo,
+        telefono: form.telefono,
+        telefono2: form.telefono2,
+      };
+
       const response = await fetch(`${API_URL}/api/clientes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (response.status === 401) {
@@ -181,13 +188,16 @@ export default function Clientes() {
       setForm({
         nombre: "",
         cedula: "",
+        cedula_display: "",
         direccion: "",
         correo: "",
         telefono: "",
+        telefono_display: "",
         telefono2: "",
+        telefono2_display: "",
       });
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setError("Could not connect to the server.");
     } finally {
       setLoading(false);
@@ -216,7 +226,9 @@ export default function Clientes() {
                 onChange={handleChange}
                 placeholder="Nombre"
               />
-              {fieldErrors.nombre && <small className="cl-error-text">{fieldErrors.nombre}</small>}
+              {fieldErrors.nombre && (
+                <small className="cl-error-text">{fieldErrors.nombre}</small>
+              )}
             </div>
 
             <div className="cl-field">
@@ -225,17 +237,21 @@ export default function Clientes() {
               </label>
               <input
                 name="cedula"
-                value={form.cedula}
+                value={form.cedula_display}
                 onChange={handleChange}
                 placeholder="000-0000000-0"
               />
-              {fieldErrors.cedula && <small className="cl-error-text">{fieldErrors.cedula}</small>}
+              {fieldErrors.cedula && (
+                <small className="cl-error-text">{fieldErrors.cedula}</small>
+              )}
             </div>
           </div>
 
           <div className="cl-grid-2">
             <div className="cl-field">
-              <label>Dirección</label>
+              <label>
+                Dirección <span className="req">*</span>
+              </label>
               <input
                 name="direccion"
                 value={form.direccion}
@@ -245,14 +261,18 @@ export default function Clientes() {
             </div>
 
             <div className="cl-field">
-              <label>Correo <span className="req">*</span></label>
+              <label>
+                Correo <span className="req">*</span>
+              </label>
               <input
                 name="correo"
                 value={form.correo}
                 onChange={handleChange}
                 placeholder="correo@noemail.com"
               />
-              {fieldErrors.correo && <small className="cl-error-text">{fieldErrors.correo}</small>}
+              {fieldErrors.correo && (
+                <small className="cl-error-text">{fieldErrors.correo}</small>
+              )}
             </div>
           </div>
 
@@ -263,25 +283,25 @@ export default function Clientes() {
               </label>
               <input
                 name="telefono"
-                value={form.telefono}
+                value={form.telefono_display}
                 onChange={handleChange}
                 placeholder="000-000-0000"
               />
-              {fieldErrors.telefono && <small className="cl-error-text">{fieldErrors.telefono}</small>}
+              {fieldErrors.telefono && (
+                <small className="cl-error-text">{fieldErrors.telefono}</small>
+              )}
             </div>
 
             <div className="cl-field">
               <label>Teléfono secundario</label>
               <input
                 name="telefono2"
-                value={form.telefono2}
+                value={form.telefono2_display}
                 onChange={handleChange}
                 placeholder="000-000-0000"
               />
             </div>
           </div>
-
-          
 
           <button className="cl-btn-primary" type="submit" disabled={loading}>
             {loading ? "Guardando..." : "Guardar cliente"}

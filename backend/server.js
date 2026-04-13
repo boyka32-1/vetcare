@@ -1,3 +1,4 @@
+console.log("🚨 ESTE ARCHIVO SE ESTA EJECUTANDO 🚨");
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -587,7 +588,8 @@ app.get("/api/mascotas", requireAuth, async (req, res) => {
         p.weight_kg,
         p.observations AS observaciones,
         c.first_name,
-        c.last_name
+        c.last_name,
+        c.phone_primary AS telefono
       FROM pets p
       JOIN clients c ON p.client_id = c.id
       WHERE p.deleted_at IS NULL
@@ -1169,36 +1171,42 @@ app.get("/api/consultas/:id", requireAuth, async (req, res) => {
     const { id } = req.params;
 
     const [consultas] = await pool.execute(
-      `
-      SELECT
-        c.id,
-        c.pet_id,
-        c.client_id,
-        c.doctor_id,
-        c.fecha AS visit_at,
-        c.motivo AS reason,
-        c.diagnostico AS diagnosis,
-        c.observaciones AS notes,
-        c.estado,
-        c.gravedad,
-        c.proxima_cita,
-        c.motivo_seguimiento,
-        c.peso,
-        c.temperatura,
-        c.frecuencia_cardiaca,
-        c.frecuencia_respiratoria,
-        c.presion_arterial,
-        c.saturacion_oxigeno,
-        d.full_name AS doctor
-      FROM consultas c
-      LEFT JOIN doctors d
-        ON d.id = c.doctor_id
-      WHERE c.id = ?
-        AND c.deleted_at IS NULL
-      LIMIT 1
-      `,
-      [id]
-    );
+  `
+  SELECT
+    c.id,
+    c.pet_id,
+    c.client_id,
+    c.doctor_id,
+    c.fecha AS visit_at,
+    c.motivo AS reason,
+    c.diagnostico AS diagnosis,
+    c.observaciones AS notes,
+    c.estado,
+    c.gravedad,
+    c.proxima_cita,
+    c.motivo_seguimiento,
+    c.peso,
+    c.temperatura,
+    c.frecuencia_cardiaca,
+    c.frecuencia_respiratoria,
+    c.presion_arterial,
+    c.saturacion_oxigeno,
+    d.full_name AS doctor,
+    CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
+    cl.phone_primary AS cliente_telefono,
+    cl.email AS cliente_correo
+  FROM consultas c
+  LEFT JOIN doctors d
+    ON d.id = c.doctor_id
+  LEFT JOIN clients cl
+    ON cl.id = c.client_id
+  WHERE c.id = ?
+    AND c.deleted_at IS NULL
+    AND (cl.deleted_at IS NULL OR cl.deleted_at IS NULL IS NOT FALSE)
+  LIMIT 1
+  `,
+  [id]
+);
 
     if (consultas.length === 0) {
       return res.status(404).json({
@@ -1695,6 +1703,8 @@ async function enviarCorreosConsultasAtrasadas() {
 
 app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res) => {
   const { id } = req.params;
+  console.log("ENTRO AL ENDPOINT");
+  console.log("ID:", id);
 
   let connection;
 
@@ -1721,6 +1731,9 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
       `,
       [id]
     );
+
+    console.log("ROWS:", rows.length);
+    console.log("DATA:", rows[0]);
 
     if (rows.length === 0) {
       return res.status(404).json({
@@ -1749,7 +1762,10 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
       message: "Correo enviado manualmente.",
     });
   } catch (error) {
-    console.error("Error manual:", error);
+    console.error("Error manual completo:", error);
+    console.error("Mensaje:", error?.message);
+    console.error("Codigo:", error?.code);
+    console.error("SQL message:", error?.sqlMessage);
 
     return res.status(500).json({
       message: "Error enviando correo.",
@@ -1772,6 +1788,11 @@ const PORT = process.env.PORT || 5000;
 enviarCorreosConsultasAtrasadas();
 enviarCorreosConsultasManana();
 
+app.get("/api/prueba-recordatorio", (req, res) => {
+  console.log("ENTRO A PRUEBA");
+  res.json({ ok: true, mensaje: "ruta de prueba funcionando" });
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("🔥 ESTE ES EL SERVER CORRECTO 🔥");
 });

@@ -48,15 +48,18 @@ body {
 }
 
 .rcc-header {
-  display: flex;
+  display:grid;
   align-items: center;
   gap: 20px;
   background: var(--teal);
+  grid-template-columns: 160px 1fr 160px;
   border-radius: 28px;
   padding: 28px 32px;
   margin-bottom: 22px;
-}
+   position: relative;
 
+}
+.rcc-edit-btn,
 .rcc-back-btn {
   border: 2px solid rgba(255, 255, 255, 0.18);
   background: transparent;
@@ -68,7 +71,24 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+.rcc-edit-btn {
+  background: white;
+  color: #064761;
+}
 
+.rcc-header-left{
+ justify-content: flex-start;
+}
+
+.rcc-header-right {
+  justify-content: flex-end;
+}
+.rcc-header-center {
+  text-align: center;
+  color: #fff;
+}
+
+.rcc-edit-btn:hover, 
 .rcc-back-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(76, 132, 169, 0.45);

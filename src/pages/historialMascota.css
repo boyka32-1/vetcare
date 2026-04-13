@@ -46,15 +46,31 @@ body {
 }
 
 .hcd-hero {
+  display: grid;
+  grid-template-columns: 160px 1fr 160px;
   background:rgb(0, 100, 128);
   border-radius: 28px;
   padding: 28px 32px;
-  display: flex;
   align-items: center;
   gap: 20px;
   margin-bottom: 22px;
 }
 
+.hcd-left {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.hcd-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hcd-hero-copy {
+  text-align: center;
+  color: #fff;
+}
+.hcd-edit-btn,
 .hcd-back-btn {
   border: 2px solid rgba(255, 255, 255, 0.18) !important;
   background: transparent !important;
@@ -69,6 +85,12 @@ body {
   gap: 10px;
   cursor: pointer;
 }
+.hcd-edit-btn {
+  background: white !important;
+  color: #064761 !important;
+}
+
+.hcd-edit-btn:hover,
 .hcd-back-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);

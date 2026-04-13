@@ -13,6 +13,27 @@ export default function RegistroCliente() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const formatCedula = (value = "") => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 11);
+
+    if (!digits) return "—";
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    if (digits.length <= 10) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}-${digits.slice(10)}`;
+  };
+
+  const formatPhone = (value = "") => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 10);
+
+    if (!digits) return "—";
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
   useEffect(() => {
     const cargarRegistroCliente = async () => {
       try {
@@ -71,7 +92,9 @@ export default function RegistroCliente() {
         }
 
         if (!mascotasRes.ok) {
-          throw new Error(mascotasData?.message || "No se pudieron cargar las mascotas.");
+          throw new Error(
+            mascotasData?.message || "No se pudieron cargar las mascotas."
+          );
         }
 
         if (!Array.isArray(clienteData) || clienteData.length === 0) {
@@ -99,7 +122,7 @@ export default function RegistroCliente() {
             cliente.cedula ??
             cliente.Cedula ??
             cliente.cedulaCliente ??
-            "Sin cédula",
+            "",
           direccion:
             cliente.direccion ??
             cliente.Direccion ??
@@ -114,12 +137,12 @@ export default function RegistroCliente() {
             cliente.telefono ??
             cliente.Telefono ??
             cliente.tel ??
-            "—",
+            "",
           telefono2:
             cliente.telefono2 ??
             cliente.Telefono2 ??
             cliente.tel2 ??
-            "—",
+            "",
         };
 
         const normalizedMascotas = Array.isArray(mascotasData)
@@ -244,17 +267,29 @@ export default function RegistroCliente() {
     <div className="rcc-page">
       <div className="rcc-container">
         <header className="rcc-header">
-          <button
-            type="button"
-            className="rcc-back-btn"
-            onClick={() => navigate("/registro")}
-          >
-            ← volver
-          </button>
+          <div className="rcc-header-side rcc-header-left">
+            <button
+              type="button"
+              className="rcc-back-btn"
+              onClick={() => navigate("/registro")}
+            >
+              ← volver
+            </button>
+          </div>
 
-          <div className="rcc-header-copy">
+          <div className="rcc-header-center">
             <h1>Registro de cliente</h1>
             <p>Detalle del cliente y sus mascotas</p>
+          </div>
+
+          <div className="rcc-header-side rcc-header-right">
+            <button
+              type="button"
+              className="rcc-edit-btn"
+              onClick={() => navigate("")}
+            >
+              Editar 🖊
+            </button>
           </div>
         </header>
 
@@ -275,7 +310,9 @@ export default function RegistroCliente() {
 
                   <div className="rcc-client-main-copy">
                     <strong>{clienteInfo?.nombre}</strong>
-                    <span>{clienteInfo?.cedula}</span>
+                    <span>
+                      Ced. {formatCedula(clienteInfo?.cedula)}
+                    </span>
                   </div>
                 </div>
               </article>
@@ -291,7 +328,7 @@ export default function RegistroCliente() {
 
                   <div className="rcc-owner-line">
                     <span>Teléfono</span>
-                    <strong>{clienteInfo?.telefono || "—"}</strong>
+                    <strong>Tel. {formatPhone(clienteInfo?.telefono)}</strong>
                   </div>
                 </div>
 
@@ -302,7 +339,7 @@ export default function RegistroCliente() {
                   </div>
 
                   <div className="rcc-mini-stat">
-                    <strong>{clienteInfo?.telefono2 || "—"}</strong>
+                    <strong>Tel. {formatPhone(clienteInfo?.telefono2)}</strong>
                     <span>tel. secundario</span>
                   </div>
                 </div>
