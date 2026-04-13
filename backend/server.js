@@ -10,11 +10,13 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
-
-dotenv.config({ path: "./.env" });
+import nodemailer from "nodemailer";
+import cron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 
@@ -76,6 +78,16 @@ const pool = mysql.createPool({
   connectionLimit: 10,
 });
 
+const mailTransporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST,
+  port: Number(process.env.MAIL_PORT || 587),
+  secure: String(process.env.MAIL_SECURE).toLowerCase() === "true",
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
+});
+
 function parseJsonArray(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -94,6 +106,188 @@ function toNullableNumber(value) {
   return Number.isNaN(n) ? null : n;
 }
 
+function formatDateForEmail(dateValue) {
+  if (!dateValue) return "fecha no disponible";
+
+  const date = new Date(dateValue);
+
+  return date.toLocaleString("es-DO", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function getReminderConfig(tipo, row) {
+  if (tipo === "atrasada") {
+    return {
+      subject: `Recordatorio de consulta atrasada - ${row.mascota_nombre}`,
+      title: "Consulta atrasada",
+      message: `La consulta o seguimiento de su mascota <strong>${row.mascota_nombre}</strong> está atrasada.`,
+      footer: "Por favor comuníquese con la veterinaria para reagendar.",
+      fieldLabel: "Fecha",
+      fieldValue: formatDateForEmail(row.proxima_cita),
+      notifiedColumn: "atraso_notificado_at",
+      logLabel: "consulta atrasada",
+    };
+  }
+
+  if (tipo === "manana") {
+    return {
+      subject: `Recordatorio de cita para mañana - ${row.mascota_nombre}`,
+      title: "Cita programada para mañana",
+      message: `Le recordamos que su mascota <strong>${row.mascota_nombre}</strong> tiene una cita programada para mañana.`,
+      footer: "Le esperamos en la veterinaria. Si necesita reprogramar, por favor comuníquese con nosotros.",
+      fieldLabel: "Fecha de la cita",
+      fieldValue: formatDateForEmail(row.proxima_cita),
+      notifiedColumn: "manana_notificado_at",
+      logLabel: "cita de mañana",
+    };
+  }
+
+  throw new Error(`Tipo de recordatorio no soportado: ${tipo}`);
+}
+
+async function enviarCorreoConsulta({ connection, row, tipo, marcarNotificado = true }) {
+  const config = getReminderConfig(tipo, row);
+
+  const html = `
+<div style="font-family: Arial; padding:20px;">
+  <div style="text-align:center; margin-bottom:20px;">
+    <img src="cid:logoVetcare" width="120" />
+  </div>
+
+  <h2 style="text-align:center;">VetCare</h2>
+  <h3 style="text-align:center;">${config.title}</h3>
+
+  <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
+
+  <p>${config.message}</p>
+
+  <div style="background:#f4e7c5; padding:15px; border-radius:8px;">
+    <p><strong>Mascota:</strong> ${row.mascota_nombre}</p>
+    <p><strong>Motivo:</strong> ${row.motivo || "No especificado"}</p>
+    <p><strong>${config.fieldLabel}:</strong> ${config.fieldValue}</p>
+  </div>
+
+  <p>${config.footer}</p>
+
+  <hr />
+
+  <p style="font-size:12px; color:gray;">
+    VetCare - Sistema automático
+  </p>
+</div>
+`;
+
+  await mailTransporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to: row.cliente_correo,
+    subject: config.subject,
+    html,
+    attachments: [
+      {
+        filename: "logo-vetcare.png",
+        path: path.join(__dirname, "../public/logo-vetcare.png"),
+        cid: "logoVetcare",
+      },
+    ],
+  });
+
+  if (marcarNotificado) {
+    await connection.execute(
+      `
+      UPDATE consultas
+      SET ${config.notifiedColumn} = NOW(),
+          updated_at = NOW()
+      WHERE id = ?
+      `,
+      [row.id]
+    );
+  }
+
+  console.log(
+    `Correo enviado por ${config.logLabel}. Consulta: ${row.id}, email: ${row.cliente_correo}`
+  );
+}
+
+async function enviarCorreosConsultasManana() {
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+
+    const [rows] = await connection.execute(
+      `
+      SELECT
+        c.id,
+        c.fecha,
+        c.proxima_cita,
+        c.motivo,
+        c.estado,
+        c.client_id,
+        cl.email AS cliente_correo,
+        CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
+        p.name AS mascota_nombre
+      FROM consultas c
+      INNER JOIN clients cl ON cl.id = c.client_id
+      INNER JOIN pets p ON p.id = c.pet_id
+      WHERE c.deleted_at IS NULL
+        AND cl.deleted_at IS NULL
+        AND p.deleted_at IS NULL
+        AND c.proxima_cita IS NOT NULL
+        AND DATE(c.proxima_cita) = DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        AND c.recordatorio_manana_enviado_at IS NULL
+        AND cl.email IS NOT NULL
+        AND TRIM(cl.email) <> ''
+      ORDER BY c.proxima_cita ASC
+      `
+    );
+
+    for (const row of rows) {
+      try {
+        await mailTransporter.sendMail({
+          from: process.env.MAIL_FROM,
+          to: row.cliente_correo,
+          subject: `Recordatorio de cita para mañana - ${row.mascota_nombre}`,
+          html: `
+            <div style="font-family: Arial; padding:20px;">
+              <h2>VetCare</h2>
+              <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
+
+              <p>Le recordamos que su mascota <strong>${row.mascota_nombre}</strong> tiene una cita programada para mañana.</p>
+
+              <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
+
+              <p>Le esperamos en la veterinaria.</p>
+            </div>
+          `,
+        });
+
+        await connection.execute(
+          `
+          UPDATE consultas
+          SET recordatorio_manana_enviado_at = NOW(),
+              updated_at = NOW()
+          WHERE id = ?
+          `,
+          [row.id]
+        );
+
+        console.log(`Correo de mañana enviado. Consulta: ${row.id}`);
+      } catch (mailError) {
+        console.error(`Error enviando correo de mañana ${row.id}:`, mailError);
+      }
+    }
+  } catch (error) {
+    console.error("Error revisando citas de mañana:", error);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
 function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -132,7 +326,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: "Demasiados intentos de inicio de sesión. Intenta dentro de 15 minutosS.",
+    message: "Demasiados intentos de inicio de sesión. Intenta dentro de 15 minutos.",
   },
 });
 
@@ -459,7 +653,6 @@ app.get("/api/doctores", requireAuth, async (req, res) => {
 
 // =============================
 // GET TIPOS DE CONSULTA
-// Si agregaste emb en la tabla, aquí sale automáticamente
 // =============================
 app.get("/api/tipos-consulta", requireAuth, async (req, res) => {
   try {
@@ -469,8 +662,7 @@ app.get("/api/tipos-consulta", requireAuth, async (req, res) => {
         id,
         codigo,
         nombre
-      FROM 
-      tipos_consulta
+      FROM tipos_consulta
       WHERE deleted_at IS NULL
       ORDER BY nombre
       `
@@ -670,34 +862,34 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
     await connection.beginTransaction();
 
     const {
-  pet_id,
-  client_id,
-  doctor_id,
-  fecha,
-  hora,
-  motivo,
-  diagnostico,
-  observaciones,
-  estado,
-  gravedad,
-  proxima_cita,
-  motivo_seguimiento,
-  notas_medicacion,
-  notas_analisis,
-  lote_vacuna,
-  weight,
-  temp,
-  hr,
-  rr,
-  bp,
-  spo2,
-  meses_gestacion,
-  cantidad_crias,
-  riesgo_embarazo,
-  tipo_parto,
-  fecha_probable_parto,
-  observaciones_embarazo,
-} = req.body;
+      pet_id,
+      client_id,
+      doctor_id,
+      fecha,
+      hora,
+      motivo,
+      diagnostico,
+      observaciones,
+      estado,
+      gravedad,
+      proxima_cita,
+      motivo_seguimiento,
+      notas_medicacion,
+      notas_analisis,
+      lote_vacuna,
+      weight,
+      temp,
+      hr,
+      rr,
+      bp,
+      spo2,
+      meses_gestacion,
+      cantidad_crias,
+      riesgo_embarazo,
+      tipo_parto,
+      fecha_probable_parto,
+      observaciones_embarazo,
+    } = req.body;
 
     const medicaciones = parseJsonArray(req.body.medicaciones);
     const analisis = parseJsonArray(req.body.analisis);
@@ -722,33 +914,35 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
     const saturacionOxigeno = toNullableNumber(spo2);
 
     await connection.execute(
-      `
-      INSERT INTO consultas (
-        id,
-        pet_id,
-        client_id,
-        doctor_id,
-        fecha,
-        motivo,
-        diagnostico,
-        observaciones,
-        estado,
-        gravedad,
-        proxima_cita,
-        motivo_seguimiento,
-        peso,
-        temperatura,
-        frecuencia_cardiaca,
-        frecuencia_respiratoria,
-        presion_arterial,
-        saturacion_oxigeno,
-        deleted_at,
-        created_at,
-        updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
-      `,
-      [
+`   INSERT INTO consultas (
+    id,
+    pet_id,
+    client_id,
+    doctor_id,
+    fecha,
+    motivo,
+    diagnostico,
+    observaciones,
+    estado,
+    gravedad,
+    proxima_cita,
+    motivo_seguimiento,
+    peso,
+    temperatura,
+    frecuencia_cardiaca,
+    frecuencia_respiratoria,
+    presion_arterial,
+    saturacion_oxigeno,
+    atraso_notificado_at,
+    recordatorio_manana_enviado_at,
+    deleted_at,
+    created_at,
+    updated_at
+  )
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NOW(), NOW())
+  `,
+[
+
         consultaId,
         pet_id,
         client_id,
@@ -806,36 +1000,37 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
         );
       }
     }
+
     if (Array.isArray(tiposConsulta) && tiposConsulta.includes("emb")) {
-  await connection.execute(
-    `
-    INSERT INTO consulta_embarazo (
-      id,
-      consulta_id,
-      meses_gestacion,
-      cantidad_crias,
-      riesgo,
-      tipo_parto,
-      fecha_probable_parto,
-      observaciones_embarazo,
-      deleted_at,
-      created_at,
-      updated_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
-    `,
-    [
-      crypto.randomUUID(),
-      consultaId,
-      meses_gestacion ? Number(meses_gestacion) : null,
-      cantidad_crias ? Number(cantidad_crias) : null,
-      riesgo_embarazo || "bajo",
-      tipo_parto || null,
-      fecha_probable_parto || null,
-      observaciones_embarazo || null,
-    ]
-  );
-}
+      await connection.execute(
+        `
+        INSERT INTO consulta_embarazo (
+          id,
+          consulta_id,
+          meses_gestacion,
+          cantidad_crias,
+          riesgo,
+          tipo_parto,
+          fecha_probable_parto,
+          observaciones_embarazo,
+          deleted_at,
+          created_at,
+          updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
+        `,
+        [
+          crypto.randomUUID(),
+          consultaId,
+          meses_gestacion ? Number(meses_gestacion) : null,
+          cantidad_crias ? Number(cantidad_crias) : null,
+          riesgo_embarazo || "bajo",
+          tipo_parto || null,
+          fecha_probable_parto || null,
+          observaciones_embarazo || null,
+        ]
+      );
+    }
 
     if (Array.isArray(medicaciones) && medicaciones.length > 0) {
       for (const medicamento of medicaciones) {
@@ -966,8 +1161,9 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
   }
 });
 
-//consultation ID
-
+// =============================
+// CONSULTATION ID
+// =============================
 app.get("/api/consultas/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1098,7 +1294,6 @@ app.get("/api/consultas/:id", requireAuth, async (req, res) => {
   }
 });
 
-
 // =============================
 // GET PET CLINICAL HISTORY
 // =============================
@@ -1143,24 +1338,22 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
     const resultado = [];
 
     for (const consulta of consultas) {
-const [tipos] = await pool.execute(
-  `
-  SELECT
-    tc.id,
-    tc.codigo,
-    tc.nombre
-  FROM consulta_tipos ct
-  INNER JOIN tipos_consulta tc
-    ON tc.id = ct.tipo_consulta_id
-  WHERE ct.consulta_id = ?
-    AND ct.deleted_at IS NULL
-    AND tc.deleted_at IS NULL
-  ORDER BY tc.nombre ASC
-  `,
-  [consulta.id]
-);
-console.log("consulta.id:", consulta.id);
-console.log("tipos encontrados:", tipos);
+      const [tipos] = await pool.execute(
+        `
+        SELECT
+          tc.id,
+          tc.codigo,
+          tc.nombre
+        FROM consulta_tipos ct
+        INNER JOIN tipos_consulta tc
+          ON tc.id = ct.tipo_consulta_id
+        WHERE ct.consulta_id = ?
+          AND ct.deleted_at IS NULL
+          AND tc.deleted_at IS NULL
+        ORDER BY tc.nombre ASC
+        `,
+        [consulta.id]
+      );
 
       const [medicaciones] = await pool.execute(
         `
@@ -1346,7 +1539,7 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(401).json({
-        message: " Usuario o contraseña incorrectos.",
+        message: "Usuario o contraseña incorrectos.",
       });
     }
 
@@ -1382,14 +1575,202 @@ app.post("/api/auth/login", authLimiter, async (req, res) => {
   }
 });
 
+// =============================
+// EMAIL JOB - CONSULTAS ATRASADAS
+// =============================
+async function enviarCorreosConsultasAtrasadas() {
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+
+    const [rows] = await connection.execute(
+      `
+      SELECT
+        c.id,
+        c.fecha,
+        c.proxima_cita,
+        c.motivo,
+        c.estado,
+        c.client_id,
+        cl.email AS cliente_correo,
+        CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
+        p.name AS mascota_nombre
+      FROM consultas c
+      INNER JOIN clients cl
+        ON cl.id = c.client_id
+      INNER JOIN pets p
+        ON p.id = c.pet_id
+      WHERE c.deleted_at IS NULL
+        AND cl.deleted_at IS NULL
+        AND p.deleted_at IS NULL
+        AND c.proxima_cita IS NOT NULL
+        AND DATE(c.proxima_cita) < CURDATE()
+        AND c.atraso_notificado_at IS NULL
+        AND cl.email IS NOT NULL
+        AND TRIM(cl.email) <> ''
+      ORDER BY c.proxima_cita ASC
+      `
+    );
+
+    for (const row of rows) {
+      try {
+        const asunto = `Recordatorio de consulta atrasada - ${row.mascota_nombre}`;
+
+        const html = `
+<div style="font-family: Arial; padding:20px;">
+
+  <div style="text-align:center; margin-bottom:20px;">
+    <img src="cid:logoVetcare" width="120" />
+  </div>
+
+  <h2 style="text-align:center;">VetCare</h2>
+
+  <p>Hola,</p>
+
+  <p>
+    La consulta o seguimiento de su mascota <strong>${row.mascota_nombre}</strong> está atrasada.
+  </p>
+
+  <div style="background:#f4e7c5; padding:15px; border-radius:8px;">
+    <p><strong>Motivo:</strong> ${row.motivo || "No especificado"}</p>
+    <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
+  </div>
+
+  <p>Por favor comuníquese con la veterinaria para reagendar.</p>
+
+  <hr />
+
+  <p style="font-size:12px; color:gray;">
+    VetCare - Sistema automático
+  </p>
+
+</div>
+`;
+
+        await mailTransporter.sendMail({
+  from: process.env.MAIL_FROM,
+  to: row.cliente_correo,
+  subject: asunto,
+  html,
+  attachments: [
+    {
+      
+      filename: 'logo-vetcare.png',
+      path: path.join(__dirname, "../public/logo-vetcare.png"),
+      cid: 'logoVetcare'
+    }
+  ]
+});
 
 
+        await connection.execute(
+          `
+          UPDATE consultas
+          SET atraso_notificado_at = NOW(),
+              updated_at = NOW()
+          WHERE id = ?
+          `,
+          [row.id]
+        );
 
+        console.log(
+          `Correo enviado por consulta atrasada. Consulta: ${row.id}, email: ${row.cliente_correo}`
+        );
+      } catch (mailError) {
+        console.error(
+          `Error enviando correo de consulta atrasada ${row.id}:`,
+          mailError
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error revisando consultas atrasadas:", error);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  let connection;
+
+  try {
+    connection = await pool.getConnection();
+
+    const [rows] = await connection.execute(
+      `
+      SELECT
+        c.id,
+        c.proxima_cita,
+        c.motivo,
+        cl.email AS cliente_correo,
+        CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
+        p.name AS mascota_nombre
+      FROM consultas c
+      INNER JOIN clients cl ON cl.id = c.client_id
+      INNER JOIN pets p ON p.id = c.pet_id
+      WHERE c.id = ?
+        AND c.deleted_at IS NULL
+        AND cl.email IS NOT NULL
+        AND TRIM(cl.email) <> ''
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Consulta no válida o sin correo.",
+      });
+    }
+
+    const row = rows[0];
+
+    await mailTransporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to: row.cliente_correo,
+      subject: `Recordatorio de consulta - ${row.mascota_nombre}`,
+      html: `
+        <div style="font-family: Arial; padding:20px;">
+          <h2>VetCare</h2>
+          <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
+          <p>Le recordamos la consulta de su mascota <strong>${row.mascota_nombre}</strong>.</p>
+          <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
+          <p>Gracias por confiar en nosotros.</p>
+        </div>
+      `,
+    });
+
+    return res.json({
+      message: "Correo enviado manualmente.",
+    });
+  } catch (error) {
+    console.error("Error manual:", error);
+
+    return res.status(500).json({
+      message: "Error enviando correo.",
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+cron.schedule("*/10 * * * *", async () => {
+  console.log("Revisando consultas atrasadas y citas de mañana para enviar correos...");
+  await enviarCorreosConsultasAtrasadas();
+  await enviarCorreosConsultasManana();
+});
 
 // =============================
 // SERVER
 // =============================
 const PORT = process.env.PORT || 5000;
+
+enviarCorreosConsultasAtrasadas();
+enviarCorreosConsultasManana();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
