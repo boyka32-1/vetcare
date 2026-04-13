@@ -291,7 +291,7 @@ body{
 
 .outlineBtn2 {
   border: 1px solid #cfe0df;
-  background: rgb(239, 138, 138);
+  background: rgb(186, 232, 140);
   color: #243a44;
   border-radius: 12px;
   padding: 9px 12px;
@@ -299,6 +299,31 @@ body{
   cursor: pointer;
   margin-left: 12px;
 }
+
+.outlineBtn3 {
+  border: 1px solid #cfe0df;
+  background: rgb(173, 209, 212);
+  color: #243a44;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 12px;
+}
+.outlineBtn4 {
+  border: 1px solid #cfe0df;
+  background: rgb(241, 143, 143);
+  color: #243a44;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+
+.outlineBtn3:hover,
+.outlineBtn4:hover,
 .outlineBtn2:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(151, 17, 17, 0.421);

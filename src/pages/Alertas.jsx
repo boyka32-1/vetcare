@@ -215,47 +215,64 @@ export default function Alertas() {
   }, [navigate]);
 
   const handleEnviarCorreo = async (id) => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    if (!token) {
+  if (!token) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/consultas/${id}/enviar-recordatorio`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       navigate("/", { replace: true });
       return;
     }
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/consultas/${id}/enviar-recordatorio`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/", { replace: true });
-        return;
-      }
-
-      if (!response.ok) {
-        alert(data?.message || "Error enviando correo");
-        return;
-      }
-
-      alert(data?.message || "Correo enviado correctamente");
-    } catch (error) {
-      console.error("Error enviando correo manual:", error);
-      alert("Error de conexión");
+    if (!response.ok) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: data?.message || "Error enviando correo",
+        confirmButtonColor: "#dc2626",
+      });
+      return;
     }
-  };
+
+    Swal.fire({
+      icon: "success",
+      title: "Correo enviado",
+      text: data?.message || "Correo enviado correctamente",
+      timer: 2500,
+      showConfirmButton: false,
+    });
+  } catch (error) {
+    console.error("Error enviando correo manual:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error de conexión",
+      text: "No se pudo enviar el correo",
+      confirmButtonColor: "#dc2626",
+    });
+  }
+};
 
   const handleDeleteAlerta = async (id) => {
     try {
@@ -268,10 +285,18 @@ export default function Alertas() {
         return;
       }
 
-      const confirmDelete = window.confirm(
-        "¿Seguro que quieres quitar esta alerta? La consulta no se borrará."
-      );
-      if (!confirmDelete) return;
+      const result = await Swal.fire({
+      title: "¿Quitar alerta?",
+      text: "La consulta no se borrará.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, quitar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
 
       const response = await fetch(
         `http://localhost:5000/api/alertas/${id}/quitar`,
@@ -335,10 +360,20 @@ export default function Alertas() {
         ),
       }));
 
-      alert(data?.message || "Alerta eliminada correctamente.");
+              Swal.fire({
+          icon: "success",
+          title: "Eliminada",
+          text: data?.message || "Alerta eliminada correctamente",
+          timer: 2000,
+          showConfirmButton: false,
+        });
     } catch (error) {
       console.error("Error deleting alerta:", error);
-      alert(error.message || "Error eliminando la alerta.");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Error eliminando la alerta.",
+      });
     }
   };
 
@@ -586,7 +621,7 @@ export default function Alertas() {
 
                           <button
                             type="button"
-                            className={styles.outlineBtn2}
+                            className={styles.outlineBtn3}
                             onClick={() => handleEnviarCorreo(item.consultaId)}
                           >
                             Enviar Correo
@@ -594,7 +629,7 @@ export default function Alertas() {
 
                           <button
                             type="button"
-                            className={styles.outlineBtn2}
+                            className={styles.outlineBtn4}
                             onClick={() => handleDeleteAlerta(item.consultaId)}
                           >
                             Borrar

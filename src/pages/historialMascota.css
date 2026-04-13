@@ -402,3 +402,9 @@ body {
     height: 48px;
   }
 }
+.deac:hover,
+.edit:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
+  filter: brightness(1.05);
+}

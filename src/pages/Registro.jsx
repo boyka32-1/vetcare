@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./registro.css";
+import Select from "react-select";
 
 const API_URL = "http://localhost:5000";
 
 export default function Registro() {
   const navigate = useNavigate();
-
+  const options = [
+  { value: "todos", label: "Todos" },
+  { value: "activo", label: "Activos" },
+  { value: "inactivo", label: "Inactivos" },
+];
   const [clientes, setClientes] = useState([]);
   const [mascotas, setMascotas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -424,23 +429,46 @@ export default function Registro() {
             />
           </div>
 
-          <select
-            value={estadoFiltro}
-            onChange={(e) => setEstadoFiltro(e.target.value)}
-            style={{
-              border: "1px solid #d7e1e1",
-              borderRadius: "14px",
-              padding: "12px 14px",
-              background: "#fff",
-              color: "#3b5b64",
-              fontWeight: 600,
-              minWidth: "170px",
-            }}
-          >
-            <option value="todos">Todos</option>
-            <option value="activo">Activos</option>
-            <option value="inactivo">Inactivos</option>
-          </select>
+          <div className="rg-filter-select-wrap">
+        <Select
+  value={options.find((opt) => opt.value === estadoFiltro)}
+  onChange={(selected) => setEstadoFiltro(selected.value)}
+  options={options}
+  isSearchable={false}
+  styles={{
+    control: (base, state) => ({
+      ...base,
+      borderRadius: "16px",
+      borderColor: state.isFocused ? "#4f8d98" : "#d8e5e7",
+      boxShadow: state.isFocused
+        ? "0 0 0 4px rgba(79,141,152,0.15)"
+        : "0 8px 20px rgba(18,52,59,0.06)",
+      padding: "4px",
+      fontWeight: 700,
+      cursor: "pointer",
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: "14px",
+      overflow: "hidden",
+      boxShadow: "0 14px 30px rgba(0,0,0,0.12)",
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? "#0f766e"
+        : state.isFocused
+        ? "#e6f4f5"
+        : "#fff",
+      color: state.isSelected ? "#fff" : "#24424a",
+      fontWeight: 600,
+      cursor: "pointer",
+    }),
+  }}
+/>
+
+          
+        </div>
 
           <div className="rg-results">
             {clientesFiltrados.length} cliente

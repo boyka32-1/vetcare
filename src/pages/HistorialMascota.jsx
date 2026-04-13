@@ -407,7 +407,7 @@ export default function HistorialMascota() {
                   <h3 className="hcd-card-label">Mascota</h3>
 
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <button
+                    <button className="edit"
                       type="button"
                       onClick={() => setEditMode((prev) => !prev)}
                       style={{
@@ -415,14 +415,14 @@ export default function HistorialMascota() {
                         color: "#fff",
                         border: "none",
                         padding: "8px 12px",
-                        borderRadius: "6px",
+                        borderRadius: "12px",
                         cursor: "pointer",
                       }}
                     >
                       {editMode ? "Cancelar" : "Editar"}
                     </button>
 
-                    <button
+                    <button className="deac"
                       type="button"
                       onClick={handleToggleMascota}
                       style={{
@@ -432,7 +432,7 @@ export default function HistorialMascota() {
                           mascotaEstado === "activo" ? "#991b1b" : "#065f46",
                         border: "none",
                         padding: "8px 12px",
-                        borderRadius: "6px",
+                        borderRadius: "12px",
                         cursor: "pointer",
                       }}
                     >
@@ -566,7 +566,7 @@ export default function HistorialMascota() {
                           color: "#fff",
                           border: "none",
                           padding: "10px 16px",
-                          borderRadius: "6px",
+                          borderRadius: "12px",
                           cursor: "pointer",
                         }}
                       >

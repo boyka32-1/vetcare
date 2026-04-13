@@ -393,3 +393,46 @@ body {
     font-size: 15px;
   }
 }
+.rg-filter-select-wrap {
+  position: relative;
+  min-width: 190px;
+}
+
+.rg-filter-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid #d8e5e7;
+  border-radius: 16px;
+  padding: 12px 42px 12px 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+  color: #24424a;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(18, 52, 59, 0.06);
+  transition: all 0.2s ease;
+}
+
+.rg-filter-select:hover {
+  border-color: #9fc4cb;
+  box-shadow: 0 10px 24px rgba(18, 52, 59, 0.1);
+}
+
+.rg-filter-select:focus {
+  border-color: #4f8d98;
+  box-shadow: 0 0 0 4px rgba(79, 141, 152, 0.14);
+}
+
+.rg-filter-chevron {
+  position: absolute;
+  right: 14px;
+  top: 30%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #5a7b83;
+  font-size: 25px;
+  font-weight: 700;
+}

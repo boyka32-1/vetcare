@@ -457,15 +457,7 @@ const handleSaveCliente = async () => {
             <p>Detalle del cliente y sus mascotas</p>
           </div>
 
-          <div className="rcc-header-side rcc-header-right">
-            <button
-              type="button"
-              className="rcc-edit-btn"
-              onClick={() => navigate("")}
-            >
-              Editar 🖊
-            </button>
-          </div>
+          
         </header>
 
         {loading ? (
@@ -487,7 +479,7 @@ const handleSaveCliente = async () => {
                       color: "#fff",
                       border: "none",
                       padding: "8px 12px",
-                      borderRadius: "6px",
+                      borderRadius: "12px",
                       cursor: "pointer",
                     }}
                   >
@@ -501,11 +493,11 @@ const handleSaveCliente = async () => {
       type="button"
       onClick={() => setEditMode(true)}
       style={{
-        background: "#1d4ed8",
+        background: "#fa7f87",
         color: "#fff",
         border: "none",
         padding: "8px 12px",
-        borderRadius: "6px",
+        borderRadius: "12px",
         cursor: "pointer",
       }}
     >
