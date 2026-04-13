@@ -12,6 +12,16 @@ export default function RegistroCliente() {
   const [mascotas, setMascotas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editMode, setEditMode] = useState(false);
+const [saving, setSaving] = useState(false);
+const [clienteForm, setClienteForm] = useState({
+  nombre: "",
+  cedula: "",
+  direccion: "",
+  correo: "",
+  telefono: "",
+  telefono2: "",
+});
 
   const formatCedula = (value = "") => {
     const digits = String(value).replace(/\D/g, "").slice(0, 11);
@@ -142,7 +152,11 @@ export default function RegistroCliente() {
             cliente.telefono2 ??
             cliente.Telefono2 ??
             cliente.tel2 ??
-            "",
+            "—",
+          estado:
+            cliente.estado ??
+            cliente.Estado ??
+            "activo",
         };
 
         const normalizedMascotas = Array.isArray(mascotasData)
@@ -191,11 +205,23 @@ export default function RegistroCliente() {
                 mascota.notes ??
                 mascota.Notes ??
                 "Sin observaciones",
+              estado:
+                mascota.estado ??
+                mascota.Estado ??
+                "activo",
             }))
           : [];
 
         setClienteInfo(normalizedCliente);
-        setMascotas(normalizedMascotas);
+setClienteForm({
+  nombre: normalizedCliente.nombre || "",
+  cedula: normalizedCliente.cedula || "",
+  direccion: normalizedCliente.direccion || "",
+  correo: normalizedCliente.correo || "",
+  telefono: normalizedCliente.telefono || "",
+  telefono2: normalizedCliente.telefono2 || "",
+});
+setMascotas(normalizedMascotas);
       } catch (err) {
         console.error(err);
         setError(err.message || "No se pudo cargar el registro del cliente.");
@@ -231,6 +257,97 @@ export default function RegistroCliente() {
     ];
     return variants[index % variants.length];
   };
+  const handleClienteChange = (e) => {
+  const { name, value } = e.target;
+  setClienteForm((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
+
+const handleSaveCliente = async () => {
+  try {
+    setSaving(true);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/api/clientes/${clienteInfo.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(clienteForm),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data.message || "No se pudo actualizar el cliente.");
+    }
+
+    setClienteInfo((prev) =>
+      prev
+        ? {
+            ...prev,
+            nombre: clienteForm.nombre,
+            cedula: clienteForm.cedula,
+            direccion: clienteForm.direccion,
+            correo: clienteForm.correo,
+            telefono: clienteForm.telefono,
+            telefono2: clienteForm.telefono2,
+          }
+        : prev
+    );
+
+    alert(data.message || "Cliente actualizado correctamente.");
+    setEditMode(false);
+  } catch (err) {
+    alert(err.message || "Error actualizando cliente.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+  const handleToggleCliente = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const res = await fetch(
+        `${API_URL}/api/clientes/${clienteInfo.id}/toggle`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error cambiando estado");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || "Error cambiando estado");
+    }
+  };
 
   const renderMascotaRow = (mascota, index) => (
     <button
@@ -250,6 +367,23 @@ export default function RegistroCliente() {
             {mascota.raza || "Sin raza"} · {mascota.edad || "Sin edad"} ·{" "}
             {mascota.sexo || "Sin sexo"}
           </p>
+
+          <span
+            style={{
+              background:
+                mascota.estado === "activo" ? "#d1fae5" : "#fee2e2",
+              color:
+                mascota.estado === "activo" ? "#065f46" : "#991b1b",
+              padding: "4px 8px",
+              borderRadius: "6px",
+              fontSize: "12px",
+              marginTop: "6px",
+              display: "inline-block",
+              fontWeight: 600,
+            }}
+          >
+            {mascota.estado === "activo" ? "Activa" : "Inactiva"}
+          </span>
         </div>
       </div>
 
@@ -258,6 +392,47 @@ export default function RegistroCliente() {
         <span className="rcc-pill rcc-pill--soft">
           {mascota.observaciones || "Sin observaciones"}
         </span>
+        <button
+  type="button"
+  onClick={async (e) => {
+    e.stopPropagation(); // 🔥 importante para no navegar
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `${API_URL}/api/mascotas/${mascota.id}/toggle`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error cambiando estado");
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  }}
+  style={{
+    background: mascota.estado === "activo" ? "#fee2e2" : "#d1fae5",
+    color: mascota.estado === "activo" ? "#991b1b" : "#065f46",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "12px",
+  }}
+>
+  {mascota.estado === "activo" ? "Desactivar" : "Activar"}
+</button>
         <span className="rcc-chevron-btn">›</span>
       </div>
     </button>
@@ -303,47 +478,201 @@ export default function RegistroCliente() {
               <article className="rcc-card">
                 <h2>CLIENTE</h2>
 
-                <div className="rcc-client-main">
-                  <div className="rcc-client-avatar">
-                    {getInitials(clienteInfo?.nombre || "")}
-                  </div>
-
-                  <div className="rcc-client-main-copy">
-                    <strong>{clienteInfo?.nombre}</strong>
-                    <span>
-                      Ced. {formatCedula(clienteInfo?.cedula)}
-                    </span>
-                  </div>
+                <div style={{ marginBottom: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={handleToggleCliente}
+                    style={{
+                      background: "#0f766e",
+                      color: "#fff",
+                      border: "none",
+                      padding: "8px 12px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cambiar estado (Activo / Inactivo)
+                  </button>
                 </div>
+
+                <div style={{ marginBottom: "12px" }}>
+  {!editMode ? (
+    <button
+      type="button"
+      onClick={() => setEditMode(true)}
+      style={{
+        background: "#1d4ed8",
+        color: "#fff",
+        border: "none",
+        padding: "8px 12px",
+        borderRadius: "6px",
+        cursor: "pointer",
+      }}
+    >
+      Editar datos
+    </button>
+  ) : (
+    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <button
+        type="button"
+        onClick={() => setEditMode(false)}
+        disabled={saving}
+        style={{
+          background: "#d1d5db",
+          color: "#111827",
+          border: "none",
+          padding: "8px 12px",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        onClick={handleSaveCliente}
+        disabled={saving}
+        style={{
+          background: "#0f766e",
+          color: "#fff",
+          border: "none",
+          padding: "8px 12px",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        {saving ? "Guardando..." : "Guardar cambios"}
+      </button>
+    </div>
+  )}
+</div>
+
+{!editMode ? (
+  <div className="rcc-client-main">
+    <div className="rcc-client-avatar">
+      {getInitials(clienteInfo?.nombre || "")}
+    </div>
+
+    <div className="rcc-client-main-copy">
+      <strong>{clienteInfo?.nombre}</strong>
+      <span>{clienteInfo?.cedula}</span>
+
+      <span
+        style={{
+          background:
+            clienteInfo?.estado === "activo" ? "#d1fae5" : "#fee2e2",
+          color:
+            clienteInfo?.estado === "activo" ? "#065f46" : "#991b1b",
+          padding: "4px 8px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          marginTop: "4px",
+          display: "inline-block",
+          fontWeight: 600,
+          width: "fit-content",
+        }}
+      >
+        {clienteInfo?.estado === "activo" ? "Activo" : "Inactivo"}
+      </span>
+    </div>
+  </div>
+) : (
+  <div
+    style={{
+      display: "grid",
+      gap: "10px",
+    }}
+  >
+    <input
+      type="text"
+      name="nombre"
+      placeholder="Nombre"
+      value={clienteForm.nombre}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+
+    <input
+      type="text"
+      name="cedula"
+      placeholder="Cédula"
+      value={clienteForm.cedula}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+
+    <input
+      type="text"
+      name="direccion"
+      placeholder="Dirección"
+      value={clienteForm.direccion}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+
+    <input
+      type="email"
+      name="correo"
+      placeholder="Correo"
+      value={clienteForm.correo}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+
+    <input
+      type="text"
+      name="telefono"
+      placeholder="Teléfono"
+      value={clienteForm.telefono}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+
+    <input
+      type="text"
+      name="telefono2"
+      placeholder="Teléfono secundario"
+      value={clienteForm.telefono2}
+      onChange={handleClienteChange}
+      style={{ padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
+    />
+  </div>
+)}
               </article>
 
               <article className="rcc-card">
-                <h2>CONTACTO</h2>
+  <h2>CONTACTO</h2>
 
-                <div className="rcc-owner-lines">
-                  <div className="rcc-owner-line">
-                    <span>Email</span>
-                    <strong>{clienteInfo?.correo || "—"}</strong>
-                  </div>
+  <div className="rcc-owner-lines">
+    <div className="rcc-owner-line">
+      <span>Email</span>
+      <strong>{clienteInfo?.correo || "—"}</strong>
+    </div>
 
-                  <div className="rcc-owner-line">
-                    <span>Teléfono</span>
-                    <strong>Tel. {formatPhone(clienteInfo?.telefono)}</strong>
-                  </div>
-                </div>
+    <div className="rcc-owner-line">
+      <span>Teléfono</span>
+      <strong>{clienteInfo?.telefono || "—"}</strong>
+    </div>
 
-                <div className="rcc-mini-stats">
-                  <div className="rcc-mini-stat">
-                    <strong>{totalMascotas}</strong>
-                    <span>mascotas</span>
-                  </div>
+    <div className="rcc-owner-line">
+      <span>Dirección</span>
+      <strong>{clienteInfo?.direccion || "—"}</strong>
+    </div>
+  </div>
 
-                  <div className="rcc-mini-stat">
-                    <strong>Tel. {formatPhone(clienteInfo?.telefono2)}</strong>
-                    <span>tel. secundario</span>
-                  </div>
-                </div>
-              </article>
+  <div className="rcc-mini-stats">
+    <div className="rcc-mini-stat">
+      <strong>{totalMascotas}</strong>
+      <span>mascotas</span>
+    </div>
+
+    <div className="rcc-mini-stat">
+      <strong>{clienteInfo?.telefono2 || "—"}</strong>
+      <span>tel. secundario</span>
+    </div>
+  </div>
+</article>
             </section>
 
             <section className="rcc-detail-section">

@@ -443,20 +443,24 @@ app.post("/api/clientes", requireAuth, async (req, res) => {
 // =============================
 app.get("/api/clientes", requireAuth, async (req, res) => {
   try {
-    const { id } = req.query;
+    const { id, estado } = req.query;
 
     let sql = `
-      SELECT
-        id,
-        CONCAT(first_name, ' ', last_name) AS nombre,
-        national_id AS cedula,
-        address_line1 AS direccion,
-        email AS correo,
-        phone_primary AS telefono,
-        phone_secondary AS telefono2
-      FROM clients
-      WHERE deleted_at IS NULL
-    `;
+  SELECT
+    id,
+    CONCAT(first_name, ' ', last_name) AS nombre,
+    national_id AS cedula,
+    address_line1 AS direccion,
+    email AS correo,
+    phone_primary AS telefono,
+    phone_secondary AS telefono2,
+    CASE
+      WHEN deleted_at IS NULL THEN 'activo'
+      ELSE 'inactivo'
+    END AS estado
+  FROM clients
+  WHERE 1=1
+`;
 
     const params = [];
 
@@ -464,6 +468,13 @@ app.get("/api/clientes", requireAuth, async (req, res) => {
       sql += ` AND id = ? `;
       params.push(id);
     }
+    if (estado === "activo") {
+  sql += ` AND deleted_at IS NULL `;
+}
+
+if (estado === "inactivo") {
+  sql += ` AND deleted_at IS NOT NULL `;
+}
 
     sql += ` ORDER BY first_name, last_name `;
 
@@ -564,37 +575,190 @@ app.post("/api/mascotas", requireAuth, async (req, res) => {
   }
 });
 
+app.put("/api/clientes/:id/toggle", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, deleted_at FROM clients WHERE id = ? LIMIT 1`,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Cliente no encontrado",
+      });
+    }
+
+    const cliente = rows[0];
+
+    if (cliente.deleted_at === null) {
+      // pasar a inactivo
+      await pool.execute(
+        `UPDATE clients SET deleted_at = NOW() WHERE id = ?`,
+        [id]
+      );
+    } else {
+      // volver a activo
+      await pool.execute(
+        `UPDATE clients SET deleted_at = NULL WHERE id = ?`,
+        [id]
+      );
+    }
+
+    return res.json({
+      message: "Estado actualizado",
+    });
+  } catch (error) {
+    console.error("Error toggling cliente:", error);
+    return res.status(500).json({
+      message: "Error actualizando estado",
+    });
+  }
+});
+
+app.put("/api/clientes/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { nombre, cedula, direccion, correo, telefono, telefono2 } = req.body;
+
+  try {
+    const [rows] = await pool.execute(
+      `
+      SELECT id
+      FROM clients
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Cliente no encontrado",
+      });
+    }
+
+    const cleanNombre = String(nombre || "").trim();
+    const cleanCedula = String(cedula || "").trim();
+    const cleanDireccion = String(direccion || "").trim();
+    const cleanCorreo = String(correo || "").trim().toLowerCase();
+    const cleanTelefono = String(telefono || "").trim();
+    const cleanTelefono2 = String(telefono2 || "").trim();
+
+    if (!cleanNombre || !cleanCedula || !cleanDireccion || !cleanCorreo || !cleanTelefono) {
+      return res.status(400).json({
+        message: "Complete todos los campos requeridos",
+      });
+    }
+
+    const [existingCedula] = await pool.execute(
+      `
+      SELECT id
+      FROM clients
+      WHERE national_id = ?
+        AND id <> ?
+      LIMIT 1
+      `,
+      [cleanCedula, id]
+    );
+
+    if (existingCedula.length > 0) {
+      return res.status(409).json({
+        message: "Ya existe otro cliente con esa cédula",
+      });
+    }
+
+    const [existingCorreo] = await pool.execute(
+      `
+      SELECT id
+      FROM clients
+      WHERE email = ?
+        AND id <> ?
+      LIMIT 1
+      `,
+      [cleanCorreo, id]
+    );
+
+    if (existingCorreo.length > 0) {
+      return res.status(409).json({
+        message: "Ya existe otro cliente con ese correo",
+      });
+    }
+
+    const nameParts = cleanNombre.split(" ");
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(" ") || "-";
+
+    await pool.execute(
+      `
+      UPDATE clients
+      SET
+        first_name = ?,
+        last_name = ?,
+        national_id = ?,
+        email = ?,
+        phone_primary = ?,
+        phone_secondary = ?,
+        address_line1 = ?,
+        updated_at = NOW()
+      WHERE id = ?
+      `,
+      [
+        firstName,
+        lastName,
+        cleanCedula,
+        cleanCorreo,
+        cleanTelefono,
+        cleanTelefono2 || null,
+        cleanDireccion,
+        id,
+      ]
+    );
+
+    return res.json({
+      message: "Cliente actualizado correctamente.",
+    });
+  } catch (error) {
+    console.error("Error updating client:", error);
+    return res.status(500).json({
+      message: "Error actualizando cliente.",
+    });
+  }
+});
+
 // =============================
 // GET PETS
 // Filtro por id y clienteId
 // =============================
 app.get("/api/mascotas", requireAuth, async (req, res) => {
   try {
-    const { id, clienteId } = req.query;
+    const { id, clienteId, estado } = req.query;
 
     let sql = `
-      SELECT
-        p.id,
-        p.client_id AS clienteId,
-        p.client_id,
-        p.name AS nombre,
-        p.name,
-        p.breed AS raza,
-        p.breed,
-        p.age_years AS edad,
-        p.age_years,
-        p.sex AS sexo,
-        p.weight_kg AS peso,
-        p.weight_kg,
-        p.observations AS observaciones,
-        c.first_name,
-        c.last_name,
-        c.phone_primary AS telefono
-      FROM pets p
-      JOIN clients c ON p.client_id = c.id
-      WHERE p.deleted_at IS NULL
-        AND c.deleted_at IS NULL
-    `;
+  SELECT
+    p.id,
+    p.client_id AS clienteId,
+    p.client_id,
+    p.name AS nombre,
+    p.name,
+    p.breed AS raza,
+    p.breed,
+    p.age_years AS edad,
+    p.age_years,
+    p.sex AS sexo,
+    p.weight_kg AS peso,
+    p.weight_kg,
+    p.observations AS observaciones,
+    c.first_name,
+    c.last_name,
+    CASE
+      WHEN p.deleted_at IS NULL THEN 'activo'
+      ELSE 'inactivo'
+    END AS estado
+  FROM pets p
+  JOIN clients c ON p.client_id = c.id
+  WHERE 1=1
+`;
 
     const params = [];
 
@@ -607,6 +771,14 @@ app.get("/api/mascotas", requireAuth, async (req, res) => {
       sql += ` AND p.client_id = ? `;
       params.push(clienteId);
     }
+
+    if (estado === "activo") {
+  sql += ` AND p.deleted_at IS NULL `;
+}
+
+if (estado === "inactivo") {
+  sql += ` AND p.deleted_at IS NOT NULL `;
+}
 
     sql += ` ORDER BY p.name `;
 
@@ -621,6 +793,110 @@ app.get("/api/mascotas", requireAuth, async (req, res) => {
     });
   }
 });
+
+app.put("/api/mascotas/:id/toggle", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, deleted_at FROM pets WHERE id = ? LIMIT 1`,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Mascota no encontrada",
+      });
+    }
+
+    const mascota = rows[0];
+
+    if (mascota.deleted_at === null) {
+      await pool.execute(
+        `UPDATE pets SET deleted_at = NOW() WHERE id = ?`,
+        [id]
+      );
+    } else {
+      await pool.execute(
+        `UPDATE pets SET deleted_at = NULL WHERE id = ?`,
+        [id]
+      );
+    }
+
+    return res.json({
+      message: "Estado actualizado",
+    });
+  } catch (error) {
+    console.error("Error toggling mascota:", error);
+    return res.status(500).json({
+      message: "Error actualizando estado",
+    });
+  }
+});
+
+app.put("/api/mascotas/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { nombre, edad, raza, sexo, peso, observaciones } = req.body;
+
+  try {
+    const [rows] = await pool.execute(
+      `
+      SELECT id
+      FROM pets
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Mascota no encontrada",
+      });
+    }
+
+    let sexValue = null;
+    if (sexo === "Macho" || sexo === "MALE") sexValue = "MALE";
+    if (sexo === "Hembra" || sexo === "FEMALE") sexValue = "FEMALE";
+    if (!sexValue) sexValue = "UNKNOWN";
+
+    await pool.execute(
+      `
+      UPDATE pets
+      SET
+        name = ?,
+        breed = ?,
+        sex = ?,
+        age_years = ?,
+        weight_kg = ?,
+        weight_text = ?,
+        observations = ?,
+        updated_at = NOW()
+      WHERE id = ?
+      `,
+      [
+        nombre || null,
+        raza || null,
+        sexValue,
+        edad ? Number(edad) : null,
+        peso ? Number(peso) : null,
+        peso ? String(peso) : null,
+        observaciones || null,
+        id,
+      ]
+    );
+
+    return res.json({
+      message: "Mascota actualizada correctamente.",
+    });
+  } catch (error) {
+    console.error("Error updating pet:", error);
+    return res.status(500).json({
+      message: "Error actualizando mascota.",
+    });
+  }
+});
+
 
 // =============================
 // GET DOCTORS
@@ -849,6 +1125,54 @@ app.get("/api/alertas", requireAuth, async (req, res) => {
       error: error.message,
       sqlMessage: error.sqlMessage || null,
       code: error.code || null,
+    });
+  }
+});
+
+app.put("/api/alertas/:id/quitar", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [exists] = await pool.execute(
+      `
+      SELECT id, estado
+      FROM consultas
+      WHERE id = ?
+        AND deleted_at IS NULL
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (exists.length === 0) {
+      return res.status(404).json({
+        message: "Alerta no encontrada.",
+      });
+    }
+
+    await pool.execute(
+      `
+      UPDATE consultas
+      SET
+        proxima_cita = NULL,
+        motivo_seguimiento = NULL,
+        estado = CASE
+          WHEN estado = 'seguimiento' THEN 'cerrada'
+          ELSE estado
+        END,
+        updated_at = NOW()
+      WHERE id = ?
+      `,
+      [id]
+    );
+
+    return res.json({
+      message: "Alerta eliminada correctamente.",
+    });
+  } catch (error) {
+    console.error("Error quitando alerta:", error);
+    return res.status(500).json({
+      message: "Error al eliminar la alerta.",
     });
   }
 });
@@ -1208,6 +1532,10 @@ app.get("/api/consultas/:id", requireAuth, async (req, res) => {
   [id]
 );
 
+
+
+    
+
     if (consultas.length === 0) {
       return res.status(404).json({
         message: "Consulta no encontrada.",
@@ -1298,6 +1626,124 @@ app.get("/api/consultas/:id", requireAuth, async (req, res) => {
       error: error.message,
       sqlMessage: error.sqlMessage || null,
       code: error.code || null,
+    });
+  }
+});
+
+app.put("/api/consultas/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  const {
+    doctor_id,
+    pet_id,
+    client_id,
+    fecha,
+
+    motivo,
+    diagnostico,
+    observaciones,
+    estado,
+    gravedad,
+    proxima_cita,
+    motivo_seguimiento,
+  } = req.body;
+
+  try {
+    const [exists] = await pool.execute(
+      `
+      SELECT id
+      FROM consultas
+      WHERE id = ? AND deleted_at IS NULL
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (exists.length === 0) {
+      return res.status(404).json({ message: "Consulta no encontrada." });
+    }
+
+    await pool.execute(
+      `
+      UPDATE consultas
+      SET
+        doctor_id = ?,
+        pet_id = ?,
+        client_id = ?,
+        fecha = ?,
+        
+        motivo = ?,
+        diagnostico = ?,
+        observaciones = ?,
+        estado = ?,
+        gravedad = ?,
+        proxima_cita = ?,
+        motivo_seguimiento = ?,
+        updated_at = NOW()
+      WHERE id = ?
+      `,
+      [
+        doctor_id || null,
+        pet_id || null,
+        client_id || null,
+        fecha || null,
+        
+        motivo || null,
+        diagnostico || null,
+        observaciones || null,
+        estado || null,
+        gravedad || null,
+        proxima_cita || null,
+        motivo_seguimiento || null,
+        id,
+      ]
+    );
+
+    return res.json({
+      message: "Consulta actualizada correctamente.",
+    });
+  } catch (error) {
+    console.error("Error actualizando consulta:", error);
+    return res.status(500).json({
+      message: "Error al actualizar la consulta.",
+    });
+  }
+});
+
+app.delete("/api/consultas/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [exists] = await pool.execute(
+      `
+      SELECT id
+      FROM consultas
+      WHERE id = ? AND deleted_at IS NULL
+      LIMIT 1
+      `,
+      [id]
+    );
+
+    if (exists.length === 0) {
+      return res.status(404).json({ message: "Consulta no encontrada." });
+    }
+
+    await pool.execute(
+      `
+      UPDATE consultas
+      SET deleted_at = NOW(), updated_at = NOW()
+      WHERE id = ?
+      `,
+      [id]
+    );
+
+    return res.json({
+      message: "Consulta eliminada correctamente.",
+    });
+  } catch (error) {
+    console.error("Error eliminando consulta:", error);
+    return res.status(500).json({
+      message: "Error al eliminar la consulta.",
     });
   }
 });
@@ -1749,7 +2195,7 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
       subject: `Recordatorio de consulta - ${row.mascota_nombre}`,
       html: `
         <div style="font-family: Arial; padding:20px;">
-          <h2>VetCare</h2>
+          <h2 style="color:#2c3e50;">🐾 VetCare</h2>
           <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
           <p>Le recordamos la consulta de su mascota <strong>${row.mascota_nombre}</strong>.</p>
           <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>

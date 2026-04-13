@@ -68,24 +68,24 @@ function getAlertLabel(type) {
 }
 
 const getAvatarColor = (text = "") => {
-        const colors = [
-          "#f6c5ca", // soft pink
-          "#c5e1f5", // light blue
-          "#cbf3dc", // mint green
-          "#FCF3CF", // soft yellow
-          "#e9d3f4", // lavender
-          "#FDEBD0", // peach
-          "#d4f8f5", // pale green
-          "#d1eaf8", // icy blue
-        ];
+  const colors = [
+    "#f6c5ca",
+    "#c5e1f5",
+    "#cbf3dc",
+    "#FCF3CF",
+    "#e9d3f4",
+    "#FDEBD0",
+    "#d4f8f5",
+    "#d1eaf8",
+  ];
 
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-          hash = text.charCodeAt(i) + ((hash << 5) - hash);
-        }
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = text.charCodeAt(i) + ((hash << 5) - hash);
+  }
 
-        return colors[Math.abs(hash) % colors.length];
-      };
+  return colors[Math.abs(hash) % colors.length];
+};
 
 function mapBackendCategoryToFrontend(category) {
   switch (category) {
@@ -139,8 +139,6 @@ export default function Alertas() {
           },
         });
 
-        
-
         const raw = await response.text();
 
         let data = {};
@@ -158,9 +156,7 @@ export default function Alertas() {
         }
 
         if (!response.ok) {
-          setError(
-            (data && data.message) || "No se pudieron cargar las alertas."
-          );
+          setError(data?.message || "No se pudieron cargar las alertas.");
           setAlertas([]);
           return;
         }
@@ -172,31 +168,31 @@ export default function Alertas() {
   const fechaBase = item?.proxima_cita || item?.fecha || "";
   const frontendCategory = mapBackendCategoryToFrontend(item?.categoria);
 
-  return {
-    id: item?.id ?? `row-${index}`,
-    consultaId: item?.consulta_id ?? item?.id ?? "",
-    fecha: fechaBase,
-    hora: formatTime(fechaBase),
-    motivo:
-      item?.motivo ??
-      item?.motivo_seguimiento ??
-      item?.diagnostico ??
-      "",
-    estado: item?.estado ?? "pendiente",
-    patientId: item?.pet_id ?? "",
-    patientName: item?.mascota_nombre ?? "Sin nombre",
-    raza: item?.mascota_raza ?? "",
-    ownerName: item?.cliente_nombre ?? "Sin dueño",
-    phone: item?.cliente_telefono ?? "",
-    doctorName: item?.doctor_nombre ?? "",
-    categoria: frontendCategory,
-    rawFechaConsulta: item?.fecha ?? "",
-    rawProximaCita: item?.proxima_cita ?? "",
-    gravedad: item?.gravedad ?? "",
-    observaciones: item?.observaciones ?? "",
-    diagnostico: item?.diagnostico ?? "",
-  };
-});
+          return {
+            id: item?.id ?? `row-${index}`,
+            consultaId: item?.consulta_id ?? item?.id ?? "",
+            fecha: fechaBase,
+            hora: formatTime(fechaBase),
+            motivo:
+              item?.motivo ??
+              item?.motivo_seguimiento ??
+              item?.diagnostico ??
+              "",
+            estado: item?.estado ?? "pendiente",
+            patientId: item?.pet_id ?? "",
+            patientName: item?.mascota_nombre ?? "Sin nombre",
+            raza: item?.mascota_raza ?? "",
+            ownerName: item?.cliente_nombre ?? "Sin dueño",
+            phone: item?.cliente_telefono ?? "",
+            doctorName: item?.doctor_nombre ?? "",
+            categoria: frontendCategory,
+            rawFechaConsulta: item?.fecha ?? "",
+            rawProximaCita: item?.proxima_cita ?? "",
+            gravedad: item?.gravedad ?? "",
+            observaciones: item?.observaciones ?? "",
+            diagnostico: item?.diagnostico ?? "",
+          };
+        });
 
         setAlertas(normalized);
 
@@ -218,66 +214,134 @@ export default function Alertas() {
     loadAlertas();
   }, [navigate]);
 
-    const handleEnviarCorreo = async (id) => {
-  const token = localStorage.getItem("token");
+  const handleEnviarCorreo = async (id) => {
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/", { replace: true });
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `http://localhost:5000/api/consultas/${id}/enviar-recordatorio`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.status === 401) {
+    if (!token) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       navigate("/", { replace: true });
       return;
     }
 
-    if (!response.ok) {
-      await Swal.fire({
-        icon: "error",
-        title: "Error al enviar correo",
-        html: `<p>${data?.message || "Ocurrió un error inesperado"}</p>`,
-        confirmButtonText: "OK",
-      });
-      return;
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/consultas/${id}/enviar-recordatorio`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      if (!response.ok) {
+        alert(data?.message || "Error enviando correo");
+        return;
+      }
+
+      alert(data?.message || "Correo enviado correctamente");
+    } catch (error) {
+      console.error("Error enviando correo manual:", error);
+      alert("Error de conexión");
     }
+  };
 
-    console.log("SUCCESS DATA:", data);
+  const handleDeleteAlerta = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    await Swal.fire({
-      icon: "success",
-      title: "Correo enviado manualmente",
-      html: `<p>${data?.message || "El correo fue enviado correctamente"}</p>`,
-      confirmButtonText: "OK",
-    });
-  } catch (error) {
-    console.error("Error enviando correo manual:", error);
+      if (!token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
 
-    await Swal.fire({
-      icon: "error",
-      title: "Error al enviar correo",
-      html: `<p>No se pudo conectar con el servidor</p>`,
-      confirmButtonText: "OK",
-    });
-  }
-};
+      const confirmDelete = window.confirm(
+        "¿Seguro que quieres quitar esta alerta? La consulta no se borrará."
+      );
+      if (!confirmDelete) return;
+
+      const response = await fetch(
+        `http://localhost:5000/api/alertas/${id}/quitar`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || "No se pudo eliminar la alerta.");
+      }
+
+      setAlertas((prev) =>
+        prev.filter((item) => String(item.consultaId) !== String(id))
+      );
+
+      setStats((prev) => ({
+        overdue: Math.max(
+          0,
+          prev.overdue -
+            (alertas.find((a) => String(a.consultaId) === String(id))?.categoria ===
+            "overdue"
+              ? 1
+              : 0)
+        ),
+        today: Math.max(
+          0,
+          prev.today -
+            (alertas.find((a) => String(a.consultaId) === String(id))?.categoria ===
+            "today"
+              ? 1
+              : 0)
+        ),
+        tomorrow: Math.max(
+          0,
+          prev.tomorrow -
+            (alertas.find((a) => String(a.consultaId) === String(id))?.categoria ===
+            "tomorrow"
+              ? 1
+              : 0)
+        ),
+        upcoming: Math.max(
+          0,
+          prev.upcoming -
+            (alertas.find((a) => String(a.consultaId) === String(id))?.categoria ===
+            "upcoming"
+              ? 1
+              : 0)
+        ),
+      }));
+
+      alert(data?.message || "Alerta eliminada correctamente.");
+    } catch (error) {
+      console.error("Error deleting alerta:", error);
+      alert(error.message || "Error eliminando la alerta.");
+    }
+  };
+
   const filteredAlertas = useMemo(() => {
     let result = [...alertas];
     const q = search.trim().toLowerCase();
@@ -446,83 +510,99 @@ export default function Alertas() {
                 </thead>
                 <tbody>
                   {filteredAlertas.map((item) => {
-  const type = item.categoria || getAlertType(item.fecha);
-  const bgColor = getAvatarColor(item.patientName || "");
+                    const type = item.categoria || getAlertType(item.fecha);
+                    const bgColor = getAvatarColor(item.patientName || "");
 
-  return (
-    <tr key={item.id}>
-      <td>
-        <span
-          className={`${styles.badge} ${
-            type === "overdue"
-              ? styles.badgeOverdue
-              : type === "today"
-              ? styles.badgeToday
-              : type === "tomorrow"
-              ? styles.badgeTomorrow
-              : styles.badgeUpcoming
-          }`}
-        >
-          {getAlertLabel(type)}
-        </span>
-      </td>
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <span
+                            className={`${styles.badge} ${
+                              type === "overdue"
+                                ? styles.badgeOverdue
+                                : type === "today"
+                                ? styles.badgeToday
+                                : type === "tomorrow"
+                                ? styles.badgeTomorrow
+                                : styles.badgeUpcoming
+                            }`}
+                          >
+                            {getAlertLabel(type)}
+                          </span>
+                        </td>
 
-      <td>
-        <div className={styles.patientCell}>
-          <div
-            className={styles.avatar}
-            style={{ backgroundColor: bgColor }}
-          >
-            {String(item.patientName || "?")
-              .slice(0, 2)
-              .toUpperCase()}
-          </div>
+                        <td>
+                          <div className={styles.patientCell}>
+                            <div
+                              className={styles.avatar}
+                              style={{ backgroundColor: bgColor }}
+                            >
+                              {String(item.patientName || "?")
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            </div>
 
-          <div>
-            <div className={styles.patientName}>
-              {item.patientName || "Sin nombre"}
-            </div>
-            <div className={styles.patientSub}>
-              {item.raza || "Sin raza"}
-            </div>
-          </div>
-        </div>
-      </td>
+                            <div>
+                              <div className={styles.patientName}>
+                                {item.patientName || "Sin nombre"}
+                              </div>
+                              <div className={styles.patientSub}>
+                                {item.raza || "Sin raza"}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-      <td>
-        <div className={styles.ownerName}>
-          {item.ownerName || "Sin dueño"}
-        </div>
-        <div className={styles.ownerPhone}>
-          {item.phone || "—"}
-        </div>
-      </td>
+                        <td>
+                          <div className={styles.ownerName}>
+                            {item.ownerName || "Sin dueño"}
+                          </div>
+                          <div className={styles.ownerPhone}>
+                            {item.phone || "—"}
+                          </div>
+                        </td>
 
-      <td>{item.doctorName || "—"}</td>
-      <td>{formatDate(item.fecha)}</td>
-      <td>{item.hora || "—"}</td>
-      <td className={styles.reasonCell}>{item.motivo || "—"}</td>
+                        <td>{item.doctorName || "—"}</td>
+                        <td>{formatDate(item.fecha)}</td>
+                        <td>{item.hora || "—"}</td>
+                        <td className={styles.reasonCell}>{item.motivo || "—"}</td>
 
-      <td>
-        <button
-          type="button"
-          className={styles.outlineBtn}
-          onClick={() => navigate(`/consulta/${item.consultaId}`)}
-        >
-          Abrir
-        </button>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.outlineBtn}
+                            onClick={() => navigate(`/consulta/${item.consultaId}`)}
+                          >
+                            Abrir
+                          </button>
 
-                <button
-          type="button"
-          className={styles.outlineBtn2}
-          onClick={() => handleEnviarCorreo(item.consultaId)}
-        >
-          Enviar Correo
-        </button>
-      </td>
-    </tr>
-  );
-})}
+                          <button
+                            type="button"
+                            className={styles.outlineBtn2}
+                            onClick={() => navigate(`/consulta/${item.consultaId}?edit=1`)}
+                          >
+                            Editar
+                          </button>
+
+                          <button
+                            type="button"
+                            className={styles.outlineBtn2}
+                            onClick={() => handleEnviarCorreo(item.consultaId)}
+                          >
+                            Enviar Correo
+                          </button>
+
+                          <button
+                            type="button"
+                            className={styles.outlineBtn2}
+                            onClick={() => handleDeleteAlerta(item.consultaId)}
+                          >
+                            Borrar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

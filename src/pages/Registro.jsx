@@ -12,6 +12,7 @@ export default function Registro() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState("todos");
 
   const formatCedula = (value = "") => {
     const digits = String(value).replace(/\D/g, "").slice(0, 11);
@@ -49,13 +50,16 @@ export default function Registro() {
           return;
         }
 
+        const estadoQuery =
+          estadoFiltro === "todos" ? "" : `?estado=${estadoFiltro}`;
+
         const [clientesResponse, mascotasResponse] = await Promise.all([
-          fetch(`${API_URL}/api/clientes`, {
+          fetch(`${API_URL}/api/clientes${estadoQuery}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch(`${API_URL}/api/mascotas`, {
+          fetch(`${API_URL}/api/mascotas${estadoQuery}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -140,6 +144,10 @@ export default function Registro() {
                 cliente.Telefono2 ??
                 cliente.tel2 ??
                 "",
+              estado:
+                cliente.estado ??
+                cliente.Estado ??
+                "activo",
             }))
           : [];
 
@@ -198,6 +206,10 @@ export default function Registro() {
                 mascota.notes ??
                 mascota.Notes ??
                 "",
+              estado:
+                mascota.estado ??
+                mascota.Estado ??
+                "activo",
             }))
           : [];
 
@@ -212,7 +224,7 @@ export default function Registro() {
     };
 
     loadData();
-  }, [navigate]);
+  }, [navigate, estadoFiltro]);
 
   const mascotasAgrupadas = useMemo(() => {
     const mapa = {};
@@ -267,7 +279,8 @@ export default function Registro() {
           String(mascota.raza ?? "").toLowerCase().includes(term) ||
           String(mascota.sexo ?? "").toLowerCase().includes(term) ||
           String(mascota.peso ?? "").toLowerCase().includes(term) ||
-          String(mascota.observaciones ?? "").toLowerCase().includes(term)
+          String(mascota.observaciones ?? "").toLowerCase().includes(term) ||
+          String(mascota.estado ?? "").toLowerCase().includes(term)
         );
       });
 
@@ -310,6 +323,21 @@ export default function Registro() {
     return variants[index % variants.length];
   };
 
+  const renderEstadoBadge = (estado) => (
+    <span
+      style={{
+        background: estado === "activo" ? "#d1fae5" : "#fee2e2",
+        color: estado === "activo" ? "#065f46" : "#991b1b",
+        padding: "4px 8px",
+        borderRadius: "999px",
+        fontSize: "12px",
+        fontWeight: 700,
+      }}
+    >
+      {estado === "activo" ? "Activo" : "Inactivo"}
+    </span>
+  );
+
   const renderRow = (cliente, index, muted = false) => (
     <button
       type="button"
@@ -337,6 +365,10 @@ export default function Registro() {
               ? `${cliente.mascotasTotal} mascota${cliente.mascotasTotal !== 1 ? "s" : ""}`
               : "sin mascotas"}
           </p>
+
+          <div style={{ marginTop: "6px" }}>
+            {renderEstadoBadge(cliente.estado)}
+          </div>
         </div>
       </div>
 
@@ -391,6 +423,24 @@ export default function Registro() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <select
+            value={estadoFiltro}
+            onChange={(e) => setEstadoFiltro(e.target.value)}
+            style={{
+              border: "1px solid #d7e1e1",
+              borderRadius: "14px",
+              padding: "12px 14px",
+              background: "#fff",
+              color: "#3b5b64",
+              fontWeight: 600,
+              minWidth: "170px",
+            }}
+          >
+            <option value="todos">Todos</option>
+            <option value="activo">Activos</option>
+            <option value="inactivo">Inactivos</option>
+          </select>
 
           <div className="rg-results">
             {clientesFiltrados.length} cliente
