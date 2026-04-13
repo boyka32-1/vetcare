@@ -33,7 +33,7 @@
 /* ─── Card ─────────────────────────── */
 .cl-card {
   width: 100%;
-  max-width: 680px;
+  max-width: 650px;
   background: white; /* ✅ FIXED */
   border: 1px solid var(--border);
   border-radius: 32px;

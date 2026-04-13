@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
-import { User, Lock } from "lucide-react";
+import { User, Lock, ShieldCheck } from "lucide-react";
 
 
 
@@ -136,18 +136,9 @@ export default function Login() {
               CREAR CUENTA
             </Link>
 
-            <div className="vc-security-badge">
-              <svg
-                width="12"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              Conexión segura y encriptada
+            <div className="cl-note">
+              <ShieldCheck size={16} />
+    <span>Secure encrypted connection</span>
             </div>
           </form>
         </div>

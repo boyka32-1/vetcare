@@ -454,7 +454,7 @@ export default function Alertas() {
         <button
           type="button"
           className={styles.outlineBtn2}
-          onClick={() => navigate(`/consulta/${item.consultaId}`)}
+          onClick={() => navigate(``)}
         >
           Enviar Correo
         </button>
