@@ -535,7 +535,7 @@ export default function Alertas() {
                   <tr>
                     <th>Alerta</th>
                     <th>Paciente</th>
-                    <th>Dueño</th>
+                    <th>Tutor</th>
                     <th>Doctor</th>
                     <th>Fecha</th>
                     <th>Hora</th>
@@ -603,6 +603,7 @@ export default function Alertas() {
                         <td className={styles.reasonCell}>{item.motivo || "—"}</td>
 
                         <td>
+                        <div className={styles.actionGroup}>
                           <button
                             type="button"
                             className={styles.outlineBtn}
@@ -634,8 +635,8 @@ export default function Alertas() {
                           >
                             Borrar
                           </button>
-                        </td>
-                      </tr>
+                        </div>
+                      </td></tr>
                     );
                   })}
                 </tbody>

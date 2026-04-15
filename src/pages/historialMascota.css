@@ -35,7 +35,7 @@ body {
   padding: 34px 20px 48px;
   font-family: "DM Sans", sans-serif;
   color: var(--text-dark);
-  transform: scale(0.8);
+  transform: scale(0.75);
   transform-origin: top center;
 }
 

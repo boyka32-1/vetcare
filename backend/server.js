@@ -1,4 +1,3 @@
-console.log("🚨 ESTE ARCHIVO SE ESTA EJECUTANDO 🚨");
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -120,14 +119,16 @@ function formatDateForEmail(dateValue) {
     minute: "2-digit",
   });
 }
+
 function getReminderConfig(tipo, row) {
   if (tipo === "atrasada") {
     return {
-      subject: `Recordatorio de consulta atrasada - ${row.mascota_nombre}`,
-      title: "Consulta atrasada",
-      message: `La consulta o seguimiento de su mascota <strong>${row.mascota_nombre}</strong> está atrasada.`,
-      footer: "Por favor comuníquese con la veterinaria para reagendar.",
-      fieldLabel: "Fecha",
+      subject: `Seguimiento pendiente de consulta - ${row.mascota_nombre}`,
+      title: "Consulta pendiente de seguimiento",
+      message: `Le informamos que la consulta o seguimiento de su mascota <strong>${row.mascota_nombre}</strong> se encuentra pendiente.`,
+      footer:
+        "Le recomendamos comunicarse con la clínica a la mayor brevedad para reprogramar la cita y dar continuidad a la atención médica.",
+      fieldLabel: "Fecha registrada",
       fieldValue: formatDateForEmail(row.proxima_cita),
       notifiedColumn: "atraso_notificado_at",
       logLabel: "consulta atrasada",
@@ -136,13 +137,14 @@ function getReminderConfig(tipo, row) {
 
   if (tipo === "manana") {
     return {
-      subject: `Recordatorio de cita para mañana - ${row.mascota_nombre}`,
-      title: "Cita programada para mañana",
-      message: `Le recordamos que su mascota <strong>${row.mascota_nombre}</strong> tiene una cita programada para mañana.`,
-      footer: "Le esperamos en la veterinaria. Si necesita reprogramar, por favor comuníquese con nosotros.",
-      fieldLabel: "Fecha de la cita",
+      subject: `Recordatorio de cita programada - ${row.mascota_nombre}`,
+      title: "Recordatorio de cita para mañana",
+      message: `Le recordamos que su mascota <strong>${row.mascota_nombre}</strong> tiene una cita programada para mañana en nuestra veterinaria.`,
+      footer:
+        "En caso de no poder asistir en el horario indicado, por favor comuníquese con nosotros con anticipación para ayudarle a reprogramar.",
+      fieldLabel: "Fecha y hora de la cita",
       fieldValue: formatDateForEmail(row.proxima_cita),
-      notifiedColumn: "manana_notificado_at",
+      notifiedColumn: "recordatorio_manana_enviado_at",
       logLabel: "cita de mañana",
     };
   }
@@ -150,37 +152,61 @@ function getReminderConfig(tipo, row) {
   throw new Error(`Tipo de recordatorio no soportado: ${tipo}`);
 }
 
-async function enviarCorreoConsulta({ connection, row, tipo, marcarNotificado = true }) {
+async function enviarCorreoConsulta({
+  connection,
+  row,
+  tipo,
+  marcarNotificado = true,
+}) {
   const config = getReminderConfig(tipo, row);
 
   const html = `
-<div style="font-family: Arial; padding:20px;">
-  <div style="text-align:center; margin-bottom:20px;">
-    <img src="cid:logoVetcare" width="120" />
-  </div>
+    <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f5f7fa; padding:24px;">
+      <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e5e7eb;">
+        
+        <div style="padding:28px 32px 10px; text-align:center;">
+          <img src="cid:logoVerde" width="72" alt="VetCare" style="display:block; margin:0 auto 12px;" />
+          <h1 style="margin:0; font-size:28px; color:#2a9d8f; font-weight:700;">VetCare</h1>
+          <p style="margin:8px 0 0; color:#6b7280; font-size:14px;">
+            Cuidado veterinario con seguimiento oportuno
+          </p>
+        </div>
 
-  <h2 style="text-align:center;">VetCare</h2>
-  <h3 style="text-align:center;">${config.title}</h3>
+        <div style="padding:24px 32px 32px; color:#1f2937; line-height:1.6;">
+          <h2 style="margin:0 0 16px; font-size:22px; color:#111827; text-align:center;">
+            ${config.title}
+          </h2>
 
-  <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
+          <p style="margin:0 0 16px;">
+            Estimado/a${row.cliente_nombre ? ` <strong>${row.cliente_nombre}</strong>` : ""},
+          </p>
 
-  <p>${config.message}</p>
+          <p style="margin:0 0 18px;">
+            ${config.message}
+          </p>
 
-  <div style="background:#f4e7c5; padding:15px; border-radius:8px;">
-    <p><strong>Mascota:</strong> ${row.mascota_nombre}</p>
-    <p><strong>Motivo:</strong> ${row.motivo || "No especificado"}</p>
-    <p><strong>${config.fieldLabel}:</strong> ${config.fieldValue}</p>
-  </div>
+          <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; margin:20px 0;">
+            <p style="margin:0 0 10px;"><strong>Mascota:</strong> ${row.mascota_nombre}</p>
+            <p style="margin:0 0 10px;"><strong>Motivo de la consulta:</strong> ${row.motivo || "No especificado"}</p>
+            <p style="margin:0;"><strong>${config.fieldLabel}:</strong> ${config.fieldValue}</p>
+          </div>
 
-  <p>${config.footer}</p>
+          <p style="margin:0 0 16px;">
+            ${config.footer}
+          </p>
 
-  <hr />
+          <p style="margin:0 0 16px;">
+            Agradecemos su confianza en nuestro equipo. Mantener el seguimiento de las citas contribuye al bienestar y la salud de su mascota.
+          </p>
 
-  <p style="font-size:12px; color:gray;">
-    VetCare - Sistema automático
-  </p>
-</div>
-`;
+          <div style="margin-top:28px; padding-top:18px; border-top:1px solid #e5e7eb; font-size:13px; color:#6b7280;">
+            <p style="margin:0 0 6px;"><strong>VetCare</strong></p>
+            <p style="margin:0;">Este es un mensaje automático del sistema de recordatorios.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
   await mailTransporter.sendMail({
     from: process.env.MAIL_FROM,
@@ -189,9 +215,9 @@ async function enviarCorreoConsulta({ connection, row, tipo, marcarNotificado = 
     html,
     attachments: [
       {
-        filename: "logo-vetcare.png",
-        path: path.join(__dirname, "../public/logo-vetcare.png"),
-        cid: "logoVetcare",
+        filename: "logo-verde.png",
+        path: path.join(__dirname, "../public/logo-verde.png"),
+        cid: "logoVerde",
       },
     ],
   });
@@ -248,35 +274,14 @@ async function enviarCorreosConsultasManana() {
 
     for (const row of rows) {
       try {
-        await mailTransporter.sendMail({
-          from: process.env.MAIL_FROM,
-          to: row.cliente_correo,
-          subject: `Recordatorio de cita para mañana - ${row.mascota_nombre}`,
-          html: `
-            <div style="font-family: Arial; padding:20px;">
-              <h2>VetCare</h2>
-              <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
-
-              <p>Le recordamos que su mascota <strong>${row.mascota_nombre}</strong> tiene una cita programada para mañana.</p>
-
-              <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
-
-              <p>Le esperamos en la veterinaria.</p>
-            </div>
-          `,
+        await enviarCorreoConsulta({
+          connection,
+          row,
+          tipo: "manana",
+          marcarNotificado: true,
         });
 
-        await connection.execute(
-          `
-          UPDATE consultas
-          SET recordatorio_manana_enviado_at = NOW(),
-              updated_at = NOW()
-          WHERE id = ?
-          `,
-          [row.id]
-        );
-
-        console.log(`Correo de mañana enviado. Consulta: ${row.id}`);
+        console.log(`Correo de cita para mañana enviado. Consulta: ${row.id}`);
       } catch (mailError) {
         console.error(`Error enviando correo de mañana ${row.id}:`, mailError);
       }
@@ -289,6 +294,7 @@ async function enviarCorreosConsultasManana() {
     }
   }
 }
+
 function requireAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -298,6 +304,16 @@ function requireAuth(req, res, next) {
         message: "No autorizado. Token requerido.",
       });
     }
+
+    function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== "ADMIN") {
+    return res.status(403).json({
+      message: "Acceso denegado. Solo administradores.",
+    });
+  }
+
+  next();
+}
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -311,9 +327,19 @@ function requireAuth(req, res, next) {
   }
 }
 
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== "ADMIN") {
+    return res.status(403).json({
+      message: "Acceso denegado. Solo administradores.",
+    });
+  }
+
+  next();
+}
+
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 150,
+  max: 400,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -327,9 +353,12 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: "Demasiados intentos de inicio de sesión. Intenta dentro de 15 minutos.",
+    message:
+      "Demasiados intentos de inicio de sesión. Intenta dentro de 15 minutos.",
   },
 });
+
+
 
 app.use("/api", apiLimiter);
 
@@ -416,7 +445,7 @@ app.post("/api/clientes", requireAuth, async (req, res) => {
     );
 
     return res.status(201).json({
-      message: "Cliente guardado exitosamente",
+      message: "Usuario guardado exitosamente",
       client: {
         id: clientId,
         nombre,
@@ -469,12 +498,12 @@ app.get("/api/clientes", requireAuth, async (req, res) => {
       params.push(id);
     }
     if (estado === "activo") {
-  sql += ` AND deleted_at IS NULL `;
-}
+      sql += ` AND deleted_at IS NULL `;
+    }
 
-if (estado === "inactivo") {
-  sql += ` AND deleted_at IS NOT NULL `;
-}
+    if (estado === "inactivo") {
+      sql += ` AND deleted_at IS NOT NULL `;
+    }
 
     sql += ` ORDER BY first_name, last_name `;
 
@@ -516,7 +545,7 @@ app.post("/api/mascotas", requireAuth, async (req, res) => {
 
     if (clients.length === 0) {
       return res.status(404).json({
-        message: "Cliente no encontrado",
+        message: "Usuario no encontrado",
       });
     }
 
@@ -586,24 +615,16 @@ app.put("/api/clientes/:id/toggle", requireAuth, async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(404).json({
-        message: "Cliente no encontrado",
+        message: "Usuario no encontrado",
       });
     }
 
     const cliente = rows[0];
 
     if (cliente.deleted_at === null) {
-      // pasar a inactivo
-      await pool.execute(
-        `UPDATE clients SET deleted_at = NOW() WHERE id = ?`,
-        [id]
-      );
+      await pool.execute(`UPDATE clients SET deleted_at = NOW() WHERE id = ?`, [id]);
     } else {
-      // volver a activo
-      await pool.execute(
-        `UPDATE clients SET deleted_at = NULL WHERE id = ?`,
-        [id]
-      );
+      await pool.execute(`UPDATE clients SET deleted_at = NULL WHERE id = ?`, [id]);
     }
 
     return res.json({
@@ -634,7 +655,7 @@ app.put("/api/clientes/:id", requireAuth, async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(404).json({
-        message: "Cliente no encontrado",
+        message: "Usuario no encontrado",
       });
     }
 
@@ -664,7 +685,7 @@ app.put("/api/clientes/:id", requireAuth, async (req, res) => {
 
     if (existingCedula.length > 0) {
       return res.status(409).json({
-        message: "Ya existe otro cliente con esa cédula",
+        message: "Ya existe otro usuario con esa cédula",
       });
     }
 
@@ -716,12 +737,12 @@ app.put("/api/clientes/:id", requireAuth, async (req, res) => {
     );
 
     return res.json({
-      message: "Cliente actualizado correctamente.",
+      message: "Usuario actualizado correctamente.",
     });
   } catch (error) {
     console.error("Error updating client:", error);
     return res.status(500).json({
-      message: "Error actualizando cliente.",
+      message: "Error actualizando usuario.",
     });
   }
 });
@@ -773,12 +794,12 @@ app.get("/api/mascotas", requireAuth, async (req, res) => {
     }
 
     if (estado === "activo") {
-  sql += ` AND p.deleted_at IS NULL `;
-}
+      sql += ` AND p.deleted_at IS NULL `;
+    }
 
-if (estado === "inactivo") {
-  sql += ` AND p.deleted_at IS NOT NULL `;
-}
+    if (estado === "inactivo") {
+      sql += ` AND p.deleted_at IS NOT NULL `;
+    }
 
     sql += ` ORDER BY p.name `;
 
@@ -812,15 +833,9 @@ app.put("/api/mascotas/:id/toggle", requireAuth, async (req, res) => {
     const mascota = rows[0];
 
     if (mascota.deleted_at === null) {
-      await pool.execute(
-        `UPDATE pets SET deleted_at = NOW() WHERE id = ?`,
-        [id]
-      );
+      await pool.execute(`UPDATE pets SET deleted_at = NOW() WHERE id = ?`, [id]);
     } else {
-      await pool.execute(
-        `UPDATE pets SET deleted_at = NULL WHERE id = ?`,
-        [id]
-      );
+      await pool.execute(`UPDATE pets SET deleted_at = NULL WHERE id = ?`, [id]);
     }
 
     return res.json({
@@ -896,7 +911,6 @@ app.put("/api/mascotas/:id", requireAuth, async (req, res) => {
     });
   }
 });
-
 
 // =============================
 // GET DOCTORS
@@ -1240,35 +1254,33 @@ app.post("/api/consultas", requireAuth, upload.array("adjuntos", 10), async (req
     const saturacionOxigeno = toNullableNumber(spo2);
 
     await connection.execute(
-`   INSERT INTO consultas (
-    id,
-    pet_id,
-    client_id,
-    doctor_id,
-    fecha,
-    motivo,
-    diagnostico,
-    observaciones,
-    estado,
-    gravedad,
-    proxima_cita,
-    motivo_seguimiento,
-    peso,
-    temperatura,
-    frecuencia_cardiaca,
-    frecuencia_respiratoria,
-    presion_arterial,
-    saturacion_oxigeno,
-    atraso_notificado_at,
-    recordatorio_manana_enviado_at,
-    deleted_at,
-    created_at,
-    updated_at
-  )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NOW(), NOW())
-  `,
-[
-
+      `INSERT INTO consultas (
+        id,
+        pet_id,
+        client_id,
+        doctor_id,
+        fecha,
+        motivo,
+        diagnostico,
+        observaciones,
+        estado,
+        gravedad,
+        proxima_cita,
+        motivo_seguimiento,
+        peso,
+        temperatura,
+        frecuencia_cardiaca,
+        frecuencia_respiratoria,
+        presion_arterial,
+        saturacion_oxigeno,
+        atraso_notificado_at,
+        recordatorio_manana_enviado_at,
+        deleted_at,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NOW(), NOW())`,
+      [
         consultaId,
         pet_id,
         client_id,
@@ -1495,46 +1507,36 @@ app.get("/api/consultas/:id", requireAuth, async (req, res) => {
     const { id } = req.params;
 
     const [consultas] = await pool.execute(
-  `
-  SELECT
-    c.id,
-    c.pet_id,
-    c.client_id,
-    c.doctor_id,
-    c.fecha AS visit_at,
-    c.motivo AS reason,
-    c.diagnostico AS diagnosis,
-    c.observaciones AS notes,
-    c.estado,
-    c.gravedad,
-    c.proxima_cita,
-    c.motivo_seguimiento,
-    c.peso,
-    c.temperatura,
-    c.frecuencia_cardiaca,
-    c.frecuencia_respiratoria,
-    c.presion_arterial,
-    c.saturacion_oxigeno,
-    d.full_name AS doctor,
-    CONCAT(cl.first_name, ' ', cl.last_name) AS cliente_nombre,
-    cl.phone_primary AS cliente_telefono,
-    cl.email AS cliente_correo
-  FROM consultas c
-  LEFT JOIN doctors d
-    ON d.id = c.doctor_id
-  LEFT JOIN clients cl
-    ON cl.id = c.client_id
-  WHERE c.id = ?
-    AND c.deleted_at IS NULL
-    AND (cl.deleted_at IS NULL OR cl.deleted_at IS NULL IS NOT FALSE)
-  LIMIT 1
-  `,
-  [id]
-);
-
-
-
-    
+      `
+      SELECT
+        c.id,
+        c.pet_id,
+        c.client_id,
+        c.doctor_id,
+        c.fecha AS visit_at,
+        c.motivo AS reason,
+        c.diagnostico AS diagnosis,
+        c.observaciones AS notes,
+        c.estado,
+        c.gravedad,
+        c.proxima_cita,
+        c.motivo_seguimiento,
+        c.peso,
+        c.temperatura,
+        c.frecuencia_cardiaca,
+        c.frecuencia_respiratoria,
+        c.presion_arterial,
+        c.saturacion_oxigeno,
+        d.full_name AS doctor
+      FROM consultas c
+      LEFT JOIN doctors d
+        ON d.id = c.doctor_id
+      WHERE c.id = ?
+        AND c.deleted_at IS NULL
+      LIMIT 1
+      `,
+      [id]
+    );
 
     if (consultas.length === 0) {
       return res.status(404).json({
@@ -1638,7 +1640,6 @@ app.put("/api/consultas/:id", requireAuth, async (req, res) => {
     pet_id,
     client_id,
     fecha,
-
     motivo,
     diagnostico,
     observaciones,
@@ -1671,7 +1672,6 @@ app.put("/api/consultas/:id", requireAuth, async (req, res) => {
         pet_id = ?,
         client_id = ?,
         fecha = ?,
-        
         motivo = ?,
         diagnostico = ?,
         observaciones = ?,
@@ -1687,7 +1687,6 @@ app.put("/api/consultas/:id", requireAuth, async (req, res) => {
         pet_id || null,
         client_id || null,
         fecha || null,
-        
         motivo || null,
         diagnostico || null,
         observaciones || null,
@@ -1884,7 +1883,7 @@ app.get("/api/mascotas/:mascotaId/consultas", requireAuth, async (req, res) => {
 // =============================
 // REGISTER USER
 // =============================
-app.post("/api/auth/register", requireAuth, async (req, res) => {
+app.post("/api/auth/register", requireAuth, requireAdmin, async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
@@ -1966,7 +1965,6 @@ app.post("/api/auth/register", requireAuth, async (req, res) => {
     });
   }
 });
-
 // =============================
 // LOGIN USER
 // =============================
@@ -2069,64 +2067,12 @@ async function enviarCorreosConsultasAtrasadas() {
 
     for (const row of rows) {
       try {
-        const asunto = `Recordatorio de consulta atrasada - ${row.mascota_nombre}`;
-
-        const html = `
-<div style="font-family: Arial; padding:20px;">
-
-  <div style="text-align:center; margin-bottom:20px;">
-    <img src="cid:logoVetcare" width="120" />
-  </div>
-
-  <h2 style="text-align:center;">VetCare</h2>
-
-  <p>Hola,</p>
-
-  <p>
-    La consulta o seguimiento de su mascota <strong>${row.mascota_nombre}</strong> está atrasada.
-  </p>
-
-  <div style="background:#f4e7c5; padding:15px; border-radius:8px;">
-    <p><strong>Motivo:</strong> ${row.motivo || "No especificado"}</p>
-    <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
-  </div>
-
-  <p>Por favor comuníquese con la veterinaria para reagendar.</p>
-
-  <hr />
-
-  <p style="font-size:12px; color:gray;">
-    VetCare - Sistema automático
-  </p>
-
-</div>
-`;
-
-        await mailTransporter.sendMail({
-  from: process.env.MAIL_FROM,
-  to: row.cliente_correo,
-  subject: asunto,
-  html,
-  attachments: [
-    {
-      
-      filename: 'logo-vetcare.png',
-      path: path.join(__dirname, "../public/logo-vetcare.png"),
-      cid: 'logoVetcare'
-    }
-  ]
-});
-
-
-        await connection.execute(
-          `
-          UPDATE consultas
-          SET atraso_notificado_at = NOW(),
-              updated_at = NOW()
-          WHERE id = ?
-          `,
-          [row.id]
-        );
+        await enviarCorreoConsulta({
+          connection,
+          row,
+          tipo: "atrasada",
+          marcarNotificado: true,
+        });
 
         console.log(
           `Correo enviado por consulta atrasada. Consulta: ${row.id}, email: ${row.cliente_correo}`
@@ -2149,8 +2095,6 @@ async function enviarCorreosConsultasAtrasadas() {
 
 app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res) => {
   const { id } = req.params;
-  console.log("ENTRO AL ENDPOINT");
-  console.log("ID:", id);
 
   let connection;
 
@@ -2178,9 +2122,6 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
       [id]
     );
 
-    console.log("ROWS:", rows.length);
-    console.log("DATA:", rows[0]);
-
     if (rows.length === 0) {
       return res.status(404).json({
         message: "Consulta no válida o sin correo.",
@@ -2189,29 +2130,73 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
 
     const row = rows[0];
 
+    const html = `
+      <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f5f7fa; padding:24px;">
+        <div style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; border:1px solid #e5e7eb;">
+          
+          <div style="padding:28px 32px 10px; text-align:center;">
+            <img src="cid:logoVerde" width="72" alt="VetCare" style="display:block; margin:0 auto 12px;" />
+            <h1 style="margin:0; font-size:28px; color:#2a9d8f; font-weight:700;">VetCare</h1>
+            <p style="margin:8px 0 0; color:#6b7280; font-size:14px;">
+              Cuidado veterinario con seguimiento oportuno
+            </p>
+          </div>
+
+          <div style="padding:24px 32px 32px; color:#1f2937; line-height:1.6;">
+            <h2 style="margin:0 0 16px; font-size:22px; color:#111827; text-align:center;">
+              Recordatorio de consulta
+            </h2>
+
+            <p style="margin:0 0 16px;">
+              Estimado/a${row.cliente_nombre ? ` <strong>${row.cliente_nombre}</strong>` : ""},
+            </p>
+
+            <p style="margin:0 0 18px;">
+              Le recordamos la consulta programada para su mascota <strong>${row.mascota_nombre}</strong>.
+            </p>
+
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px; margin:20px 0;">
+              <p style="margin:0 0 10px;"><strong>Mascota:</strong> ${row.mascota_nombre}</p>
+              <p style="margin:0 0 10px;"><strong>Motivo de la consulta:</strong> ${row.motivo || "No especificado"}</p>
+              <p style="margin:0;"><strong>Fecha y hora:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
+            </div>
+
+            <p style="margin:0 0 16px;">
+              Si necesita realizar algún cambio en la cita, le recomendamos comunicarse con nosotros con anticipación.
+            </p>
+
+            <p style="margin:0 0 16px;">
+              Gracias por confiar en VetCare. Será un placer atenderle.
+            </p>
+
+            <div style="margin-top:28px; padding-top:18px; border-top:1px solid #e5e7eb; font-size:13px; color:#6b7280;">
+              <p style="margin:0 0 6px;"><strong>VetCare</strong></p>
+              <p style="margin:0;">Este es un mensaje automático enviado desde nuestro sistema.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
     await mailTransporter.sendMail({
       from: process.env.MAIL_FROM,
       to: row.cliente_correo,
       subject: `Recordatorio de consulta - ${row.mascota_nombre}`,
-      html: `
-        <div style="font-family: Arial; padding:20px;">
-          <h2 style="color:#2c3e50;">🐾 VetCare</h2>
-          <p>Hola${row.cliente_nombre ? ` ${row.cliente_nombre}` : ""},</p>
-          <p>Le recordamos la consulta de su mascota <strong>${row.mascota_nombre}</strong>.</p>
-          <p><strong>Fecha:</strong> ${formatDateForEmail(row.proxima_cita)}</p>
-          <p>Gracias por confiar en nosotros.</p>
-        </div>
-      `,
+      html,
+      attachments: [
+        {
+          filename: "logo-verde.png",
+          path: path.join(__dirname, "../public/logo-verde.png"),
+          cid: "logoVerde",
+        },
+      ],
     });
 
     return res.json({
       message: "Correo enviado manualmente.",
     });
   } catch (error) {
-    console.error("Error manual completo:", error);
-    console.error("Mensaje:", error?.message);
-    console.error("Codigo:", error?.code);
-    console.error("SQL message:", error?.sqlMessage);
+    console.error("Error manual:", error);
 
     return res.status(500).json({
       message: "Error enviando correo.",
@@ -2220,6 +2205,7 @@ app.post("/api/consultas/:id/enviar-recordatorio", requireAuth, async (req, res)
     if (connection) connection.release();
   }
 });
+
 cron.schedule("*/10 * * * *", async () => {
   console.log("Revisando consultas atrasadas y citas de mañana para enviar correos...");
   await enviarCorreosConsultasAtrasadas();
@@ -2234,11 +2220,6 @@ const PORT = process.env.PORT || 5000;
 enviarCorreosConsultasAtrasadas();
 enviarCorreosConsultasManana();
 
-app.get("/api/prueba-recordatorio", (req, res) => {
-  console.log("ENTRO A PRUEBA");
-  res.json({ ok: true, mensaje: "ruta de prueba funcionando" });
-});
-
 app.listen(PORT, () => {
-  console.log("🔥 ESTE ES EL SERVER CORRECTO 🔥");
+  console.log(`Server running on port ${PORT}`);
 });

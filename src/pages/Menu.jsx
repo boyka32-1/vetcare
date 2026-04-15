@@ -18,7 +18,7 @@ const baseMenuSections = [
             <line x1="22" y1="11" x2="16" y2="11" />
           </svg>
         ),
-        label: "Registrar Clientes",
+        label: "Registrar Usuarios",
       },
       {
         id: "registrar-mascotas",
@@ -45,7 +45,20 @@ const baseMenuSections = [
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         ),
-        label: "Ver Mascotas y Clientes",
+        label: "Ver Mascotas y Usuarios",
+      },
+
+      {
+        id: "registrar-usuarios",
+        path: "/admin/register",
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <circle cx="12" cy="11" r="3" />
+        </svg>
+                ),
+        label: "Registrar usuarios internos",
       },
     ],
   },
@@ -106,23 +119,23 @@ const baseQuickActions = [
   },
   {
     id: "registrar-clientes",
-    title: "Registrar Cliente",
+    title: "Registrar Usuario",
     path: "/clientes",
-    desc: "Agrega un nuevo cliente al sistema",
+    desc: "Agrega un nuevo usuario al sistema",
     featured: false,
   },
   {
     id: "registrar-mascotas",
     path: "/mascotas",
     title: "Registrar Mascota",
-    desc: "Vincula una mascota a un cliente existente",
+    desc: "Vincula una mascota a un usuario existente",
     featured: false,
   },
   {
     id: "ver-registrados",
-    title: "Mascotas y Clientes",
+    title: "Mascotas y Usuarios",
     path: "/Registro",
-    desc: "Consulta el listado general de clientes y mascotas",
+    desc: "Consulta el listado general de usuarios y mascotas",
     featured: false,
   },
   {
@@ -194,7 +207,7 @@ export default function MenuPage() {
 
         setStats([
           {
-            label: "Clientes",
+            label: "Usuarios",
             value: String(nextCounts.clientes),
             accent: "#2a9d8f",
           },
@@ -257,7 +270,7 @@ export default function MenuPage() {
       if (action.id === "registrar-clientes") {
         return {
           ...action,
-          desc: `${counts.clientes} clientes registrados`,
+          desc: `${counts.clientes} usuarios registrados`,
         };
       }
 

@@ -6,8 +6,10 @@
 
 .cd-container {
   width: 100%;
-  max-width: 860px;
+  max-width: 780px;
   margin: 0 auto;
+  scale: 0.8;
+  transform-origin: top center;
 }
 
 .cd-header {
@@ -60,8 +62,9 @@
 .cd-header-copy h1 {
   margin: 0 0 4px;
   color: #fff;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
+  font-family: sans-serif;
 }
 
 .cd-header-copy p {
@@ -100,6 +103,7 @@
   margin: 0;
   font-size: 2rem;
   line-height: 1.1;
+  font-family: serif;
 }
 
 .cd-header-copy p {
@@ -111,7 +115,7 @@
   background: #ffffff;
   border: 1px solid #d9e0df;
   border-radius: 24px;
-  padding: 22px;
+  padding: 18px;
   margin-bottom: 16px;
   box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
 }
@@ -121,40 +125,64 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .cd-card-title {
   margin: 0;
   color: #8ca0a7;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .cd-info-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .cd-info-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid #eef2f2;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #eef5f1;
+  border-radius: 18px;
 }
 
 .cd-info-row span {
-  color: #667085;
+  color: #111827;
+  font-weight: 700;
 }
 
 .cd-info-row strong {
-  color: #0f172a;
+  color: #527274;
   text-align: right;
+  font-weight: 600;
 }
 
+.cd-info-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cd-info-pill--open {
+  background: #dff3ea;
+  color: #0f8a5f;
+}
+
+.cd-info-pill--moderate {
+  background: #f8e9c9;
+  color: #8a5a00;
+}
 .cd-text {
   margin: 0;
   color: #1f2937;

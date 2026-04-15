@@ -102,7 +102,7 @@ body{
 }
 
 
- .statValue {
+ 
   .statValue {
   margin: 0;
   font-size: 18px;
@@ -111,7 +111,7 @@ body{
   position: relative;
   
 }
-}
+
 
 
 .toolbar {
@@ -392,4 +392,31 @@ body{
   transform: translateY(-1px);
   box-shadow: 0 8px 28px rgba(90, 175, 232, 0.45);
   filter: brightness(1.05);
+}
+
+.actionGroup {
+  display: flex;
+  flex-wrap: nowrap;   /* 👈 prevent wrapping */
+  gap: 8px;
+  align-items: center;
+}
+
+.outlineBtn,
+.outlineBtn2,
+.outlineBtn3,
+.outlineBtn4 {
+  border: 1px solid #cfe0df;
+  color: #243a44;
+  border-radius: 10px;
+
+  padding: 6px 10px;     /* 👈 smaller */
+  font-size: 16px;       /* 👈 smaller text */
+  font-weight: 600;
+
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  white-space: nowrap;   /* 👈 prevent "Enviar Correo" from breaking */
 }

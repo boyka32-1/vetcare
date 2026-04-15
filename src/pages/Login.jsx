@@ -132,9 +132,7 @@ export default function Login() {
               {loading ? "Checking..." : "Ingresar"}
             </button>
 
-            <Link to="/register" className="vc-btn-register">
-              CREAR CUENTA
-            </Link>
+            
 
             <div className="cl-note">
               <ShieldCheck size={16} />

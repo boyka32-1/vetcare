@@ -47,6 +47,8 @@ body {
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
+  scale: 0.87;
+  transform-origin: top center;
 }
 
 .rg-hero {

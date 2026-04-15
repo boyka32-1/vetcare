@@ -92,7 +92,7 @@ export default function HistorialClinico() {
                 edad: pet.age_years ?? pet.edad ?? "Sin edad",
                 clienteNombre:
                   `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() ||
-                  "Sin dueño",
+                  "Sin tutor/a",
                 consultasTotal: 0,
                 ultimaConsulta: "",
               };
@@ -128,7 +128,7 @@ export default function HistorialClinico() {
             edad: pet.age_years ?? pet.edad ?? "Sin edad",
             clienteNombre:
               `${pet.first_name ?? ""} ${pet.last_name ?? ""}`.trim() ||
-              "Sin dueño",
+              "Sin tutor/a",
             consultasTotal: consultas.length,
             ultimaConsulta,
           };

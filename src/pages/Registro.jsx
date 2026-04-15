@@ -80,7 +80,7 @@ export default function Registro() {
         try {
           clientesData = clientesRaw ? JSON.parse(clientesRaw) : [];
         } catch {
-          throw new Error("JSON inválido al cargar clientes.");
+          throw new Error("JSON inválido al cargar usuarios.");
         }
 
         try {
@@ -98,7 +98,7 @@ export default function Registro() {
 
         if (!clientesResponse.ok) {
           throw new Error(
-            clientesData?.message || "No se pudieron cargar los clientes."
+            clientesData?.message || "No se pudieron cargar los usuarios."
           );
         }
 
@@ -408,12 +408,12 @@ export default function Registro() {
 
           <div className="rg-hero-copy">
             <h1>Registro</h1>
-            <p>Clientes y mascotas registradas</p>
+            <p>Usuarios y mascotas registradas</p>
           </div>
 
           <div className="rg-hero-stats">
             <strong>{totalMascotas}</strong>
-            <span>mascotas totales</span>
+            <span>Mascotas en total</span>
           </div>
         </header>
 
@@ -423,7 +423,7 @@ export default function Registro() {
             <input
               type="text"
               className="rg-search"
-              placeholder="Buscar cliente, mascota, teléfono, ID, raza..."
+              placeholder="Buscar usuario, mascota, teléfono, ID, raza..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -471,7 +471,7 @@ export default function Registro() {
         </div>
 
           <div className="rg-results">
-            {clientesFiltrados.length} cliente
+            {clientesFiltrados.length} usuario
             {clientesFiltrados.length !== 1 ? "s" : ""}
           </div>
         </div>
@@ -481,7 +481,7 @@ export default function Registro() {
         ) : error ? (
           <div className="rg-state-card rg-state-card--error">{error}</div>
         ) : clientes.length === 0 ? (
-          <div className="rg-state-card">No hay clientes registrados.</div>
+          <div className="rg-state-card">No hay usuarios registrados.</div>
         ) : clientesFiltrados.length === 0 ? (
           <div className="rg-state-card">
             No hay coincidencias. Intenta con otro término.

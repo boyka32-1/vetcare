@@ -331,12 +331,24 @@ export default function ConsultaDetalle() {
 
               <div className="cd-info-row">
                 <span>Estado</span>
-                <strong>{consulta.estado || "Sin estado"}</strong>
+                <strong
+                  className={`cd-info-pill ${
+                    consulta.estado === "abierta" ? "cd-info-pill--open" : ""
+                  }`}
+                >
+                  {consulta.estado || "Sin estado"}
+                </strong>
               </div>
 
               <div className="cd-info-row">
                 <span>Gravedad</span>
-                <strong>{consulta.gravedad || "Sin gravedad"}</strong>
+                <strong
+                  className={`cd-info-pill ${
+                    consulta.gravedad === "moderada" ? "cd-info-pill--moderate" : ""
+                  }`}
+                >
+                  {consulta.gravedad || "Sin gravedad"}
+                </strong>
               </div>
 
               <div className="cd-info-row">

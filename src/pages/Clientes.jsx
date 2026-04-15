@@ -30,91 +30,95 @@ export default function Clientes() {
   const [fieldErrors, setFieldErrors] = useState({});
 
   const fieldRules = {
-    nombre: {
-      required: true,
-      formatter: "lettersAndAccents",
-      requiredMessage: "El nombre es obligatorio.",
-    },
-    cedula: {
-      required: true,
-      formatter: "cedula",
-      requiredMessage: "La cédula es obligatoria.",
-      validate: [
-        {
-          test: (value) => String(value).replace(/\D/g, "").length === 11,
-          message: "La cédula debe tener exactamente 11 dígitos.",
-        },
-      ],
-    },
-    telefono: {
-      required: true,
-      formatter: "phone",
-      requiredMessage: "El teléfono es obligatorio.",
-      validate: [
-        {
-          test: (value) => String(value).replace(/\D/g, "").length >= 10,
-          message: "El teléfono no puede tener menos de 10 dígitos.",
-        },
-      ],
-    },
-    telefono2: {
-      formatter: "phone",
-    },
-    correo: {
-      required: true,
-      requiredMessage: "El correo es obligatorio.",
-      validate: [
-        {
-          test: validators.email,
-          message: "Correo inválido.",
-        },
-      ],
-    },
-  };
+  nombre: {
+    required: true,
+    formatter: "lettersAndAccents",
+    requiredMessage: "El nombre es obligatorio.",
+  },
+  cedula: {
+    required: true,
+    formatter: "cedula",
+    requiredMessage: "La cédula es obligatoria.",
+    validate: [
+      {
+        test: validators.exactLength(11),
+        message: "La cédula debe tener exactamente 11 dígitos.",
+      },
+    ],
+  },
+  telefono: {
+    required: true,
+    formatter: "phone",
+    requiredMessage: "El teléfono es obligatorio.",
+    validate: [
+      {
+        test: validators.minLength(10),
+        message: "El teléfono no puede tener menos de 10 dígitos.",
+      },
+    ],
+  },
+  telefono2: {
+    formatter: "phone",
+  },
+  correo: {
+    required: true,
+    requiredMessage: "El correo es obligatorio.",
+    validate: [
+      {
+        test: validators.email,
+        message: "Correo inválido.",
+      },
+    ],
+  },
+};
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    if (name === "cedula" || name === "telefono" || name === "telefono2") {
-      const raw = String(value).replace(/\D/g, "");
-      const displayValue = applyFieldFormatting(name, value, fieldRules);
+  if (name === "cedula" || name === "telefono" || name === "telefono2") {
+    const raw = String(value).replace(/\D/g, "");
+    const displayValue = applyFieldFormatting(name, value, fieldRules);
 
-      setForm((prev) => ({
-        ...prev,
-        [name]: raw,
-        [`${name}_display`]: displayValue,
-      }));
-    } else {
-      const formattedValue = applyFieldFormatting(name, value, fieldRules);
-
-      setForm((prev) => ({
-        ...prev,
-        [name]: formattedValue,
-      }));
-    }
-
-    setFieldErrors((prev) => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: "",
+      [name]: raw,
+      [`${name}_display`]: displayValue,
     }));
-    setError("");
-  };
+  } else {
+    const formattedValue = applyFieldFormatting(name, value, fieldRules);
 
+    setForm((prev) => ({
+      ...prev,
+      [name]: formattedValue,
+    }));
+  }
+
+  setFieldErrors((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
+  setError("");
+};
   const handleGuardar = async (e) => {
     e.preventDefault();
 
     setError("");
     setFieldErrors({});
+    
+console.log("cedula raw:", form.cedula);
+console.log("cedula display:", form.cedula_display);
+console.log("cedula digits:", String(form.cedula).replace(/\D/g, "").length);
+
 
     const errors = validateFields(
-      {
-        ...form,
-        cedula: form.cedula,
-        telefono: form.telefono,
-        telefono2: form.telefono2,
-      },
-      fieldRules
-    );
+  {
+    ...form,
+    cedula: String(form.cedula).replace(/\D/g, ""),
+    telefono: String(form.telefono).replace(/\D/g, ""),
+    telefono2: String(form.telefono2 || "").replace(/\D/g, ""),
+  },
+  fieldRules
+);
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -208,9 +212,9 @@ export default function Clientes() {
     <div className="cl-body">
       <div className="cl-card">
         <div className="cl-header">
-          <h1 className="cl-title">Datos del cliente</h1>
+          <h1 className="cl-title">Datos del usuario</h1>
           <p className="cl-sub">
-            Completa la información para registrar al cliente
+            Completa la información para registrar al usuario
           </p>
         </div>
 
@@ -304,7 +308,7 @@ export default function Clientes() {
           </div>
 
           <button className="cl-btn-primary" type="submit" disabled={loading}>
-            {loading ? "Guardando..." : "Guardar cliente"}
+            {loading ? "Guardando..." : "Guardar usuario"}
           </button>
 
           <button

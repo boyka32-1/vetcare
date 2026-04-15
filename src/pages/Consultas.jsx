@@ -1124,7 +1124,7 @@ export default function ConsultaForm({ onSave }) {
                   <div className={styles.patientSearchWrap} ref={patientSearchRef}>
                     <input
                       type="text"
-                      placeholder="Buscar por nombre, raza, dueño o teléfono..."
+                      placeholder="Buscar por nombre, raza, tutor o teléfono..."
                       value={patientSearch}
                       onChange={(e) => {
                         setPatientSearch(e.target.value);
@@ -1172,7 +1172,7 @@ export default function ConsultaForm({ onSave }) {
                           {selectedPatient.raza ? ` — ${selectedPatient.raza}` : ""}
                         </div>
                         <div className={styles.pSub}>
-                          Dueño/a: {selectedPatient.clienteNombre}
+                          Tutor/a: {selectedPatient.clienteNombre}
                           {selectedPatient.clienteTelefono ? ` · ${selectedPatient.clienteTelefono}` : ""}
                         </div>
                       </div>

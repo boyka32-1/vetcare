@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./historialMascota.css";
+import Swal from "sweetalert2";
 
 const API_URL = "http://localhost:5000";
 
@@ -335,10 +336,21 @@ export default function HistorialMascota() {
           : prev
       );
 
-      alert(data.message || "Mascota actualizada correctamente.");
+      await Swal.fire({
+        icon: "success",
+        title: "Listo",
+        text: data.message || "Mascota actualizada correctamente.",
+        timer: 2200,
+        showConfirmButton: false,
+      });
       setEditMode(false);
     } catch (err) {
-      alert(err.message || "Error actualizando mascota.");
+      Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: err.message || "Error actualizando mascota.",
+      confirmButtonColor: "#dc2626",
+    });
     } finally {
       setSaving(false);
     }

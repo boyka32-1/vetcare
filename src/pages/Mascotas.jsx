@@ -38,7 +38,7 @@ export default function Mascotas() {
   const fieldRules = {
     clienteId: {
       required: true,
-      requiredMessage: "Debe seleccionar un cliente.",
+      requiredMessage: "Debe seleccionar un usuario.",
     },
     nombre: {
       required: true,
@@ -117,7 +117,7 @@ export default function Mascotas() {
         }
 
         if (!response.ok) {
-          setError(data?.message || "No se pudieron cargar los clientes.");
+          setError(data?.message || "No se pudieron cargar los usuarios.");
           return;
         }
 
@@ -280,7 +280,7 @@ export default function Mascotas() {
     setFieldErrors({});
 
     if (clientes.length === 0) {
-      setError("Debes registrar al menos un cliente primero.");
+      setError("Debes registrar al menos un usuario primero.");
       return;
     }
 
@@ -381,7 +381,7 @@ export default function Mascotas() {
           <div className="ms-grid-2">
             <div className="ms-field">
               <label htmlFor="clienteSearch">
-                Cliente asociado <span className="req">*</span>
+                Usuario asociado <span className="req">*</span>
               </label>
 
               <div className="ms-search-wrap" ref={clienteSearchRef}>
@@ -390,7 +390,7 @@ export default function Mascotas() {
                   name="clienteSearch"
                   type="text"
                   placeholder={
-                    loadingClientes ? "Cargando clientes..." : "Buscar cliente..."
+                    loadingClientes ? "Cargando usuarios..." : "Buscar usuario..."
                   }
                   value={clienteSearch}
                   onChange={(e) => {
@@ -434,7 +434,7 @@ export default function Mascotas() {
                       ))
                     ) : (
                       <div className="ms-search-empty">
-                        No se encontraron clientes.
+                        No se encontraron usuarios
                       </div>
                     )}
                   </div>

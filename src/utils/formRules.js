@@ -5,10 +5,10 @@ export const formatters = {
       .replace(/\s+/g, " ")
       .trimStart(),
 
-  onlyNumbers: (value = "") => value.replace(/\D/g, ""),
+  onlyNumbers: (value = "") => String(value).replace(/\D/g, ""),
 
   cedula: (value = "") => {
-    const digits = value.replace(/\D/g, "").slice(0, 11);
+    const digits = String(value).replace(/\D/g, "").slice(0, 11);
 
     if (digits.length <= 3) return digits;
     if (digits.length <= 10) {
@@ -18,7 +18,7 @@ export const formatters = {
   },
 
   phone: (value = "") => {
-    const digits = value.replace(/\D/g, "").slice(0, 10);
+    const digits = String(value).replace(/\D/g, "").slice(0, 10);
 
     if (digits.length <= 3) return digits;
     if (digits.length <= 6) {
@@ -28,7 +28,7 @@ export const formatters = {
   },
 
   decimalNumber: (value = "") => {
-    let clean = value.replace(/[^\d.]/g, "");
+    let clean = String(value).replace(/[^\d.]/g, "");
 
     const parts = clean.split(".");
     if (parts.length > 2) {
@@ -46,28 +46,29 @@ export const formatters = {
   },
 
   bloodPressure: (value = "") => {
-    const digits = value.replace(/\D/g, "").slice(0, 6);
+    const digits = String(value).replace(/\D/g, "").slice(0, 6);
 
     if (digits.length <= 3) return digits;
     return `${digits.slice(0, 3)}/${digits.slice(3)}`;
   },
 
-  email: (value = "") => value.trimStart(),
+  email: (value = "") => String(value).trimStart(),
 };
 
 export const validators = {
-  required: (value) => value?.toString().trim() !== "",
+  required: (value) => String(value ?? "").trim() !== "",
 
   exactLength: (length) => (value) =>
-    value?.toString().trim().length === length,
+    String(value ?? "").replace(/\D/g, "").length === length,
 
   minLength: (length) => (value) =>
-    value?.toString().trim().length >= length,
+    String(value ?? "").replace(/\D/g, "").length >= length,
 
   maxLength: (length) => (value) =>
-    value?.toString().trim().length <= length,
+    String(value ?? "").replace(/\D/g, "").length <= length,
 
-  email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
+  email: (value) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value ?? "").trim()),
 };
 
 export const applyFieldFormatting = (name, value, fieldRules) => {

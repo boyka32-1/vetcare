@@ -88,7 +88,7 @@ const [clienteForm, setClienteForm] = useState({
         try {
           clienteData = clienteRaw ? JSON.parse(clienteRaw) : [];
         } catch {
-          throw new Error("JSON inválido al cargar cliente.");
+          throw new Error("JSON inválido al cargar usuario.");
         }
 
         try {
@@ -98,7 +98,7 @@ const [clienteForm, setClienteForm] = useState({
         }
 
         if (!clienteRes.ok) {
-          throw new Error(clienteData?.message || "No se pudo cargar el cliente.");
+          throw new Error(clienteData?.message || "No se pudo cargar el usuario.");
         }
 
         if (!mascotasRes.ok) {
@@ -108,7 +108,7 @@ const [clienteForm, setClienteForm] = useState({
         }
 
         if (!Array.isArray(clienteData) || clienteData.length === 0) {
-          throw new Error("Cliente no encontrado.");
+          throw new Error("Usuario no encontrado.");
         }
 
         const cliente = clienteData[0];
@@ -224,7 +224,7 @@ setClienteForm({
 setMascotas(normalizedMascotas);
       } catch (err) {
         console.error(err);
-        setError(err.message || "No se pudo cargar el registro del cliente.");
+        setError(err.message || "No se pudo cargar el registro del usuario.");
       } finally {
         setLoading(false);
       }
@@ -290,7 +290,7 @@ const handleSaveCliente = async () => {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      throw new Error(data.message || "No se pudo actualizar el cliente.");
+      throw new Error(data.message || "No se pudo actualizar el usuario.");
     }
 
     setClienteInfo((prev) =>
@@ -307,10 +307,10 @@ const handleSaveCliente = async () => {
         : prev
     );
 
-    alert(data.message || "Cliente actualizado correctamente.");
+    alert(data.message || "Usuario actualizado correctamente.");
     setEditMode(false);
   } catch (err) {
-    alert(err.message || "Error actualizando cliente.");
+    alert(err.message || "Error actualizando usuario.");
   } finally {
     setSaving(false);
   }
@@ -453,22 +453,22 @@ const handleSaveCliente = async () => {
           </div>
 
           <div className="rcc-header-center">
-            <h1>Registro de cliente</h1>
-            <p>Detalle del cliente y sus mascotas</p>
+            <h1>Registro de usuario</h1>
+            <p>Detalle del usuario y sus mascotas</p>
           </div>
 
           
         </header>
 
         {loading ? (
-          <div className="rcc-state-card">Cargando registro del cliente...</div>
+          <div className="rcc-state-card">Cargando registro del usuario...</div>
         ) : error ? (
           <div className="rcc-state-card rcc-state-card--error">{error}</div>
         ) : (
           <>
             <section className="rcc-summary-grid">
               <article className="rcc-card">
-                <h2>CLIENTE</h2>
+                <h2>USUARIO</h2>
 
                 <div style={{ marginBottom: "10px" }}>
                   <button
@@ -677,7 +677,7 @@ const handleSaveCliente = async () => {
 
               {mascotas.length === 0 ? (
                 <div className="rcc-state-card">
-                  Este cliente no tiene mascotas registradas.
+                  Este usuario no tiene mascotas registradas.
                 </div>
               ) : (
                 <div className="rcc-list">

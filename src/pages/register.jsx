@@ -1,12 +1,15 @@
 import "./register.css";
 import { useState } from "react";
 import { User, Mail, Lock, ShieldCheck, Phone, IdCard } from "lucide-react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   applyFieldFormatting,
   validateFields,
   validators,
 } from "../utils/formRules";
+
+
 
 export default function CreateAccountVetCare() {
   const navigate = useNavigate();
@@ -20,6 +23,30 @@ export default function CreateAccountVetCare() {
     password: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const userRaw = localStorage.getItem("user");
+
+  if (!token || !userRaw) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+    return;
+  }
+
+  try {
+    const user = JSON.parse(userRaw);
+
+    if (user.role !== "ADMIN") {
+      navigate("/menu", { replace: true });
+    }
+  } catch {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+  }
+}, [navigate]);
 
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
@@ -115,6 +142,14 @@ export default function CreateAccountVetCare() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/", { replace: true });
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -122,6 +157,7 @@ export default function CreateAccountVetCare() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: formData.email.trim(),
@@ -167,8 +203,8 @@ export default function CreateAccountVetCare() {
           <div className="cl-header-circle cl-header-circle--right"></div>
 
           <div className="cl-header-content">
-            <h1 className="cl-title">Crear cuenta</h1>
-            <p className="cl-sub">Llena la informacion para comenzar</p>
+            <h1 className="cl-title">Agregar usuario</h1>
+            <p className="cl-sub">Llena la informacion para continuar</p>
           </div>
         </div>
 
@@ -183,7 +219,7 @@ export default function CreateAccountVetCare() {
         <input
           type="text"
           name="nombre"
-          placeholder="Enter your first name"
+          placeholder="Introduce tu nombre"
           value={formData.nombre}
           onChange={handleChange}
         />
@@ -198,7 +234,7 @@ export default function CreateAccountVetCare() {
         <input
           type="text"
           name="apellido"
-          placeholder="Enter your last name"
+          placeholder="Introduce tu apellido"
           value={formData.apellido}
           onChange={handleChange}
         />
@@ -213,7 +249,7 @@ export default function CreateAccountVetCare() {
         <input
           type="text"
           name="cedula"
-          placeholder="Enter your ID"
+          placeholder="Introduce tu cédula"
           value={formData.cedula}
           onChange={handleChange}
           maxLength={11}
@@ -229,7 +265,7 @@ export default function CreateAccountVetCare() {
         <input
           type="text"
           name="telefono"
-          placeholder="Enter your phone"
+          placeholder="Introduce tu teléfono"
           value={formData.telefono}
           onChange={handleChange}
           maxLength={10}
@@ -245,7 +281,7 @@ export default function CreateAccountVetCare() {
         <input
           type="email"
           name="email"
-          placeholder="Enter your email address"
+          placeholder="Introduce tu dirección de email"
           value={formData.email}
           onChange={handleChange}
         />
@@ -260,7 +296,7 @@ export default function CreateAccountVetCare() {
         <input
           type="password"
           name="password"
-          placeholder="Choose a password"
+          placeholder="Introduce una contraseña"
           value={formData.password}
           onChange={handleChange}
         />
@@ -275,7 +311,7 @@ export default function CreateAccountVetCare() {
         <input
           type="password"
           name="confirmPassword"
-          placeholder="Repeat your password"
+          placeholder="Confirma tu contraseña"
           value={formData.confirmPassword}
           onChange={handleChange}
         />
@@ -294,7 +330,7 @@ export default function CreateAccountVetCare() {
   </button>
 
   <Link to="/" className="cl-btn-secondary">
-    Devuelta al inicio de sesión
+    Devuelta al menú
   </Link>
 
   <div className="cl-note">
