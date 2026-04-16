@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./registroCliente.css";
+import "./RegistroCliente.css";
 
 const API_URL = "http://localhost:5000";
 

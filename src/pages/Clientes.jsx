@@ -173,7 +173,7 @@ console.log("cedula digits:", String(form.cedula).replace(/\D/g, "").length);
       if (!response.ok) {
         Swal.fire({
           title: "Error",
-          text: data.message || "Could not save client.",
+          text: data.message || "No se pudo guardar el usuario.",
           timer: 4000,
           showConfirmButton: false,
           icon: "error",
@@ -183,7 +183,7 @@ console.log("cedula digits:", String(form.cedula).replace(/\D/g, "").length);
 
       Swal.fire({
         title: "Listo",
-        text: data.message || "Client saved successfully.",
+        text: data.message || "Usuario guardado exitosamente.",
         icon: "success",
         timer: 4000,
         showConfirmButton: false,
@@ -202,7 +202,7 @@ console.log("cedula digits:", String(form.cedula).replace(/\D/g, "").length);
       });
     } catch (err) {
       console.error(err);
-      setError("Could not connect to the server.");
+      setError("No se pudo conectar al servidor.");
     } finally {
       setLoading(false);
     }
