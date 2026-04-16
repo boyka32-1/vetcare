@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - vetcare
+name: Build and deploy Node.js app to Azure Web App - VetCare
 
 on:
   push:
@@ -51,15 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_45B9BD1F065543CC8E13418BB2EE90CF }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F31BFFA3E7164A089F301652BF568AF9 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8BCA53879A104D4DA17089E4C826B14B }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A286EB1322ED4D48AB7E467C70B81A14 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_54FC72FF941B4C9F9FF8B47936709728 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_849C37B1A0BD4DF3A6C55E10E2EF3A20 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'vetcare'
+          app-name: 'VetCare'
           slot-name: 'Production'
           package: .
           
