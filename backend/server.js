@@ -76,6 +76,9 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 const mailTransporter = nodemailer.createTransport({
@@ -518,6 +521,37 @@ app.get("/api/clientes", requireAuth, async (req, res) => {
     });
   }
 });
+
+
+//DB de azure
+
+app.get("/db-check", async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT NOW() AS now_time");
+    res.json({ ok: true, rows });
+  } catch (error) {
+    console.error("DB CHECK ERROR:", error);
+    res.status(500).json({
+      ok: false,
+      message: error.message,
+      code: error.code || null,
+      sqlMessage: error.sqlMessage || null,
+    });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // =============================
 // REGISTER PET
