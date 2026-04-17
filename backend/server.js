@@ -13,13 +13,9 @@ import rateLimit from "express-rate-limit";
 import nodemailer from "nodemailer";
 import cron from "node-cron";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "../dist")));
-
-app.get("/test", (req, res) => {
-  res.json({ ok: true, message: "backend funcionando correctamente" });
-});
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
@@ -38,6 +34,15 @@ app.use(
     },
   })
 );
+
+app.use(express.json());
+
+const distPath = path.join(__dirname, "../dist");
+app.use(express.static(distPath));
+
+app.get("/test", (req, res) => {
+  res.json({ ok: true, message: "backend funcionando correctamente" });
+});
 
 app.use(express.json());
 
@@ -373,9 +378,6 @@ app.use("/api", apiLimiter);
 // =============================
 // ROOT
 // =============================
-app.get("/", (req, res) => {
-  res.send("API running");
-});
 
 // =============================
 // TEST ROUTE
@@ -2251,6 +2253,9 @@ cron.schedule("*/10 * * * *", async () => {
   await enviarCorreosConsultasManana();
 });
 
+app.get("/{*any}", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
+});
 // =============================
 // SERVER
 // =============================

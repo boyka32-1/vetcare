@@ -420,7 +420,7 @@ export default function Mascotas() {
                           type="button"
                           key={cliente.id}
                           className={`ms-search-item ${
-                            highlightedClienteIndex === index ? "active" : ""
+                            highlightedCliente === index ? "active" : ""
                           }`}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => selectCliente(cliente)}
