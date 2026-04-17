@@ -17,8 +17,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "../dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../dist", "index.html"));
+app.get("/test", (req, res) => {
+  res.json({ ok: true, message: "backend funcionando correctamente" });
 });
 
 dotenv.config({ path: path.join(__dirname, ".env") });
