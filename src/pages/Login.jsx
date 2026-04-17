@@ -13,7 +13,7 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL || "";
   const passType = useMemo(() => (showPass ? "text" : "password"), [showPass]);
 
   const handleSubmit = async (e) => {
@@ -28,7 +28,7 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
