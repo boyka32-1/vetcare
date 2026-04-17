@@ -318,15 +318,7 @@ function requireAuth(req, res, next) {
       });
     }
 
-    function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== "ADMIN") {
-    return res.status(403).json({
-      message: "Acceso denegado. Solo administradores.",
-    });
-  }
-
-  next();
-}
+   
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
