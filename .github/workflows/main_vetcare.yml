@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -21,19 +21,19 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '24.x'
+          node-version: '22.x'
 
       - name: npm install, build, and test
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
-
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,13 +51,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8F67073CC9BC488F83A49573819384F2 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_894E2238174E4D148C10159370738475 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AB9CF31055444256B27A06C098898BA5 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0DCD45F354FF45DF83DFE292B58444A4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7FB2E26CF52E4C94B925E2B614D27DD5 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6A8BFA0AB454437A90D8C73875FEB597 }}
 
       - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
           app-name: 'VetCare'
           slot-name: 'Production'
